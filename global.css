@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --color-background: 255 255 255;
+    --color-text: 15 23 42;
+    --color-primary: 37 99 235; /* Primary Brand Color */
+  }
+
+  .dark {
+    --color-background: 15 23 42;
+    --color-text: 248 250 252;
+    --color-primary: 59 130 246; /* Dark mode primary */
+  }
+}
