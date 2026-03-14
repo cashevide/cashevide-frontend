@@ -46,10 +46,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
 
-  signup: async (email, username, password, full_name, referralCode) => {
+  signup: async (email, username, password, full_name, referralCodeInput) => {
     set({ isLoading: true, error: null });
     try {
-      const data = await registerUser(email, username, password, full_name, referralCode);
+      const data = await registerUser(email, username, password, full_name, referralCodeInput);
 
       if (data && data.access) {
         await setToken("access_token", data.access);

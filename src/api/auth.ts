@@ -17,12 +17,42 @@ export const loginUser = async (email: string, password: string,) => {
   }
 };
 
+export const requestSignupOtp = async (email: string) => {
+  try {
+    const response = await api.post('users/signup-request-otp/', { email })
+    return response.data;
+
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const verifySignupOtp = async (email: string, otp: string) => {
+  try {
+    const response = await api.post('users/signup-verify-otp/', { email, otp });
+    return response.data
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const checkUsernameAvailability = async (username: string) => {
+  try {
+
+    const response = await api.get(`users/check-user/?field=username&value=${username}`);
+    return response.data.is_available
+
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const registerUser = async (
   email: string,
   username: string,
   password: string,
   full_name: string,
-  referralCode: string
+  referralCodeInput: string
 ) => {
   try {
     const response = await api.post("users/signup/", {
@@ -30,7 +60,7 @@ export const registerUser = async (
       username,
       password,
       full_name,
-      referral_code_input: referralCode,
+      referral_code_input: referralCodeInput,
       platform,
     });
     return response.data;

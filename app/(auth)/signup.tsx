@@ -8,7 +8,7 @@ export default function SignUpScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [full_name, setFullName] = useState('');
-  const [referralCode, setReferralCode] = useState('')
+  const [referralCodeInput, setReferralCode] = useState('')
 
   const router = useRouter()
   const { signup, isLoading, error } = useAuthStore()
@@ -20,7 +20,7 @@ export default function SignUpScreen() {
       return;
     }
 
-    await signup(email, username, password, full_name, referralCode);
+    await signup(email, username, password, full_name, referralCodeInput);
 
   }
 
@@ -72,7 +72,7 @@ export default function SignUpScreen() {
       <TextInput
         className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-lg"
         placeholder="Referral code"
-        value={referralCode}
+        value={referralCodeInput}
         onChangeText={setReferralCode}
         autoCapitalize="none"
       />
