@@ -1,6 +1,7 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { useThemeStore } from "@/src/store/useThemeStore";
 import { useColorScheme } from "nativewind";
+import { Text } from "@/src/components/ui/Text";
 
 export default function ReviewPage() {
   const { theme, setTheme } = useThemeStore();
@@ -18,11 +19,11 @@ export default function ReviewPage() {
   return (
     <View className="flex-1 items-center justify-center bg-background">
 
-      <Text className="text-3xl font-bold text-text mb-4">
+      <Text variant="h1" className="font-sans text-3xl font-bold text-heading mb-4">
         Hello Noufal! 👋
       </Text>
 
-      <Text className="text-lg text-text mb-8">
+      <Text className=" text-lg text-heading mb-8">
         Current Mode: {colorScheme}
       </Text>
       <TouchableOpacity

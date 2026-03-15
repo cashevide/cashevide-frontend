@@ -4,14 +4,34 @@
 
 @layer base {
   :root {
-    --color-background: 255 255 255;
-    --color-text: 15 23 42;
-    --color-primary: 37 99 235; /* Primary Brand Color */
+    /* Background Colors */
+    --color-background: 255 255 255;      /* White Background */
+    --color-card: 255 255 255;            /* Card Background */
+    --color-input: 241 245 249;           /* Light Gray for Inputs */
+
+    /* Text Colors */
+    --color-heading: 0 0 0;            /* Dark Slate for Headings */
+    --color-body: 71 85 105;              /* Gray for Body/Labels */
+    --color-btn-text: 255 255 255;        /* White Text for Primary Button */
+
+    /* Brand Colors */
+    --color-primary: 59 130 246;          /* Blue (Buttons) */
+    --color-link: 59 130 246;             /* Blue (Links) */
   }
 
   .dark {
-    --color-background: 15 23 42;
-    --color-text: 248 250 252;
-    --color-primary: 59 130 246; /* Dark mode primary */
+    /* Background Colors */
+    --color-background: 0 0 0;            /* Pitch Black Background */
+    --color-card: 0 0 0;                  /* Dark Card Background */
+    --color-input: 23 23 23;              /* Dark Gray for Inputs */
+
+    /* Text Colors */
+    --color-heading: 255 255 255;         /* White for Headings */
+    --color-body: 156 163 175;            /* Light Gray for Body/Labels */
+    --color-btn-text: 255 255 255;        /* White Text for Primary Button */
+
+    /* Brand Colors */
+    --color-primary: 59 130 246;          /* Blue remains same or change if needed */
+    --color-link: 59 130 246;             /* Blue (Links) */
   }
 }

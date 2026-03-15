@@ -16,10 +16,10 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className='flex-1 w-full #bg-black'>
-      <View className='flex-1 w-full max-w-[1200px] bg-white mx-auto justify-center'>
+    <View className='flex-1 w-full #bg-primary'>
+      <View className='flex-1 w-full max-w-[1200px] bg-heading mx-auto justify-center'>
         <View className="flex-1 w-full md:w-1/2 mx-auto items-center justify-center bg-white px-5">
-          <Text className="text-3xl font-bold mb-8 text-blue-600">Zymino Login</Text>
+          <Text className="text-3xl font-bold mb-8 text-primary">Cashivide Login</Text>
 
           {/* Email Input */}
           <TextInput
