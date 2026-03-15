@@ -1,0 +1,39 @@
+import { View, ViewProps } from 'react-native';
+
+interface ColumnProps extends ViewProps {
+  justify?: 'start' | 'center' | 'end' | 'between' | 'around';
+  items?: 'start' | 'center' | 'end' | 'stretch';
+}
+
+export function Column({
+  className = '',
+  justify = 'start',
+  items = 'stretch',
+  children,
+  ...props
+}: ColumnProps) {
+
+  const justifyMap = {
+    start: 'justify-start',
+    center: 'justify-center',
+    end: 'justify-end',
+    between: 'justify-between',
+    around: 'justify-around',
+  };
+
+  const itemsMap = {
+    start: 'items-start',
+    center: 'items-center',
+    end: 'items-end',
+    stretch: 'items-stretch',
+  };
+
+  const justifyClass = justify ? justifyMap[justify] : '';
+  const itemsClass = items ? itemsMap[items] : '';
+
+  return (
+    <View className={`flex-col ${justifyClass} ${itemsClass} ${className}`} {...props}>
+      {children}
+    </View>
+  );
+}

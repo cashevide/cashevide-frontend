@@ -1,13 +1,18 @@
-import { View, Text, TouchableOpacity } from "react-native"
+import { View, TouchableOpacity } from "react-native"
 import { useRouter } from "expo-router"
+import { Text } from "@/src/components/ui/Text";
+
+
+import { Button } from '../../src/components/ui/Button';
+
 export default function WelcomeScreen() {
 
   const router = useRouter();
   return (
     <View className="flex-1 justify-center px-6 bg-white">
-      <View className="flex-1 w-full max-w-[800px] mx-auto justify-center items-center">
+      <View className="flex-1 w-full max-w-[800px] mx-auto justify-center items-center bg-background">
 
-        <Text className="text-3xl font-bold text-center mb-10 text-gray-800">
+        <Text variant="h1" className="text-3xl font-bold text-center mb-10 text-gray-800">
           Welcome to Cashevide
         </Text>
         <View className="w-full">
@@ -23,7 +28,7 @@ export default function WelcomeScreen() {
           {/* Email Button */}
           <TouchableOpacity
             className="bg-blue-600 p-4 rounded-2xl mb-6 items-center shadow-sm"
-            onPress={() => router.push('/(auth)/signup')}
+            onPress={() => router.push('/(auth)/signup-referral')}
           >
             <Text className="text-white font-semibold text-lg">Continue with Email</Text>
           </TouchableOpacity>
@@ -31,11 +36,14 @@ export default function WelcomeScreen() {
         </View>
 
         {/* Login Footer */}
-        <View className="flex-row justify-center items-center mt-4">
+        <View className="justify-center items-center mt-4">
           <Text className="text-gray-600">Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-            <Text className="text-blue-600 font-bold">Login</Text>
-          </TouchableOpacity>
+          <Button
+            title="Login"
+            variant="ghost"
+            className="mt-4"
+            onPress={() => router.push('/(auth)/login')}
+          />
         </View>
 
       </View>

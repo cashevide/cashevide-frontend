@@ -1,29 +1,34 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { useRouter } from 'expo-router';
 
+import { Text } from '../../src/components/ui/Text';
+import { Button } from '../../src/components/ui/Button';
+import { Input } from '../../src/components/ui/Input';
+import { Container } from '../../src/components/ui/Container';
+
+import { Column } from '../../src/components/layout/Column';
+import { Center } from '../../src/components/layout/Center';
+
 export default function LoginScreen() {
   const { login, isLoading, error } = useAuthStore();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const router = useRouter()
+  const router = useRouter();
 
   const handleLogin = () => {
     login(email, password);
   };
 
   return (
-    <View className='flex-1 w-full #bg-primary'>
-      <View className='flex-1 w-full max-w-[1200px] bg-heading mx-auto justify-center'>
-        <View className="flex-1 w-full md:w-1/2 mx-auto items-center justify-center bg-white px-5">
-          <Text className="text-3xl font-bold mb-8 text-primary">Cashivide Login</Text>
+    <Column className="flex-1 w-full bg-background">
+      <Container variant="default" className="flex-1 justify-center">
 
-          {/* Email Input */}
-          <TextInput
-            className="w-full bg-gray-100 p-4 rounded-lg mb-4 border border-gray-200"
+        <Center className="w-full md:w-1/2 mx-auto bg-card px-5">
+
+          <Text variant="h1" className="mb-8">Cashevide Login</Text>
+
+          <Input
             placeholder="Email Address"
             value={email}
             onChangeText={setEmail}
@@ -31,37 +36,31 @@ export default function LoginScreen() {
             keyboardType="email-address"
           />
 
-          {/* Password Input */}
-          <TextInput
-            className="w-full bg-gray-100 p-4 rounded-lg mb-6 border border-gray-200"
+          <Input
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            isPassword={true}
+            className="mb-2"
           />
 
-          {/* Error Message */}
           {error && <Text className="text-red-500 mb-4">{error}</Text>}
 
-          {/* Login Button */}
-          <TouchableOpacity
+          <Button
+            title="Login"
             onPress={handleLogin}
-            disabled={isLoading}
-            className="w-full bg-blue-600 p-4 rounded-lg items-center mb-4"
-          >
-            {isLoading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white font-bold text-lg">Login</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-            <Text className="text-center text-blue-500 text-base">
-              Don't have an account? Signup here
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+            isLoading={isLoading}
+            className="mb-4"
+          />
+
+          <Button
+            title="Don't have an account? Signup here"
+            variant="ghost"
+            onPress={() => router.push('/(auth)/signup')}
+          />
+
+        </Center>
+      </Container>
+    </Column>
   );
 }

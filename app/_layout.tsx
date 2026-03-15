@@ -68,24 +68,8 @@ export default function RootLayout() {
 
   }, [isAuthenticated, segments, isReady, rootNavigationState?.key, fontsLoaded, fontError]);
 
-  useEffect(() => {
-    if (!isReady || !rootNavigationState?.key) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/welcome');
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)/reviews');
-    }
-
-    setTimeout(() => {
-      SplashScreen.hideAsync();
-    }, 100);
-
-  }, [isAuthenticated, segments, isReady, rootNavigationState?.key]);
-
-  if (!isReady) {
+  if (!isReady || (!fontsLoaded && !fontError)) {
     return null;
   }
 
