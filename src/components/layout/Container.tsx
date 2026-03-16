@@ -3,13 +3,13 @@ import { twMerge } from 'tailwind-merge';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface ContainerProps extends ViewProps {
-  variant?: 'narrow' | 'default' | 'wide' | 'full';
+  variant?: 'narrow' | 'desktop' | 'full';
   className?: string;
   safeArea?: boolean;
 }
 
 export function Container({
-  variant = 'default',
+  variant = 'full',
   className = '',
   safeArea = false,
   children,
@@ -19,10 +19,9 @@ export function Container({
   const getMaxWidthClass = () => {
     switch (variant) {
       case 'narrow': return 'max-w-[480px]';
-      case 'default': return 'max-w-[1200px]';
-      case 'wide': return 'max-w-[1800px]';
+      case 'desktop': return 'max-w-[1200px]';
       case 'full': return 'w-full';
-      default: return 'max-w-[1200px]';
+      default: return 'w-full';
     }
   };
 

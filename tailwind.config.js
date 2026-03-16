@@ -28,6 +28,10 @@ module.exports = {
           DEFAULT: "var(--color-primary)",
           foreground: "var(--color-primary-foreground)",
         },
+        brand: {
+          DEFAULT: "var(--color-brand)",
+          foreground: "var(--color-brand-foreground)",
+        },
         secondary: {
           DEFAULT: "var(--color-secondary)",
           foreground: "var(--color-secondary-foreground)",

@@ -16,8 +16,8 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <Container safeArea variant='full'>
-      <Container variant="narrow" className="justify-center items-center">
+    <Container safeArea>
+      <Container variant="desktop" className="justify-center items-center">
         <Button
           title="🎨 View Design System"
           variant="primary"

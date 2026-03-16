@@ -5,7 +5,7 @@ import { Text } from '@/src/components/ui/Text';
 
 export default function TypographyGallery() {
   return (
-    <Container className="bg-background" safeArea={false}>
+    <Container variant='desktop' className="bg-background" safeArea={false}>
       <ScrollView className="flex-1 px-6 pt-4 pb-10">
 
         <Column className="mb-8">

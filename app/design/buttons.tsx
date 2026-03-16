@@ -11,7 +11,7 @@ export default function ButtonsGallery() {
   return (
     <Container variant='full'>
 
-      <Container variant='default' className="bg-background">
+      <Container variant='desktop' className="bg-background">
         <ScrollView className="flex-1 px-6 pt-4 pb-10">
 
           <Column className="mb-8">
@@ -27,7 +27,7 @@ export default function ButtonsGallery() {
             <Column className="space-y-4">
               <Text variant="h3">Variants</Text>
               <View className="flex-wrap flex-row gap-4">
-                <Button title="Default" variant="default" />
+                <Button title="Default" variant="brand" />
                 <Button title="Primary" variant="primary" />
                 <Button title="Secondary" variant="secondary" />
                 <Button title="Destructive" variant="destructive" />
@@ -48,7 +48,7 @@ export default function ButtonsGallery() {
               <Row className="gap-4">
                 <Button
                   title="Add Client"
-                  variant="default"
+                  variant="brand"
                   leftIcon={<PlusIcon size={20} />}
                 />
                 <Button
@@ -64,7 +64,7 @@ export default function ButtonsGallery() {
               <Text variant="h3">States</Text>
               <Row className="gap-4">
                 <Button title="Loading..." variant="primary" isLoading />
-                <Button title="Disabled" variant="default" disabled />
+                <Button title="Disabled" variant="brand" disabled />
               </Row>
             </Column>
 

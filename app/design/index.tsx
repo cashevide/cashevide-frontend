@@ -17,7 +17,7 @@ export default function DesignSystemIndex() {
   ];
 
   return (
-    <Container className="bg-background" safeArea>
+    <Container variant='desktop' className="bg-background" safeArea>
       <ScrollView className="flex-1 px-6 pt-4">
 
         <Column className="mb-8">

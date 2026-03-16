@@ -6,7 +6,7 @@ import { Input } from '@/src/components/ui/Input';
 
 export default function InputsGallery() {
   return (
-    <Container className="bg-background" safeArea={false}>
+    <Container variant='desktop' className="bg-background" safeArea={false}>
       <ScrollView className="flex-1 px-6 pt-4 pb-10">
 
         <Column className="mb-8">
@@ -42,12 +42,23 @@ export default function InputsGallery() {
             />
           </Column>
 
-          <Column pb-10>
+          <Column>
             <Text variant="h3" className="mb-4">Error State</Text>
             <Input
-              label="Referral Code"
-              placeholder="Enter referral code"
-              error="Invalid referral code. Please try again."
+              label="Username"
+              placeholder="Choose a username"
+              value="admin"
+              error="This username is already taken. Please try another."
+            />
+          </Column>
+
+          <Column pb-10>
+            <Text variant="h3" className="mb-4">Success State</Text>
+            <Input
+              label="Username"
+              placeholder="Choose a username"
+              value="noufal_designer"
+              isSuccess={true}
             />
           </Column>
 

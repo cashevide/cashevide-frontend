@@ -5,8 +5,8 @@
 @layer base {
   :root, .light {
     /* 1. Base Colors */
-    --color-background: #ffffff;
-    --color-foreground: #09090b;
+    --color-background: #fcfcfe;
+    --color-foreground: #010101;
 
     /* 2. Surfaces */
     --color-card: #ffffff;
@@ -15,17 +15,19 @@
     --color-popover-foreground: #09090b;
 
     /* 3. Brand / Action Colors */
-    --color-primary: #0878d4;
-    --color-primary-foreground: #f2f2ff;
+    --color-primary: #010101;
+    --color-primary-foreground: #fcfcfe;
+    --color-brand: #377aff;
+    --color-brand-foreground: #ffffff;
     --color-secondary: #f4f4f5;
     --color-secondary-foreground: #18181b;
     --color-accent: #f4f4f5;
     --color-accent-foreground: #18181b;
 
     /* 4. Semantic / Feedback */
-    --color-destructive: #ef4444;
+    --color-destructive: #c91221;
     --color-destructive-foreground: #fafafa;
-    --color-success: #22c55e;
+    --color-success: #09ba38;
     --color-success-foreground: #ffffff;
 
     /* 5. Muted  */
@@ -33,15 +35,15 @@
     --color-muted-foreground: #71717a;
 
     /* 6. UI Elements */
-    --color-border: #e4e4e7;
+    --color-border: #dcdcdf;
     --color-input: #e4e4e7;
     --color-ring: #18181b;
   }
 
   .dark {
     /* 1. Base Colors */
-    --color-background: #09090b;
-    --color-foreground: #fafafa;
+    --color-background: #010101;
+    --color-foreground: #fcfcfe;
 
     /* 2. Surfaces */
     --color-card: #09090b;
@@ -50,17 +52,19 @@
     --color-popover-foreground: #fafafa;
 
     /* 3. Brand / Action Colors */
-    --color-primary: #0878d4;
-    --color-primary-foreground: #f2f2ff;
+    --color-primary: #fcfcfe;
+    --color-primary-foreground: #010101;
+    --color-brand: #377aff;
+    --color-brand-foreground: #ffffff;
     --color-secondary: #27272a;
     --color-secondary-foreground: #fafafa;
     --color-accent: #27272a;
     --color-accent-foreground: #fafafa;
 
     /* 4. Semantic / Feedback */
-    --color-destructive: #7f1d1d;
+    --color-destructive: #c91221;
     --color-destructive-foreground: #fafafa;
-    --color-success: #14532d;
+    --color-success: #09ba38;
     --color-success-foreground: #ffffff;
 
     /* 5. Muted */
@@ -69,7 +73,7 @@
 
     /* 6. UI Elements */
     --color-border: #27272a;
-    --color-input: #27272a;
+    --color-input: #171717;
     --color-ring: #d4d4d8;
   }
 }
