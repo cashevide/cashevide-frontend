@@ -30,13 +30,13 @@ export function Input({
     <View className={twMerge('w-full mb-4', className)}>
 
       {label && (
-        <Text className="mb-2 font-medium text-foreground">{label}</Text>
+        <Text variant="small" className="mb-2">{label}</Text>
       )}
 
       <View className="relative w-full justify-center">
         <TextInput
           className={twMerge(
-            'w-full bg-input text-foreground p-4 rounded-lg border placeholder:text-muted-foreground',
+            'w-full h-[56px] px-4 bg-input text-foreground rounded-[16px] border placeholder:text-muted-foreground',
             borderClass,
             (isPassword || error || isSuccess) ? 'pr-12' : ''
           )}
@@ -71,7 +71,7 @@ export function Input({
       </View>
 
       {error && (
-        <Text className="text-destructive text-sm mt-1">{error}</Text>
+        <Text variant="small" className="text-destructive mt-1">{error}</Text>
       )}
 
     </View>

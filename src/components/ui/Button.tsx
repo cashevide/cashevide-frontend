@@ -77,7 +77,7 @@ export function Button({
     <TouchableOpacity
       activeOpacity={0.7}
       className={twMerge(
-        'flex-row py-4 px-6 rounded-full items-center justify-center',
+        'flex-row h-[52px] px-6 rounded-full items-center justify-center',
         widthClass,
         getBgClass(),
         opacityClass,

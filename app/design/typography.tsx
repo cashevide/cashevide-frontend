@@ -16,6 +16,8 @@ export default function TypographyGallery() {
         </Column>
 
         <Column className="space-y-6">
+
+          {/* --- Headings --- */}
           <Column className="space-y-2 border-b border-border pb-4">
             <Text variant="caption" className="text-muted-foreground">Variant: h1</Text>
             <Text variant="h1">Heading 1</Text>
@@ -32,8 +34,14 @@ export default function TypographyGallery() {
           </Column>
 
           <Column className="space-y-2 border-b border-border pb-4">
-            <Text variant="caption" className="text-muted-foreground">Variant: subheading</Text>
-            <Text variant="subheading">Subheading Text</Text>
+            <Text variant="caption" className="text-muted-foreground">Variant: h4</Text>
+            <Text variant="h4">Heading 4</Text>
+          </Column>
+
+          {/* --- Body Text --- */}
+          <Column className="space-y-2 border-b border-border pb-4">
+            <Text variant="caption" className="text-muted-foreground">Variant: large</Text>
+            <Text variant="large">Large body text. Great for subheadings.</Text>
           </Column>
 
           <Column className="space-y-2 border-b border-border pb-4">
@@ -42,14 +50,37 @@ export default function TypographyGallery() {
           </Column>
 
           <Column className="space-y-2 border-b border-border pb-4">
+            <Text variant="caption" className="text-muted-foreground">Variant: small</Text>
+            <Text variant="small">Small body text for secondary information.</Text>
+          </Column>
+
+          {/* --- Muted & Micro-copy --- */}
+          <Column className="space-y-2 border-b border-border pb-4">
+            <Text variant="caption" className="text-muted-foreground">Variant: muted</Text>
+            <Text variant="muted">Muted text that doesn't need much attention.</Text>
+          </Column>
+
+          <Column className="space-y-2 border-b border-border pb-4">
             <Text variant="caption" className="text-muted-foreground">Variant: caption</Text>
-            <Text variant="caption">Caption text for smaller details, hints, or footnotes.</Text>
+            <Text variant="caption">Caption text for hints or footnotes.</Text>
+          </Column>
+
+          <Column className="space-y-2 border-b border-border pb-4">
+            <Text variant="caption" className="text-muted-foreground">Variant: overline</Text>
+            <Text variant="overline">Overline text</Text>
+          </Column>
+
+          {/* --- Interactive Elements --- */}
+          <Column className="space-y-2 border-b border-border pb-4">
+            <Text variant="caption" className="text-muted-foreground">Variant: link</Text>
+            <Text variant="link">Clickable Link Style</Text>
           </Column>
 
           <Column className="space-y-2 pb-10">
             <Text variant="caption" className="text-muted-foreground">Variant: button</Text>
             <Text variant="button">Button Text Style</Text>
           </Column>
+
         </Column>
 
       </ScrollView>

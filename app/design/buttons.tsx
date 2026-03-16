@@ -11,7 +11,7 @@ export default function ButtonsGallery() {
   return (
     <Container variant='full'>
 
-      <Container variant='desktop' className="bg-background">
+      <Container variant='narrow' className="bg-background">
         <ScrollView className="flex-1 px-6 pt-4 pb-10">
 
           <Column className="mb-8">

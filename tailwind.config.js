@@ -12,6 +12,7 @@ module.exports = {
         /* 1. Base Colors */
         background: "var(--color-background)",
         foreground: "var(--color-foreground)",
+        "body-text": "var(--color-body-text)",
 
         /* 2. Surfaces */
         card: {

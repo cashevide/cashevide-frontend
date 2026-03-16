@@ -26,7 +26,7 @@ export function GoogleButton({
     <TouchableOpacity
       activeOpacity={0.7}
       className={twMerge(
-        'flex-row py-4 px-6 rounded-full items-center justify-center bg-white border border-border dark:border-transparent',
+        'flex-row h-[52px] px-6 rounded-full items-center justify-center bg-white border border-border dark:border-transparent',
         widthClass,
         opacityClass,
         className
