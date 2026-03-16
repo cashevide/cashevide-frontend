@@ -1,36 +1,75 @@
-@tailwind base; @tailwind components;
+@tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Background Colors */
-    --color-background: 255 255 255;      /* White Background */
-    --color-card: 255 255 255;            /* Card Background */
-    --color-input: 241 245 249;           /* Light Gray for Inputs */
+  :root, .light {
+    /* 1. Base Colors */
+    --color-background: #ffffff;
+    --color-foreground: #09090b;
 
-    /* Text Colors */
-    --color-heading: 0 0 0;            /* Dark Slate for Headings */
-    --color-body: 71 85 105;              /* Gray for Body/Labels */
-    --color-btn-text: 255 255 255;        /* White Text for Primary Button */
+    /* 2. Surfaces */
+    --color-card: #ffffff;
+    --color-card-foreground: #09090b;
+    --color-popover: #ffffff;
+    --color-popover-foreground: #09090b;
 
-    /* Brand Colors */
-    --color-primary: 59 130 246;          /* Blue (Buttons) */
-    --color-link: 59 130 246;             /* Blue (Links) */
+    /* 3. Brand / Action Colors */
+    --color-primary: #0878d4;
+    --color-primary-foreground: #f2f2ff;
+    --color-secondary: #f4f4f5;
+    --color-secondary-foreground: #18181b;
+    --color-accent: #f4f4f5;
+    --color-accent-foreground: #18181b;
+
+    /* 4. Semantic / Feedback */
+    --color-destructive: #ef4444;
+    --color-destructive-foreground: #fafafa;
+    --color-success: #22c55e;
+    --color-success-foreground: #ffffff;
+
+    /* 5. Muted  */
+    --color-muted: #f4f4f5;
+    --color-muted-foreground: #71717a;
+
+    /* 6. UI Elements */
+    --color-border: #e4e4e7;
+    --color-input: #e4e4e7;
+    --color-ring: #18181b;
   }
 
   .dark {
-    /* Background Colors */
-    --color-background: 0 0 0;            /* Pitch Black Background */
-    --color-card: 0 0 0;                  /* Dark Card Background */
-    --color-input: 23 23 23;              /* Dark Gray for Inputs */
+    /* 1. Base Colors */
+    --color-background: #09090b;
+    --color-foreground: #fafafa;
 
-    /* Text Colors */
-    --color-heading: 255 255 255;         /* White for Headings */
-    --color-body: 156 163 175;            /* Light Gray for Body/Labels */
-    --color-btn-text: 255 255 255;        /* White Text for Primary Button */
+    /* 2. Surfaces */
+    --color-card: #09090b;
+    --color-card-foreground: #fafafa;
+    --color-popover: #09090b;
+    --color-popover-foreground: #fafafa;
 
-    /* Brand Colors */
-    --color-primary: 59 130 246;          /* Blue remains same or change if needed */
-    --color-link: 59 130 246;             /* Blue (Links) */
+    /* 3. Brand / Action Colors */
+    --color-primary: #0878d4;
+    --color-primary-foreground: #f2f2ff;
+    --color-secondary: #27272a;
+    --color-secondary-foreground: #fafafa;
+    --color-accent: #27272a;
+    --color-accent-foreground: #fafafa;
+
+    /* 4. Semantic / Feedback */
+    --color-destructive: #7f1d1d;
+    --color-destructive-foreground: #fafafa;
+    --color-success: #14532d;
+    --color-success-foreground: #ffffff;
+
+    /* 5. Muted */
+    --color-muted: #27272a;
+    --color-muted-foreground: #a1a1aa;
+
+    /* 6. UI Elements */
+    --color-border: #27272a;
+    --color-input: #27272a;
+    --color-ring: #d4d4d8;
   }
 }

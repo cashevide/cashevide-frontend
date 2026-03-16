@@ -5,9 +5,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import { useState, useEffect } from 'react';
 import { useColorScheme } from 'nativewind';
-import { useColorScheme as useDeviceColorScheme } from 'react-native';
+import { useColorScheme as useDeviceColorScheme, View } from 'react-native';
 import { useThemeStore } from '@/src/store/useThemeStore';
-import { useFonts } from 'expo-font'
+import { useFonts } from 'expo-font';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,13 +50,14 @@ export default function RootLayout() {
     }
   }, [theme, systemTheme]);
 
-
   useEffect(() => {
     if (!isReady || !rootNavigationState?.key || (!fontsLoaded && !fontError)) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    if (!isAuthenticated && !inAuthGroup) {
+    const inDesignGroup = segments[0] === 'design';
+
+    if (!isAuthenticated && !inAuthGroup && !inDesignGroup) {
       router.replace('/(auth)/welcome');
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)/reviews');
@@ -68,18 +69,17 @@ export default function RootLayout() {
 
   }, [isAuthenticated, segments, isReady, rootNavigationState?.key, fontsLoaded, fontError]);
 
-
   if (!isReady || (!fontsLoaded && !fontError)) {
     return null;
   }
 
   return (
-    <>
+    <View style={{ flex: 1 }} className={colorScheme === 'dark' ? 'dark' : 'light'}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
-    </>
+    </View>
   );
 };

@@ -9,19 +9,54 @@ module.exports = {
         sans: ['Geist', 'sans-serif'],
       },
       colors: {
-        /* Backgrounds */
-        background: "rgb(var(--color-background) / <alpha-value>)",
-        card: "rgb(var(--color-card) / <alpha-value>)",
-        input: "rgb(var(--color-input) / <alpha-value>)",
+        /* 1. Base Colors */
+        background: "var(--color-background)",
+        foreground: "var(--color-foreground)",
 
-        /* Text */
-        heading: "rgb(var(--color-heading) / <alpha-value>)",
-        body: "rgb(var(--color-body) / <alpha-value>)",
-        btnText: "rgb(var(--color-btn-text) / <alpha-value>)",
+        /* 2. Surfaces */
+        card: {
+          DEFAULT: "var(--color-card)",
+          foreground: "var(--color-card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--color-popover)",
+          foreground: "var(--color-popover-foreground)",
+        },
 
-        /* Brand / Primary */
-        primary: "rgb(var(--color-primary) / <alpha-value>)",
-        link: "rgb(var(--color-link) / <alpha-value>)",
+        /* 3. Brand / Action Colors */
+        primary: {
+          DEFAULT: "var(--color-primary)",
+          foreground: "var(--color-primary-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--color-secondary)",
+          foreground: "var(--color-secondary-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--color-accent)",
+          foreground: "var(--color-accent-foreground)",
+        },
+
+        /* 4. Semantic / Feedback */
+        destructive: {
+          DEFAULT: "var(--color-destructive)",
+          foreground: "var(--color-destructive-foreground)",
+        },
+        success: {
+          DEFAULT: "var(--color-success)",
+          foreground: "var(--color-success-foreground)",
+        },
+
+        /* 5. Muted */
+        muted: {
+          DEFAULT: "var(--color-muted)",
+          foreground: "var(--color-muted-foreground)",
+        },
+
+        /* 6. UI Elements */
+        border: "var(--color-border)",
+        input: "var(--color-input)",
+        ring: "var(--color-ring)",
       },
     },
   },

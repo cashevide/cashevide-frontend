@@ -7,12 +7,12 @@ import { useSignupStore } from '../../src/store/useSignupStore';
 import { Text } from '../../src/components/ui/Text';
 import { Input } from '../../src/components/ui/Input';
 import { Button } from '../../src/components/ui/Button';
-import { Container } from '../../src/components/ui/Container';
+import { Container } from '../../src/components/layout/Container';
 
 export default function SignupReferralScreen() {
   const router = useRouter();
   const [referralCode, setReferralCode] = useState('');
-  const [error, setError] = useState(''); // Error message കാണിക്കാൻ
+  const [error, setError] = useState(''); // Error message
   const setSignupData = useSignupStore((state) => state.setSignupData);
 
   const handleNext = () => {

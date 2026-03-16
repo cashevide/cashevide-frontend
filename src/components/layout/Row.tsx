@@ -1,4 +1,5 @@
 import { View, ViewProps } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
 interface RowProps extends ViewProps {
   justify?: 'start' | 'center' | 'end' | 'between' | 'around';
@@ -32,7 +33,10 @@ export function Row({
   const itemsClass = items ? itemsMap[items] : '';
 
   return (
-    <View className={`flex-row ${justifyClass} ${itemsClass} ${className}`} {...props}>
+    <View
+      className={twMerge('flex-row', justifyClass, itemsClass, className)}
+      {...props}
+    >
       {children}
     </View>
   );

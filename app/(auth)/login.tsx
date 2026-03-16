@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Text } from '../../src/components/ui/Text';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
-import { Container } from '../../src/components/ui/Container';
+import { Container } from '../../src/components/layout/Container';
 
 import { Column } from '../../src/components/layout/Column';
 import { Center } from '../../src/components/layout/Center';

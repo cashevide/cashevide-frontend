@@ -1,60 +1,105 @@
-import { TouchableOpacity, ActivityIndicator, TouchableOpacityProps } from 'react-native';
+import React from 'react';
+import { TouchableOpacity, ActivityIndicator, TouchableOpacityProps, View } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 import { Text } from './Text';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+
+  variant?: 'default' | 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost';
   isLoading?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  fullWidth?: boolean;
 }
 
 export function Button({
   title,
-  variant = 'primary',
+  variant = 'default',
   isLoading = false,
   disabled = false,
+  leftIcon,
+  rightIcon,
+  fullWidth = false,
   className = '',
   ...props
 }: ButtonProps) {
 
   const getBgClass = () => {
     switch (variant) {
+      case 'default': return 'bg-foreground';
       case 'primary': return 'bg-primary';
-      case 'secondary': return 'bg-input';
-      case 'outline': return 'bg-transparent border border-primary';
+      case 'secondary': return 'bg-secondary';
+      case 'destructive': return 'bg-destructive';
+      case 'outline': return 'bg-transparent border border-border';
       case 'ghost': return 'bg-transparent';
-      default: return 'bg-primary';
+      default: return 'bg-foreground';
     }
   };
 
   const getTextClass = () => {
     switch (variant) {
-      case 'primary': return 'text-btnText';
-      case 'secondary': return 'text-heading';
-      case 'outline': return 'text-primary';
-      case 'ghost': return 'text-primary';
-      default: return 'text-btnText';
+      case 'default': return 'text-background';
+      case 'primary': return 'text-primary-foreground';
+      case 'secondary': return 'text-secondary-foreground';
+      case 'destructive': return 'text-destructive-foreground';
+      case 'outline': return 'text-foreground';
+      case 'ghost': return 'text-foreground';
+      default: return 'text-background';
     }
   };
 
+  const getIconColor = () => {
+    switch (variant) {
+      case 'default': return 'var(--color-background)';
+      case 'primary': return 'var(--color-primary-foreground)';
+      case 'secondary': return 'var(--color-secondary-foreground)';
+      case 'destructive': return 'var(--color-destructive-foreground)';
+      case 'outline': return 'var(--color-foreground)';
+      case 'ghost': return 'var(--color-foreground)';
+      default: return 'var(--color-background)';
+    }
+  };
+
+  const renderIcon = (icon: React.ReactNode) => {
+    if (React.isValidElement(icon)) {
+      return React.cloneElement(icon as React.ReactElement<any>, {
+        color: getIconColor(),
+      });
+    }
+    return icon;
+  };
+
   const opacityClass = (disabled || isLoading) ? 'opacity-50' : 'opacity-100';
+  const widthClass = fullWidth ? 'w-full' : '';
 
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      className={`w-full flex-row py-4 px-6 rounded-lg items-center justify-center ${getBgClass()} ${opacityClass} ${className}`}
+      className={twMerge(
+        'flex-row py-4 px-6 rounded-full items-center justify-center',
+        widthClass,
+        getBgClass(),
+        opacityClass,
+        className
+      )}
       disabled={disabled || isLoading}
       {...props}
     >
-      {isLoading && (
+      {isLoading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? 'white' : '#3b82f6'}
+          color={getIconColor()}
           className="mr-2"
         />
+      ) : (
+        leftIcon && <View className="mr-2">{renderIcon(leftIcon)}</View>
       )}
 
-      <Text className={`font-bold text-lg ${getTextClass()}`}>
+      <Text variant='button' className={getTextClass()}>
         {title}
       </Text>
+
+      {!isLoading && rightIcon && <View className="ml-2">{renderIcon(rightIcon)}</View>}
     </TouchableOpacity>
   );
 }

@@ -8,7 +8,7 @@ import { verifySignupOtp } from '../../src/api/auth';
 import { Text } from '../../src/components/ui/Text';
 import { Input } from '../../src/components/ui/Input';
 import { Button } from '../../src/components/ui/Button';
-import { Container } from '../../src/components/ui/Container';
+import { Container } from '../../src/components/layout/Container';
 
 export default function SignupOtpScreen() {
   const router = useRouter();
