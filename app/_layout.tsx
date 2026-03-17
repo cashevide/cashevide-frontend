@@ -10,6 +10,7 @@ import { useThemeStore } from '@/src/store/useThemeStore';
 import { useFonts } from 'expo-font';
 
 import { Logo } from '@/src/components/ui/Logo';
+import { Spinner } from '@/src/components/ui/Spinner';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -79,11 +80,7 @@ export default function RootLayout() {
         className="dark"
       >
         <Logo width={100} color="#fcfcfe" />
-        <ActivityIndicator
-          size="small"
-          color="#a1a1aa"
-          style={{ marginTop: 24 }}
-        />
+        <Spinner variant="muted" className="mt-6" />
       </View>
     );
   }

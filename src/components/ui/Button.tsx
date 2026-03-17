@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, ActivityIndicator, TouchableOpacityProps, View } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 import { Text } from './Text';
+import { Spinner } from './Spinner';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -103,7 +104,7 @@ export function Button({
       {...props}
     >
       {isLoading ? (
-        <ActivityIndicator
+        <Spinner
           color={getIconColor()}
           className="mr-2"
         />
