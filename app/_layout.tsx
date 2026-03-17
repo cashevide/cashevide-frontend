@@ -5,9 +5,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import { useState, useEffect } from 'react';
 import { useColorScheme } from 'nativewind';
-import { useColorScheme as useDeviceColorScheme, View } from 'react-native';
+import { useColorScheme as useDeviceColorScheme, View, ActivityIndicator } from 'react-native';
 import { useThemeStore } from '@/src/store/useThemeStore';
 import { useFonts } from 'expo-font';
+
+import { Logo } from '@/src/components/ui/Logo';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -69,8 +71,21 @@ export default function RootLayout() {
 
   }, [isAuthenticated, segments, isReady, rootNavigationState?.key, fontsLoaded, fontError]);
 
+
   if (!isReady || (!fontsLoaded && !fontError)) {
-    return null;
+    return (
+      <View
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#010101' }}
+        className="dark"
+      >
+        <Logo width={100} color="#fcfcfe" />
+        <ActivityIndicator
+          size="small"
+          color="#a1a1aa"
+          style={{ marginTop: 24 }}
+        />
+      </View>
+    );
   }
 
   return (

@@ -21,8 +21,8 @@ export default function DesignSystemIndex() {
     <Container variant='desktop' className="bg-background" safeArea>
       <ScrollView className="flex-1 px-6 pt-4">
 
-        <Row className="mb-8 gap-4">
-          <Logo width={60} height={60} />
+        <Row className="mb-8 gap-8">
+          <Logo />
           <Column>
             <Text variant="h1" className="mb-2">Cashevide UI</Text>
             <Text variant="body" >

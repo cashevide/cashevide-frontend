@@ -37,10 +37,20 @@ export default function ButtonsGallery() {
               </View>
             </Column>
 
+            {/* Sizes (പുതിയ സെക്ഷൻ) */}
+            <Column className="space-y-4">
+              <Text variant="h3">Sizes</Text>
+              <View className="flex-wrap flex-row gap-4 items-center">
+                <Button title="Small" size="sm" variant="secondary" />
+                <Button title="Default" size="default" />
+                <Button title="Large" size="lg" variant="brand" />
+              </View>
+            </Column>
+
             {/* Full Width */}
             <Column className="space-y-4">
               <Text variant="h3">Full Width</Text>
-              <Button title="Full Width Button" variant="primary" fullWidth />
+              <Button title="Full Width Button" variant="primary" size="lg" fullWidth />
             </Column>
 
             {/* With Icons */}

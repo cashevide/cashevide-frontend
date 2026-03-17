@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "zymino-frontend",
-    "slug": "zymino-frontend",
+    "name": "Cashevide",
+    "slug": "Cashevide",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "zyminofrontend",
+    "scheme": "cashevide",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

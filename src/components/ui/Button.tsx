@@ -5,8 +5,8 @@ import { Text } from './Text';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
-
   variant?: 'brand' | 'primary' | 'secondary' | 'success' | 'destructive' | 'outline' | 'ghost';
+  size?: 'sm' | 'default' | 'lg';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -16,6 +16,7 @@ interface ButtonProps extends TouchableOpacityProps {
 export function Button({
   title,
   variant = 'primary',
+  size = 'default',
   isLoading = false,
   disabled = false,
   leftIcon,
@@ -64,6 +65,17 @@ export function Button({
     }
   };
 
+  const getSizeClass = () => {
+    switch (size) {
+      case 'sm':
+        return 'h-[40px] min-w-[140px] px-4';
+      case 'lg':
+        return 'h-[52px] min-w-[140px] px-8';
+      default:
+        return 'h-[48px] min-w-[140px] px-6';
+    }
+  };
+
   const renderIcon = (icon: React.ReactNode) => {
     if (React.isValidElement(icon)) {
       return React.cloneElement(icon as React.ReactElement<any>, {
@@ -80,7 +92,8 @@ export function Button({
     <TouchableOpacity
       activeOpacity={0.7}
       className={twMerge(
-        'flex-row h-[52px] px-6 rounded-full items-center justify-center',
+        'flex-row rounded-full items-center justify-center',
+        getSizeClass(),
         widthClass,
         getBgClass(),
         opacityClass,
