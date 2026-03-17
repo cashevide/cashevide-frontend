@@ -29,7 +29,7 @@
     --color-destructive: #c91221;
     --color-destructive-foreground: #fafafa;
     --color-success: #09ba38;
-    --color-success-foreground: #ffffff;
+    --color-success-foreground: #fafafa;
 
     /* 5. Muted  */
     --color-muted: #f4f4f5;
@@ -67,7 +67,7 @@
     --color-destructive: #c91221;
     --color-destructive-foreground: #fafafa;
     --color-success: #09ba38;
-    --color-success-foreground: #ffffff;
+    --color-success-foreground: #fafafa;
 
     /* 5. Muted */
     --color-muted: #27272a;

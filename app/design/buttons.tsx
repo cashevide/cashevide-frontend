@@ -27,9 +27,10 @@ export default function ButtonsGallery() {
             <Column className="space-y-4">
               <Text variant="h3">Variants</Text>
               <View className="flex-wrap flex-row gap-4">
-                <Button title="Default" variant="brand" />
-                <Button title="Primary" variant="primary" />
+                <Button title="Brand" variant="brand" />
+                <Button title="Primary" />
                 <Button title="Secondary" variant="secondary" />
+                <Button title='Success' variant='success' />
                 <Button title="Destructive" variant="destructive" />
                 <Button title="Outline" variant="outline" />
                 <Button title="Ghost" variant="ghost" />

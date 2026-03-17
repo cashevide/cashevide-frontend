@@ -5,6 +5,7 @@ import { Column } from '@/src/components/layout/Column';
 import { Row } from '@/src/components/layout/Row';
 import { Text } from '@/src/components/ui/Text';
 import { ArrowRightIcon } from 'react-native-heroicons/outline';
+import { Logo } from '@/src/components/ui/Logo';
 
 export default function DesignSystemIndex() {
   const router = useRouter();
@@ -20,12 +21,15 @@ export default function DesignSystemIndex() {
     <Container variant='desktop' className="bg-background" safeArea>
       <ScrollView className="flex-1 px-6 pt-4">
 
-        <Column className="mb-8">
-          <Text variant="h1" className="mb-2">Cashevide UI</Text>
-          <Text variant="body" className="text-muted-foreground">
-            A minimalist black and white design system.
-          </Text>
-        </Column>
+        <Row className="mb-8 gap-4">
+          <Logo width={60} height={60} />
+          <Column>
+            <Text variant="h1" className="mb-2">Cashevide UI</Text>
+            <Text variant="body" >
+              A minimalist black and white design system.
+            </Text>
+          </Column>
+        </Row>
 
         <Column className="space-y-4">
           {categories.map((cat, index) => (
@@ -38,7 +42,7 @@ export default function DesignSystemIndex() {
               <Row justify="between" items="center">
                 <Column>
                   <Text variant="h3" className="mb-1">{cat.name}</Text>
-                  <Text variant="caption">{cat.desc}</Text>
+                  <Text variant="body">{cat.desc}</Text>
                 </Column>
                 <ArrowRightIcon color="var(--color-muted-foreground)" size={20} />
               </Row>

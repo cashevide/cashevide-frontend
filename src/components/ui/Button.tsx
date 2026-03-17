@@ -6,7 +6,7 @@ import { Text } from './Text';
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
 
-  variant?: 'brand' | 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost';
+  variant?: 'brand' | 'primary' | 'secondary' | 'success' | 'destructive' | 'outline' | 'ghost';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -15,7 +15,7 @@ interface ButtonProps extends TouchableOpacityProps {
 
 export function Button({
   title,
-  variant = 'brand',
+  variant = 'primary',
   isLoading = false,
   disabled = false,
   leftIcon,
@@ -30,8 +30,9 @@ export function Button({
       case 'brand': return 'bg-brand';
       case 'primary': return 'bg-primary';
       case 'secondary': return 'bg-secondary';
+      case 'success': return 'bg-success';
       case 'destructive': return 'bg-destructive';
-      case 'outline': return 'bg-transparent border border-border';
+      case 'outline': return 'bg-transparent border border-foreground';
       case 'ghost': return 'bg-transparent';
       default: return 'bg-foreground';
     }
@@ -42,6 +43,7 @@ export function Button({
       case 'brand': return 'text-brand-foreground';
       case 'primary': return 'text-primary-foreground';
       case 'secondary': return 'text-secondary-foreground';
+      case 'success': return 'text-success-foreground';
       case 'destructive': return 'text-destructive-foreground';
       case 'outline': return 'text-foreground';
       case 'ghost': return 'text-foreground';
@@ -54,6 +56,7 @@ export function Button({
       case 'brand': return 'var(--color-brand-foreground)';
       case 'primary': return 'var(--color-primary-foreground)';
       case 'secondary': return 'var(--color-secondary-foreground)';
+      case 'success': return 'var(--color-success-foreground)';
       case 'destructive': return 'var(--color-destructive-foreground)';
       case 'outline': return 'var(--color-foreground)';
       case 'ghost': return 'var(--color-foreground)';
