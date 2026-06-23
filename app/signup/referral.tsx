@@ -1,20 +1,5 @@
-import { router } from "expo-router";
-import { Button, Text, View, StyleSheet } from "react-native";
+import ReferralCodeScreen from "@/src/features/onboarding/screens/ReferralCodeScreen";
 
-export default function ReferralScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>Referral Code</Text>
-
-      <Button title="Continue" onPress={() => router.push("/signup/email")} />
-    </View>
-  );
+export default function ReferralPage() {
+  return <ReferralCodeScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

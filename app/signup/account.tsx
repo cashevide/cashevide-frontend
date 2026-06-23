@@ -1,19 +1,5 @@
-import { router } from "expo-router";
-import { View, Text, StyleSheet, Button } from "react-native";
+import AccountSetupScreen from "@/src/features/onboarding/screens/AccountSetupScreen";
 
-export default function AccountPage() {
-  return (
-    <View style={styles.container}>
-      <Text>Account page</Text>
-      <Button title="Create Account" onPress={() => router.push("/reviews")} />
-    </View>
-  );
+export default function AccountSetupPage() {
+  return <AccountSetupScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

@@ -1,19 +1,5 @@
-import { View, Text, Button, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import SignupEmailScreen from "@/src/features/onboarding/screens/SignupEmailScreen";
 
-export default function EmailScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>Email page</Text>
-      <Button title="Send OTP" onPress={() => router.push("/signup/otp")} />
-    </View>
-  );
+export default function SignupEmailPage() {
+  return <SignupEmailScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
