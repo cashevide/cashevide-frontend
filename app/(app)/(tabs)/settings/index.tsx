@@ -1,17 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import SettingsHomeScreen from "@/src/features/settings/screens/SettingsHomeScreen";
 
 export default function SettingsPage() {
-  return (
-    <View style={styles.container}>
-      <Text>Invoices page</Text>
-    </View>
-  );
+  return <SettingsHomeScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

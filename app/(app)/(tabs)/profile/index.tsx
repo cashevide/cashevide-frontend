@@ -1,17 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import ProfileScreen from "@/src/features/profile/screens/ProfileScreen";
 
 export default function ProfilePage() {
-  return (
-    <View style={styles.container}>
-      <Text>Invoices page</Text>
-    </View>
-  );
+  return <ProfileScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

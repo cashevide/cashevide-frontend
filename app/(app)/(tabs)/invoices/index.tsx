@@ -1,17 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import InvoiceDashboardScreen from "@/src/features/invoices/screens/InvoiceDashboardScreen";
 
-export default function InvoicesPage() {
-  return (
-    <View style={styles.container}>
-      <Text>Invoices page</Text>
-    </View>
-  );
+export default function InvoiceDashboardPage() {
+  return <InvoiceDashboardScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
