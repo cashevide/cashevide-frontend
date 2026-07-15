@@ -1,6 +1,7 @@
 import { Redirect, Stack, useSegments } from "expo-router";
 
 import { useAuthStore } from "@/src/store/authStore";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 export default function PublicLayout() {
   const segments = useSegments();
@@ -10,7 +11,7 @@ export default function PublicLayout() {
   const isLegalRoute = segments.includes("legal");
 
   if (isAuthenticated && !isLegalRoute) {
-    return <Redirect href="/reviews" />;
+    return <Redirect href={ROUTES.reviews} />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;
