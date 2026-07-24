@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 
 import { signupRequestOtpApi } from "../api/signupOtpApi";
 import { useSignupStore } from "@/src/store/signupStore";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 import type {
   SignupRequestOtpRequest,
@@ -32,7 +33,7 @@ export function useSignupRequestOtp(options: UseSignupRequestOtpOptions = {}) {
       setOtpCooldownUntil(Date.now() + RESEND_COOLDOWN_MS);
 
       if (navigateOnSuccess) {
-        router.push("/signup/otp");
+        router.push(ROUTES.signup.otp);
       }
     },
   });

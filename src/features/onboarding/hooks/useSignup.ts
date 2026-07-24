@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { signupApi } from "../api/signupApi";
 import { useAuthStore } from "@/src/store/authStore";
 import { useSignupStore } from "@/src/store/signupStore";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 import type { SignupRequest, SignupResponse } from "../types/signupTypes";
 
@@ -21,7 +22,7 @@ export function useSignup() {
     onSuccess: () => {
       setAuthenticated(true);
       resetSignup();
-      router.replace("/reviews");
+      router.replace(ROUTES.reviews);
     },
   });
 }

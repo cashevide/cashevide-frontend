@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 
 import { signupVerifyOtpApi } from "../api/signupOtpApi";
 import { useSignupStore } from "@/src/store/signupStore";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 import type {
   SignupVerifyOtpRequest,
@@ -20,7 +21,7 @@ export function useSignupVerifyOtp() {
     mutationFn: signupVerifyOtpApi,
     onSuccess: () => {
       setEmailOtpVerified(true);
-      router.push("/signup/account");
+      router.push(ROUTES.signup.account);
     },
   });
 }

@@ -15,6 +15,7 @@ import { useSignupRequestOtp } from "../hooks/useSignupRequestOtp";
 import { useCountdown } from "@/src/shared/hooks/useCountdown";
 import { useDebouncedValue } from "@/src/shared/hooks/useDebouncedValue";
 import { useSignupStore } from "@/src/store/signupStore";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 import type { SignupRequestOtpError } from "../types/signupTypes";
 
@@ -52,7 +53,7 @@ export default function SignupEmailScreen() {
 
   function handleContinue() {
     if (isCooldownActive) {
-      router.push("/signup/otp");
+      router.push(ROUTES.signup.otp);
 
       return;
     }

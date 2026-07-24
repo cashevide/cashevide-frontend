@@ -1,6 +1,8 @@
 import { router } from "expo-router";
 import { Button, View, StyleSheet, Text } from "react-native";
 
+import { ROUTES } from "@/src/shared/navigation/routes";
+
 export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
@@ -8,24 +10,24 @@ export default function WelcomeScreen() {
 
       <Button
         title="Continue with Google"
-        onPress={() => router.push("/signup/google")}
+        onPress={() => router.push(ROUTES.signup.google)}
       />
 
       <Button
         title="Continue with Email"
-        onPress={() => router.push("/signup/referral")}
+        onPress={() => router.push(ROUTES.signup.referral)}
       />
 
-      <Button title="Login" onPress={() => router.push("/login")} />
+      <Button title="Login" onPress={() => router.push(ROUTES.login)} />
 
       <View style={styles.legalBox}>
         <Text>By continuing, you agree to Cashevide</Text>
 
-        <Button title="Terms" onPress={() => router.push("/legal/terms")} />
+        <Button title="Terms" onPress={() => router.push(ROUTES.legal.terms)} />
 
         <Button
           title="Privacy Policy"
-          onPress={() => router.push("/legal/privacy-policy")}
+          onPress={() => router.push(ROUTES.legal.privacyPolicy)}
         />
       </View>
     </View>

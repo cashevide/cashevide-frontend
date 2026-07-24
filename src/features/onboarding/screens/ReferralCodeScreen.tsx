@@ -13,6 +13,7 @@ import {
 
 import { useCheckReferralCode } from "../hooks/useCheckReferralCode";
 import { useSignupStore } from "@/src/store/signupStore";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 const TELEGRAM_BOT_URL = "https://t.me/CashevideAssistantBot";
 
@@ -27,7 +28,7 @@ export default function ReferralCodeScreen() {
 
   function handleContinue() {
     setReferralCodeInput(referralCode.trim());
-    router.push("/signup/email");
+    router.push(ROUTES.signup.email);
   }
 
   function handleGetReferralCode() {
