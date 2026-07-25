@@ -8,9 +8,11 @@
     "scheme": "cashevidefrontend",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.cashevide.app",
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.cashevide.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
