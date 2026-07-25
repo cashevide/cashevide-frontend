@@ -2,6 +2,8 @@ export const ROUTES = {
   login: "/login",
   reviews: "/reviews",
 
+  passwordReset: "/password-reset",
+
   signup: {
     referral: "/signup/referral",
     google: "/signup/google",

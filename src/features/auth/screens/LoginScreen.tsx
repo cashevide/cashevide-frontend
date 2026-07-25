@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import { useLogin } from "../hooks/useLogin";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -60,7 +61,7 @@ export default function LoginScreen() {
       <Button
         title="Forgot Password"
         onPress={() => {
-          router.push("/password-reset");
+          router.push(ROUTES.passwordReset);
         }}
       />
 
