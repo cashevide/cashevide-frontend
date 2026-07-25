@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 
 import { clearTokens } from "@/src/shared/utils/tokenStorage";
 import { useAuthStore } from "@/src/store/authStore";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 import { logoutApi } from "../api/logoutApi";
 import type { LogoutResponse } from "../types/logoutTypes";
@@ -22,7 +23,7 @@ export function useLogout() {
       queryClient.clear();
       resetAuth();
 
-      router.replace("/login");
+      router.replace(ROUTES.login);
     },
   });
 }
