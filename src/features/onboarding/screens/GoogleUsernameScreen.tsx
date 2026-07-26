@@ -44,6 +44,14 @@ export default function GoogleUsernameScreen() {
     ? Object.values(googleAuthError.response.data).flat()
     : [];
 
+  if (isPending) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text>Google Username Screen</Text>
@@ -76,15 +84,11 @@ export default function GoogleUsernameScreen() {
         </Text>
       ))}
 
-      {isPending ? (
-        <ActivityIndicator />
-      ) : (
-        <Button
-          title="Create Google Account"
-          onPress={handleCreateAccount}
-          disabled={!isUsernameAvailable}
-        />
-      )}
+      <Button
+        title="Create Google Account"
+        onPress={handleCreateAccount}
+        disabled={!isUsernameAvailable}
+      />
 
       <Button title="Back" onPress={() => router.back()} />
     </View>

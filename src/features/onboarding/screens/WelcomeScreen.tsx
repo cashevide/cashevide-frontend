@@ -1,11 +1,25 @@
 import { router } from "expo-router";
-import { Button, View, StyleSheet, Text } from "react-native";
+import {
+  ActivityIndicator,
+  Button,
+  View,
+  StyleSheet,
+  Text,
+} from "react-native";
 
 import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { ROUTES } from "@/src/shared/navigation/routes";
 
 export default function WelcomeScreen() {
-  const { request, promptAsync } = useGoogleAuth();
+  const { request, promptAsync, isPending } = useGoogleAuth();
+
+  if (isPending) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
