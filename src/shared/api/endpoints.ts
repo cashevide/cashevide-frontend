@@ -16,3 +16,8 @@ export const AUTH_ENDPOINTS = {
   passwordResetVerifyOtp: "/users/password-reset-verify-otp/",
   resetPassword: "/users/reset-password/",
 } as const;
+
+export const LEGAL_ENDPOINTS = {
+  document: (docType: string) => `/legal/${docType}/`,
+  accept: "/legal/accept/",
+} as const;
