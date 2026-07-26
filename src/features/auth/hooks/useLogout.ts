@@ -23,7 +23,7 @@ export function useLogout() {
       queryClient.clear();
       resetAuth();
 
-      router.replace(ROUTES.login);
+      router.replace(ROUTES.welcome);
     },
   });
 }

@@ -9,4 +9,6 @@ export const AUTH_ENDPOINTS = {
   signupVerifyOtp: "/users/signup-verify-otp/",
   checkUser: "/users/check-user/",
   checkReferralCode: "/users/check-referral-code/",
+
+  google: "/users/google/",
 } as const;
