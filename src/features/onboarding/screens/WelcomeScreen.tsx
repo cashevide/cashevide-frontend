@@ -1,16 +1,20 @@
 import { router } from "expo-router";
 import { Button, View, StyleSheet, Text } from "react-native";
 
+import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { ROUTES } from "@/src/shared/navigation/routes";
 
 export default function WelcomeScreen() {
+  const { request, promptAsync } = useGoogleAuth();
+
   return (
     <View style={styles.container}>
       <Text>Welcome to Cashevide</Text>
 
       <Button
         title="Continue with Google"
-        onPress={() => router.push(ROUTES.signup.google)}
+        onPress={() => promptAsync()}
+        disabled={!request}
       />
 
       <Button
