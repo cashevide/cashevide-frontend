@@ -11,4 +11,8 @@ export const AUTH_ENDPOINTS = {
   checkReferralCode: "/users/check-referral-code/",
 
   google: "/users/google/",
+
+  passwordResetRequestOtp: "/users/password-reset-request-otp/",
+  passwordResetVerifyOtp: "/users/password-reset-verify-otp/",
+  resetPassword: "/users/reset-password/",
 } as const;

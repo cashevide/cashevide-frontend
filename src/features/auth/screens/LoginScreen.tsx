@@ -61,7 +61,7 @@ export default function LoginScreen() {
       <Button
         title="Forgot Password"
         onPress={() => {
-          router.push(ROUTES.passwordReset);
+          router.push(ROUTES.passwordReset.entry);
         }}
       />
 

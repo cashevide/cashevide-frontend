@@ -2,7 +2,12 @@ export const ROUTES = {
   welcome: "/welcome",
   login: "/login",
   reviews: "/reviews",
-  passwordReset: "/password-reset",
+
+  passwordReset: {
+    entry: "/password-reset",
+    otp: "/password-reset/otp",
+    reset: "/password-reset/reset",
+  },
 
   signup: {
     referral: "/signup/referral",
