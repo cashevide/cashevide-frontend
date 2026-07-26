@@ -22,7 +22,13 @@ const redirectUri = AuthSession.makeRedirectUri();
 
 type GoogleAuthMutationPayload = Omit<GoogleAuthRequest, "platform">;
 
-export function useGoogleAuth() {
+type UseGoogleAuthOptions = {
+  onBeforeNavigate?: () => void;
+};
+
+export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
+  const { onBeforeNavigate } = options;
+
   const router = useRouter();
 
   const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
@@ -46,6 +52,8 @@ export function useGoogleAuth() {
   >({
     mutationFn: (payload) => googleAuthApi(payload),
     onSuccess: (data) => {
+      onBeforeNavigate?.();
+
       if ("status" in data && data.status === "prompt_referral") {
         setProfileInfo(data.email, data.full_name);
         router.push(ROUTES.signup.google.referral);

@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Button,
@@ -11,9 +12,15 @@ import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { ROUTES } from "@/src/shared/navigation/routes";
 
 export default function WelcomeScreen() {
-  const { request, promptAsync, isPending } = useGoogleAuth();
+  const [isNavigating, setIsNavigating] = useState(false);
 
-  if (isPending) {
+  const { request, promptAsync, isPending } = useGoogleAuth({
+    onBeforeNavigate: () => setIsNavigating(true),
+  });
+
+  const showLoading = isPending || isNavigating;
+
+  if (showLoading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator />
