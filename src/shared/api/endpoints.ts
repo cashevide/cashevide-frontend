@@ -17,6 +17,7 @@ export const AUTH_ENDPOINTS = {
   resetPassword: "/users/reset-password/",
 
   changePassword: "/users/change-password/",
+  deleteAccount: "/users/profile/delete/",
 } as const;
 
 export const LEGAL_ENDPOINTS = {
