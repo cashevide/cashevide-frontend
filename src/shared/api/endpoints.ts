@@ -15,6 +15,8 @@ export const AUTH_ENDPOINTS = {
   passwordResetRequestOtp: "/users/password-reset-request-otp/",
   passwordResetVerifyOtp: "/users/password-reset-verify-otp/",
   resetPassword: "/users/reset-password/",
+
+  changePassword: "/users/change-password/",
 } as const;
 
 export const LEGAL_ENDPOINTS = {

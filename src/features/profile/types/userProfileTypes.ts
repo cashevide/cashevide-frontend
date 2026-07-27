@@ -17,4 +17,5 @@ export type UserProfile = {
   credit_points: number;
   has_pending_agreements: boolean;
   pending_legal_docs: PendingLegalDoc[];
+  has_password: boolean;
 };

@@ -1,15 +1,16 @@
 import { router } from "expo-router";
 import { Button, StyleSheet, Text, View } from "react-native";
 
+import { ROUTES } from "@/src/shared/navigation/routes";
+
 export default function SecuritySettingsScreen() {
   return (
     <View style={styles.container}>
       <Text>Security Settings Screen</Text>
-      <Text>Change password form will come here later</Text>
 
       <Button
-        title="Change Password Test"
-        onPress={() => router.replace("/login")}
+        title="Change Password"
+        onPress={() => router.push(ROUTES.settings.security.changePassword)}
       />
 
       <Button title="Back" onPress={() => router.back()} />

@@ -25,4 +25,11 @@ export const ROUTES = {
     terms: "/legal/terms",
     privacyPolicy: "/legal/privacy-policy",
   },
+
+  settings: {
+    security: {
+      entry: "/settings/security",
+      changePassword: "/settings/security/change-password",
+    },
+  },
 } as const;
