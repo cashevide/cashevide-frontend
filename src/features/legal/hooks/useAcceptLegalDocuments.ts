@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { acceptLegalDocumentsApi } from "../api/legalAcceptanceApi";
+import { QUERY_KEYS } from "@/src/shared/api/queryKeys";
 
 import type {
   AcceptLegalDocumentsRequest,
@@ -17,7 +18,7 @@ export function useAcceptLegalDocuments() {
   >({
     mutationFn: acceptLegalDocumentsApi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userProfile });
     },
   });
 }
