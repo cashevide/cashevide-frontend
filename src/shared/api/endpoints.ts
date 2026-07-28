@@ -42,3 +42,10 @@ export const REVIEWS_ENDPOINTS = {
   myReviews: "/my-reviews/",
   myReviewDetail: (id: number) => `/my-reviews/${id}/`,
 } as const;
+
+export const CLIENT_ENDPOINTS = {
+  list: "/clients/",
+  create: "/clients/",
+  detail: (slug: string) => `/clients/${slug}/`,
+  usage: "/clients/usage/",
+} as const;

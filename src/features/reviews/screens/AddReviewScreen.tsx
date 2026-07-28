@@ -59,7 +59,7 @@ export default function AddReviewScreen() {
       },
       {
         onSuccess: () => {
-          router.dismissTo(ROUTES.reviews.summary(clientId));
+          router.replace(ROUTES.reviews.summary(clientId));
         },
       },
     );
@@ -109,7 +109,7 @@ export default function AddReviewScreen() {
         <Text>You have already reviewed this client.</Text>
         <Button
           title="Go to Summary"
-          onPress={() => router.dismissTo(ROUTES.reviews.summary(clientId))}
+          onPress={() => router.replace(ROUTES.reviews.summary(clientId))}
         />
       </View>
     );

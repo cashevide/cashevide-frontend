@@ -51,7 +51,7 @@ export default function EditReviewScreen() {
       },
       {
         onSuccess: () => {
-          router.dismissTo(ROUTES.reviews.summary(reviewedClientId));
+          router.replace(ROUTES.reviews.summary(reviewedClientId));
         },
       },
     );
