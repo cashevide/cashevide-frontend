@@ -3,6 +3,7 @@ import type { GetProductsParams } from "@/src/features/products/api/productsApi"
 
 export const QUERY_KEYS = {
   userProfile: ["userProfile"] as const,
+  businessProfile: ["businessProfile"] as const,
 
   reviewTags: ["reviewTags"] as const,
 

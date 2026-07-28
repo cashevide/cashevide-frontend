@@ -3,6 +3,7 @@ export const AUTH_ENDPOINTS = {
   logout: "/users/logout/",
   refresh: "/users/token/refresh/",
   profile: "/users/profile/me/",
+  businessProfile: "/users/business-profile/me/",
 
   signup: "/users/signup/",
   signupRequestOtp: "/users/signup-request-otp/",
