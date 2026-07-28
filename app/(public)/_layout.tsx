@@ -11,7 +11,7 @@ export default function PublicLayout() {
   const isLegalRoute = segments.includes("legal");
 
   if (isAuthenticated && !isLegalRoute) {
-    return <Redirect href={ROUTES.reviews} />;
+    return <Redirect href={ROUTES.reviews.home} />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;

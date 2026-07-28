@@ -1,7 +1,8 @@
+import type { Href } from "expo-router";
+
 export const ROUTES = {
   welcome: "/welcome",
   login: "/login",
-  reviews: "/reviews",
 
   passwordReset: {
     entry: "/password-reset",
@@ -31,5 +32,13 @@ export const ROUTES = {
       entry: "/settings/security",
       changePassword: "/settings/security/change-password",
     },
+  },
+
+  reviews: {
+    home: "/reviews",
+    add: (clientId?: string): Href =>
+      (clientId ? `/reviews/add?clientId=${clientId}` : "/reviews/add") as Href,
+    summary: (clientId: string): Href => `/reviews/${clientId}` as Href,
+    edit: (clientId: string): Href => `/reviews/${clientId}/edit` as Href,
   },
 } as const;

@@ -22,7 +22,7 @@ export function useSignup() {
     onSuccess: () => {
       setAuthenticated(true);
       resetSignup();
-      router.replace(ROUTES.reviews);
+      router.replace(ROUTES.reviews.home);
     },
   });
 }

@@ -7,7 +7,7 @@ export default function SignupLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   if (isAuthenticated) {
-    return <Redirect href={ROUTES.reviews} />;
+    return <Redirect href={ROUTES.reviews.home} />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;

@@ -1,23 +1,22 @@
-import type { ReviewRating } from "./reviewTypes";
-import type {
-  ReviewTagCategory,
-  ReviewTagGroup,
-  ReviewTagId,
-} from "./tagTypes";
+// GET /reviewed-client/{clientId}/reviews/summary/
 
-export type RatingDistribution = Record<ReviewRating, number>;
-
-export type ReviewSummaryTag = {
-  id: ReviewTagId;
+export type TagSummaryItem = {
+  id: number;
   name: string;
-  category: ReviewTagCategory;
-  group: ReviewTagGroup;
+  category: "POSITIVE" | "NEGATIVE";
+  group: string;
   count: number;
 };
 
-export type ReviewSummary = {
+export type ReviewSummaryResponse = {
   average_rating: number;
   total_reviews: number;
-  rating_distribution: RatingDistribution;
-  tags_summary: ReviewSummaryTag[];
+  rating_distribution: {
+    "1": number;
+    "2": number;
+    "3": number;
+    "4": number;
+    "5": number;
+  };
+  tags_summary: TagSummaryItem[];
 };

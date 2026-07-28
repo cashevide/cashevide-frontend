@@ -24,3 +24,21 @@ export const LEGAL_ENDPOINTS = {
   document: (docType: string) => `/legal/${docType}/`,
   accept: "/legal/accept/",
 } as const;
+
+export const REVIEWS_ENDPOINTS = {
+  clientLookup: "/client-lookup/",
+  reviewedClients: "/reviewed-clients/",
+
+  clientReviews: (clientId: string) => `/reviewed-client/${clientId}/reviews/`,
+  clientReviewDetail: (clientId: string, id: number) =>
+    `/reviewed-client/${clientId}/reviews/${id}/`,
+  clientReviewSummary: (clientId: string) =>
+    `/reviewed-client/${clientId}/reviews/summary/`,
+  clientMyReview: (clientId: string) =>
+    `/reviewed-client/${clientId}/reviews/my-review/`,
+
+  tags: "/tags/",
+
+  myReviews: "/my-reviews/",
+  myReviewDetail: (id: number) => `/my-reviews/${id}/`,
+} as const;

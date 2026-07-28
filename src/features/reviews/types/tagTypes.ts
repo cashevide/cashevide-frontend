@@ -1,15 +1,13 @@
-export type ReviewTagId = number;
+export type TagCategory = "POSITIVE" | "NEGATIVE";
 
-export type ReviewTagCategory = "positive" | "negative" | "neutral" | string;
-
-export type ReviewTagGroup = string;
-
-export type ReviewTag = {
-  id: ReviewTagId;
+export type Tag = {
+  id: number;
   name: string;
-  category: ReviewTagCategory;
-  group: ReviewTagGroup;
-  created_at?: string;
-  updated_at?: string;
-  is_active?: boolean;
+  category: TagCategory;
+  group: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
 };
+
+export type TagListResponse = Tag[];

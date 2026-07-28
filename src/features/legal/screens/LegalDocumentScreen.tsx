@@ -33,7 +33,7 @@ export default function LegalDocumentScreen() {
       return;
     }
 
-    router.replace(isAuthenticated ? ROUTES.reviews : ROUTES.welcome);
+    router.replace(isAuthenticated ? ROUTES.reviews.home : ROUTES.welcome);
   }
 
   if (legalDocumentQuery.isLoading) {
