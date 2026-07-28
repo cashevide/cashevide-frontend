@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCreateReviewedClient } from "../hooks/useCreateReviewedClient";
 import { useReviewTags } from "../hooks/useReviewTags";
@@ -14,6 +7,7 @@ import { useCreateReview } from "../hooks/useCreateReview";
 import { useMyReviewForClient } from "../hooks/useMyReviewForClient";
 import { useTagSelection } from "@/src/shared/hooks/useTagSelection";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import { PhoneNumberInput } from "@/src/shared/ui";
 import type { Tag } from "../types/tagTypes";
 
 export default function AddReviewScreen() {
@@ -77,13 +71,7 @@ export default function AddReviewScreen() {
       <View style={styles.container}>
         <Text>Add Review — Step 1: Find Client</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="+919XXXXXXXXX"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          keyboardType="phone-pad"
-        />
+        <PhoneNumberInput onChangeFullNumber={setPhoneNumber} />
 
         <Button
           title="Give Review"
@@ -199,13 +187,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    width: "80%",
-    borderRadius: 4,
   },
   error: {
     color: "red",

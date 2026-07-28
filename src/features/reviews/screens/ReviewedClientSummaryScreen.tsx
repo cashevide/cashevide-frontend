@@ -30,7 +30,11 @@ export default function ReviewedClientSummaryScreen() {
 
       {summary.isLoading && <Text>Loading summary...</Text>}
 
-      {summary.data && (
+      {summary.data && summary.data.total_reviews === 0 && (
+        <Text>No reviews yet — be the first to give a review!</Text>
+      )}
+
+      {summary.data && summary.data.total_reviews > 0 && (
         <View style={styles.summaryBox}>
           <Text>Average Rating: {summary.data.average_rating}</Text>
           <Text>Total Reviews: {summary.data.total_reviews}</Text>

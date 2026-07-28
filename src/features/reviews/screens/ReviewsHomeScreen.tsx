@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useCreateReviewedClient } from "../hooks/useCreateReviewedClient";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import { PhoneNumberInput } from "@/src/shared/ui";
 
 export default function ReviewsHomeScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -23,13 +24,7 @@ export default function ReviewsHomeScreen() {
     <View style={styles.container}>
       <Text>Reviews Home Screen</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="+919XXXXXXXXX"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
-      />
+      <PhoneNumberInput onChangeFullNumber={setPhoneNumber} />
 
       <Button
         title="Continue"
@@ -61,13 +56,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    width: "80%",
-    borderRadius: 4,
   },
   error: {
     color: "red",
