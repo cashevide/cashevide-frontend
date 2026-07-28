@@ -51,5 +51,14 @@ export const ROUTES = {
       edit: (clientSlug: string): Href =>
         `/invoices/clients/${clientSlug}/edit` as Href,
     },
+
+    products: {
+      list: "/invoices/products",
+      create: "/invoices/products/create",
+      detail: (productSlug: string): Href =>
+        `/invoices/products/${productSlug}` as Href,
+      edit: (productSlug: string): Href =>
+        `/invoices/products/${productSlug}/edit` as Href,
+    },
   },
 } as const;

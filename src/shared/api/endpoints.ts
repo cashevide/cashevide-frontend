@@ -49,3 +49,10 @@ export const CLIENT_ENDPOINTS = {
   detail: (slug: string) => `/clients/${slug}/`,
   usage: "/clients/usage/",
 } as const;
+
+export const PRODUCT_ENDPOINTS = {
+  list: "/products/",
+  create: "/products/",
+  detail: (slug: string) => `/products/${slug}/`,
+  usage: "/products/usage/",
+} as const;

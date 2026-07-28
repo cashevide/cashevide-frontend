@@ -1,4 +1,5 @@
 import type { GetClientsParams } from "@/src/features/clients/api/clientsApi";
+import type { GetProductsParams } from "@/src/features/products/api/productsApi";
 
 export const QUERY_KEYS = {
   reviewTags: ["reviewTags"] as const,
@@ -13,4 +14,8 @@ export const QUERY_KEYS = {
   clients: (params?: GetClientsParams) => ["clients", params] as const,
   clientDetail: (slug: string) => ["clientDetail", slug] as const,
   clientUsage: ["clientUsage"] as const,
+
+  products: (params?: GetProductsParams) => ["products", params] as const,
+  productDetail: (slug: string) => ["productDetail", slug] as const,
+  productUsage: ["productUsage"] as const,
 } as const;

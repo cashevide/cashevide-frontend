@@ -1,35 +1,67 @@
-import { router, useLocalSearchParams } from "expo-router";
 import { Button, StyleSheet, Text, View } from "react-native";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback } from "react";
+import { useProductDetails } from "../hooks/useProductDetails";
+import { useDeleteProduct } from "../hooks/useDeleteProduct";
+import { ROUTES } from "@/src/shared/navigation/routes";
 
 export default function ProductDetailsScreen() {
   const { productSlug } = useLocalSearchParams<{ productSlug: string }>();
 
+  const productDetails = useProductDetails(productSlug);
+  const deleteProduct = useDeleteProduct();
+
+  useFocusEffect(
+    useCallback(() => {
+      productDetails.refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [productSlug]),
+  );
+
+  const handleDelete = () => {
+    deleteProduct.mutate(productSlug, {
+      onSuccess: () => {
+        router.replace(ROUTES.invoices.products.list);
+      },
+    });
+  };
+
+  if (productDetails.isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading product...</Text>
+      </View>
+    );
+  }
+
+  if (productDetails.isError) {
+    return (
+      <View style={styles.container}>
+        <Text>Product not found.</Text>
+        <Button
+          title="Back to Products"
+          onPress={() => router.replace(ROUTES.invoices.products.list)}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text>Product Details Screen</Text>
-      <Text>Product Slug: {productSlug}</Text>
-      <Text>
-        Product title, description and unit price will come here later
-      </Text>
+      <Text style={styles.title}>{productDetails.data?.title}</Text>
+      <Text>{productDetails.data?.description}</Text>
+      <Text>₹{productDetails.data?.unit_price}</Text>
 
       <Button
         title="Edit Product"
-        onPress={() =>
-          router.push({
-            pathname: "/invoices/products/[productSlug]/edit",
-            params: { productSlug },
-          })
-        }
+        onPress={() => router.push(ROUTES.invoices.products.edit(productSlug))}
       />
 
       <Button
-        title="Delete Product Test"
-        onPress={() => router.replace("/invoices/products")}
-      />
-
-      <Button
-        title="Back to Products"
-        onPress={() => router.push("/invoices/products")}
+        title="Delete Product"
+        color="red"
+        onPress={handleDelete}
+        disabled={deleteProduct.isPending}
       />
 
       <Button title="Back" onPress={() => router.back()} />
@@ -43,5 +75,10 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: "center",
     justifyContent: "center",
+    padding: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
