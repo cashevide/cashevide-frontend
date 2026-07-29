@@ -1,14 +1,6 @@
 import { router } from "expo-router";
-import { useState } from "react";
-import {
-  Button,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import { Button, StyleSheet, Text, View } from "react-native";
+import { AvatarPicker } from "@/src/shared/ui";
 import ProfileSubTabs from "../components/ProfileSubTabs";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useUpdateUserProfile } from "../hooks/useUpdateUserProfile";
@@ -16,37 +8,6 @@ import { useUpdateUserProfile } from "../hooks/useUpdateUserProfile";
 export default function ProfileScreen() {
   const userProfile = useUserProfile();
   const updateUserProfile = useUpdateUserProfile();
-  const [pickedImageUri, setPickedImageUri] = useState<string | null>(null);
-
-  const handleChangePhoto = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-    });
-
-    if (result.canceled || result.assets.length === 0) return;
-
-    const uri = result.assets[0].uri;
-    setPickedImageUri(uri);
-
-    updateUserProfile.mutate(
-      {
-        profile_picture: {
-          uri,
-          name: "profile_picture.jpg",
-          type: "image/jpeg",
-        },
-      },
-      {
-        onSettled: () => setPickedImageUri(null),
-      },
-    );
-  };
-
-  const displayImageUri = pickedImageUri ?? userProfile.data?.profile_picture;
 
   return (
     <View style={styles.container}>
@@ -56,17 +17,17 @@ export default function ProfileScreen() {
 
       {userProfile.data && (
         <View style={styles.profileBox}>
-          <TouchableOpacity onPress={handleChangePhoto}>
-            {displayImageUri ? (
-              <Image source={{ uri: displayImageUri }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text>Add Photo</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          {updateUserProfile.isPending && <Text>Updating photo...</Text>}
+          <AvatarPicker
+            imageUri={userProfile.data.profile_picture}
+            onPick={(asset) => {
+              updateUserProfile.mutate({ profile_picture: asset });
+            }}
+            isUploading={updateUserProfile.isPending}
+            isError={updateUserProfile.isError}
+            shape="circle"
+            placeholderText="Add Photo"
+            fileName="profile_picture.jpg"
+          />
 
           <Text style={styles.name}>{userProfile.data.full_name}</Text>
 
@@ -102,19 +63,6 @@ const styles = StyleSheet.create({
   profileBox: {
     alignItems: "center",
     gap: 4,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  avatarPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#eee",
-    alignItems: "center",
-    justifyContent: "center",
   },
   name: {
     fontSize: 18,

@@ -15,3 +15,4 @@ export { ConfirmDialog } from "./molecules/ConfirmDialog";
 export { Toast } from "./molecules/Toast";
 export { EmptyState } from "./molecules/EmptyState";
 export { PhoneNumberInput } from "./molecules/PhoneNumberInput";
+export { AvatarPicker } from "./molecules/AvatarPicker";
