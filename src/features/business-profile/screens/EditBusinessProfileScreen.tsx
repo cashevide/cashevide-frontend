@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
+import { CurrencyPicker } from "@/src/shared/ui";
 import { useBusinessProfile } from "../hooks/useBusinessProfile";
 import { useUpdateBusinessProfile } from "../hooks/useUpdateBusinessProfile";
 
@@ -79,13 +80,9 @@ export default function EditBusinessProfileScreen() {
         onChangeText={setPhoneNumber}
         keyboardType="phone-pad"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Currency (e.g. INR)"
-        value={currency}
-        onChangeText={setCurrency}
-        autoCapitalize="characters"
-      />
+
+      <CurrencyPicker value={currency} onChange={setCurrency} />
+
       <TextInput
         style={styles.input}
         placeholder="Website (optional)"
