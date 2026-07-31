@@ -65,12 +65,21 @@ function extractFilename(
 // Downloads an invoice PDF and either triggers a browser download (web) or
 // opens the native share sheet (iOS/Android).
 //
-// Important: the backend returns `application/pdf` as the content-type
-// even on a 404 (the body is just the text "Not Found" in that case) — so
-// we rely on the HTTP status code via axios throwing on non-2xx, not on
-// the content-type, to detect failure. Do not add content-type checks here.
+// Important: the `api` client's default Accept header is `application/json`
+// (see shared/api/client.ts), but this endpoint's DRF view only has a PDF
+// renderer configured — sending the default header causes DRF's content
+// negotiation to reject the request with 406 Not Acceptable. We override
+// the Accept header to `application/pdf` for this request only.
+//
+// Also: the backend returns `application/pdf` as the content-type even on
+// a 404 (the body is just the text "Not Found" in that case) — so we rely
+// on the HTTP status code via axios throwing on non-2xx, not on the
+// content-type, to detect failure. Do not add content-type checks here.
 export async function downloadInvoicePdfApi(id: number): Promise<void> {
   const response = await api.get(INVOICE_ENDPOINTS.downloadPdf(id), {
+    headers: {
+      Accept: "application/pdf",
+    },
     responseType: Platform.OS === "web" ? "blob" : "arraybuffer",
   });
 
