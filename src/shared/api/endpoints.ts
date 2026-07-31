@@ -57,3 +57,11 @@ export const PRODUCT_ENDPOINTS = {
   detail: (slug: string) => `/products/${slug}/`,
   usage: "/products/usage/",
 } as const;
+
+export const INVOICE_ENDPOINTS = {
+  list: "/invoices/",
+  create: "/invoices/",
+  detail: (id: number) => `/invoices/${id}/`,
+  downloadPdf: (id: number) => `/invoices/${id}/download-pdf/`,
+  dashboardAnalytics: "/invoices/dashboard-analytics/",
+} as const;

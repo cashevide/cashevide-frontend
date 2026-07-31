@@ -17,3 +17,4 @@ export { EmptyState } from "./molecules/EmptyState";
 export { PhoneNumberInput } from "./molecules/PhoneNumberInput";
 export { AvatarPicker } from "./molecules/AvatarPicker";
 export { CurrencyPicker } from "./molecules/CurrencyPicker";
+export { DateField } from "./molecules/DateField";

@@ -43,6 +43,15 @@ export const ROUTES = {
   },
 
   invoices: {
+    dashboard: "/invoices",
+    list: "/invoices/invoices",
+    create: "/invoices/create",
+    detail: (invoiceId: number): Href => `/invoices/${invoiceId}` as Href,
+    edit: (invoiceId: number, section?: "payments"): Href =>
+      (section
+        ? `/invoices/${invoiceId}/edit?section=${section}`
+        : `/invoices/${invoiceId}/edit`) as Href,
+
     clients: {
       list: "/invoices/clients",
       create: "/invoices/clients/create",
