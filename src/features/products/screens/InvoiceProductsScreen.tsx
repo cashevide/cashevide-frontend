@@ -79,6 +79,13 @@ export default function InvoiceProductsScreen() {
         </TouchableOpacity>
       </View>
 
+      <TouchableOpacity
+        style={styles.archivedRow}
+        onPress={() => router.push(ROUTES.invoices.products.archived)}
+      >
+        <Text style={styles.archivedRowText}>Archived Products</Text>
+      </TouchableOpacity>
+
       {products.isLoading && <Text>Loading products...</Text>}
 
       {products.data && products.data.results.length === 0 && (
@@ -145,6 +152,15 @@ const styles = StyleSheet.create({
   },
   orderingInactive: {
     color: "#666",
+  },
+  archivedRow: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  archivedRowText: {
+    fontSize: 14,
+    color: "#3399ff",
   },
   list: {
     flex: 1,

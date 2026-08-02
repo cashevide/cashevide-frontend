@@ -78,6 +78,13 @@ export default function InvoiceClientsScreen() {
         </TouchableOpacity>
       </View>
 
+      <TouchableOpacity
+        style={styles.archivedRow}
+        onPress={() => router.push(ROUTES.invoices.clients.archived)}
+      >
+        <Text style={styles.archivedRowText}>Archived Clients</Text>
+      </TouchableOpacity>
+
       {clients.isLoading && <Text>Loading clients...</Text>}
 
       {clients.data && clients.data.results.length === 0 && (
@@ -144,6 +151,15 @@ const styles = StyleSheet.create({
   },
   orderingInactive: {
     color: "#666",
+  },
+  archivedRow: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  archivedRowText: {
+    fontSize: 14,
+    color: "#3399ff",
   },
   list: {
     flex: 1,
