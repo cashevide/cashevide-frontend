@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Button,
@@ -14,6 +14,7 @@ import { router } from "expo-router";
 import { useBusinessProfile } from "@/src/features/business-profile/hooks/useBusinessProfile";
 import { useCreateInvoice } from "../hooks/useCreateInvoice";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import { CurrencyPicker } from "@/src/shared/ui";
 import InvoiceSubTabs from "../components/InvoiceSubTabs";
 import ClientPickerModal from "../components/ClientPickerModal";
 import InvoiceItemFormRow from "../components/InvoiceItemFormRow";
@@ -80,8 +81,18 @@ export default function CreateInvoiceScreen() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [currency, setCurrency] = useState("");
   const [discount, setDiscount] = useState("0");
   const [items, setItems] = useState<InvoiceItemRequest[]>([createEmptyItem()]);
+
+  const [currencyInitialized, setCurrencyInitialized] = useState(false);
+
+  useEffect(() => {
+    if (businessProfile.data?.currency && !currencyInitialized) {
+      setCurrency(businessProfile.data.currency);
+      setCurrencyInitialized(true);
+    }
+  }, [businessProfile.data, currencyInitialized]);
 
   if (businessProfile.isLoading) {
     return (
@@ -166,6 +177,7 @@ export default function CreateInvoiceScreen() {
       email: email.trim() || undefined,
       phone: phone.trim() || undefined,
       address: address.trim() || undefined,
+      currency: currency || undefined,
       discount: discount || "0",
       items,
       payments: [],
@@ -247,6 +259,9 @@ export default function CreateInvoiceScreen() {
         onChangeText={setAddress}
         multiline
       />
+
+      <Text style={styles.sectionTitle}>Currency</Text>
+      <CurrencyPicker value={currency} onChange={setCurrency} />
 
       <Text style={styles.sectionTitle}>Items</Text>
 

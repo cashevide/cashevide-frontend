@@ -14,7 +14,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useInvoiceDetails } from "../hooks/useInvoiceDetails";
 import { useUpdateInvoice } from "../hooks/useUpdateInvoice";
 import { ROUTES } from "@/src/shared/navigation/routes";
-import { DateField } from "@/src/shared/ui";
+import { CurrencyPicker, DateField } from "@/src/shared/ui";
 import InvoiceSubTabs from "../components/InvoiceSubTabs";
 import ClientPickerModal from "../components/ClientPickerModal";
 import InvoiceItemFormRow from "../components/InvoiceItemFormRow";
@@ -91,6 +91,7 @@ export default function EditInvoiceScreen() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [currency, setCurrency] = useState("");
   const [issueDate, setIssueDate] = useState<string | undefined>(undefined);
   const [dueDate, setDueDate] = useState<string | undefined>(undefined);
   const [discount, setDiscount] = useState("0");
@@ -108,6 +109,7 @@ export default function EditInvoiceScreen() {
       setEmail(invoice.email);
       setPhone(invoice.phone);
       setAddress(invoice.address);
+      setCurrency(invoice.currency);
       setIssueDate(invoice.issue_date ?? undefined);
       setDueDate(invoice.due_date ?? undefined);
       setDiscount(invoice.discount);
@@ -249,6 +251,7 @@ export default function EditInvoiceScreen() {
       email: email.trim() || undefined,
       phone: phone.trim() || undefined,
       address: address.trim() || undefined,
+      currency: currency || undefined,
       issue_date: issueDate ?? null,
       due_date: dueDate ?? null,
       discount: discount || "0",
@@ -357,6 +360,9 @@ export default function EditInvoiceScreen() {
             onChangeText={setAddress}
             multiline
           />
+
+          <Text style={styles.sectionTitle}>Currency</Text>
+          <CurrencyPicker value={currency} onChange={setCurrency} />
 
           <Text style={styles.sectionTitle}>Dates</Text>
           <View style={styles.dateRow}>
