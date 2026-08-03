@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
+import { InfoDialog } from "@/src/shared/ui";
 import { useClients } from "../hooks/useClients";
 import { useClientUsage } from "../hooks/useClientUsage";
 import { useDebouncedValue } from "@/src/shared/hooks/useDebouncedValue";
@@ -20,6 +21,7 @@ export default function InvoiceClientsScreen() {
   const [searchText, setSearchText] = useState("");
   const [ordering, setOrdering] =
     useState<GetClientsParams["ordering"]>("-created_at");
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const debouncedSearchText = useDebouncedValue(searchText, 400);
 
@@ -41,6 +43,14 @@ export default function InvoiceClientsScreen() {
     clientUsage.data?.max_allowed_client != null &&
     clientUsage.data.current_client_count >=
       clientUsage.data.max_allowed_client;
+
+  const handleAddClientPress = () => {
+    if (isUsageLimitReached) {
+      setShowLimitDialog(true);
+      return;
+    }
+    router.push(ROUTES.invoices.clients.create);
+  };
 
   return (
     <View style={styles.container}>
@@ -120,10 +130,13 @@ export default function InvoiceClientsScreen() {
         </Text>
       )}
 
-      <Button
-        title="+ Add Client"
-        onPress={() => router.push(ROUTES.invoices.clients.create)}
-        disabled={isUsageLimitReached}
+      <Button title="+ Add Client" onPress={handleAddClientPress} />
+
+      <InfoDialog
+        visible={showLimitDialog}
+        title="Client Limit Reached"
+        message={`You cannot add more than ${clientUsage.data?.max_allowed_client} clients in your current plan.`}
+        onDismiss={() => setShowLimitDialog(false)}
       />
     </View>
   );

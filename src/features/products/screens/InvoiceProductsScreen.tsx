@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
+import { InfoDialog } from "@/src/shared/ui";
 import { useProducts } from "../hooks/useProducts";
 import { useProductUsage } from "../hooks/useProductUsage";
 import { useDebouncedValue } from "@/src/shared/hooks/useDebouncedValue";
@@ -21,6 +22,7 @@ export default function InvoiceProductsScreen() {
   const [searchText, setSearchText] = useState("");
   const [ordering, setOrdering] =
     useState<GetProductsParams["ordering"]>("-created_at");
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const debouncedSearchText = useDebouncedValue(searchText, 400);
 
@@ -42,6 +44,14 @@ export default function InvoiceProductsScreen() {
     productUsage.data?.max_allowed_product != null &&
     productUsage.data.current_product_count >=
       productUsage.data.max_allowed_product;
+
+  const handleAddProductPress = () => {
+    if (isUsageLimitReached) {
+      setShowLimitDialog(true);
+      return;
+    }
+    router.push(ROUTES.invoices.products.create);
+  };
 
   return (
     <View style={styles.container}>
@@ -121,10 +131,13 @@ export default function InvoiceProductsScreen() {
         </Text>
       )}
 
-      <Button
-        title="+ Add Product"
-        onPress={() => router.push(ROUTES.invoices.products.create)}
-        disabled={isUsageLimitReached}
+      <Button title="+ Add Product" onPress={handleAddProductPress} />
+
+      <InfoDialog
+        visible={showLimitDialog}
+        title="Product Limit Reached"
+        message={`You cannot add more than ${productUsage.data?.max_allowed_product} products in your current plan.`}
+        onDismiss={() => setShowLimitDialog(false)}
       />
     </View>
   );

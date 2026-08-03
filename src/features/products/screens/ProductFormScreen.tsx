@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { AxiosError } from "axios";
 import { useProductDetails } from "../hooks/useProductDetails";
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import { useUpdateProduct } from "../hooks/useUpdateProduct";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import type {
+  CreateProductError,
+  UpdateProductError,
+} from "../types/productTypes";
 
 export default function ProductFormScreen() {
   const { productSlug } = useLocalSearchParams<{ productSlug?: string }>();
@@ -37,9 +42,6 @@ export default function ProductFormScreen() {
         },
         {
           onSuccess: (data) => {
-            // Always use the fresh slug from the response — the backend
-            // regenerates the product slug on every save(), even if the
-            // title didn't change, so the old param slug may now be stale.
             router.replace(ROUTES.invoices.products.detail(data.slug));
           },
         },
@@ -56,6 +58,34 @@ export default function ProductFormScreen() {
       },
     );
   };
+
+  function getErrorMessage(): string | null {
+    if (!mutation.isError) return null;
+
+    const axiosError = mutation.error as AxiosError<
+      CreateProductError | UpdateProductError
+    >;
+    const responseData = axiosError.response?.data;
+
+    if (!responseData) {
+      return axiosError.message;
+    }
+
+    // Tier-limit error: plain string array, e.g. ["You cannot create more than 2 products..."]
+    if (Array.isArray(responseData)) {
+      return responseData[0];
+    }
+
+    // Field-keyed error, e.g. { title: ["This field is required."] }
+    const firstFieldErrors = Object.values(responseData)[0];
+    if (Array.isArray(firstFieldErrors)) {
+      return firstFieldErrors[0];
+    }
+
+    return "Something went wrong. Please try again.";
+  }
+
+  const errorMessage = getErrorMessage();
 
   if (isEditMode && productDetails.isLoading) {
     return (
@@ -96,13 +126,7 @@ export default function ProductFormScreen() {
         disabled={mutation.isPending || !title || !unitPrice}
       />
 
-      {mutation.isError && (
-        <Text style={styles.error}>
-          {JSON.stringify(
-            (mutation.error as any)?.response?.data ?? mutation.error.message,
-          )}
-        </Text>
-      )}
+      {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
       <Button title="Back" onPress={() => router.back()} />
     </View>

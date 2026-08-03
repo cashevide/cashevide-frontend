@@ -10,13 +10,14 @@ export type Client = {
   phone: string;
   address: string;
   slug: string;
+  is_archived: boolean;
   created_at: string;
   updated_at: string;
   is_active: boolean;
 };
 
 // -------------------- list --------------------
-// GET /clients/
+// GET /clients/?is_archived=true|false
 export type ClientsListResponse = {
   count: number;
   next: string | null;
@@ -35,8 +36,16 @@ export type CreateClientRequest = {
 
 export type CreateClientResponse = Client;
 
+// Tier-limit error comes back as a plain string array, not field-keyed
+// e.g. ["You cannot create more than 2 clients in COMMUNITY plan"]
+export type CreateClientTierLimitError = string[];
+
 export type CreateClientErrorField = "name" | "email" | "phone" | "address";
-export type CreateClientError = FieldErrors<CreateClientErrorField>;
+export type CreateClientFieldError = FieldErrors<CreateClientErrorField>;
+
+export type CreateClientError =
+  | CreateClientFieldError
+  | CreateClientTierLimitError;
 
 // -------------------- detail --------------------
 // GET /clients/{slug}/
@@ -46,7 +55,7 @@ export type ClientNotFoundError = {
   detail: string;
 };
 
-// -------------------- update --------------------
+// -------------------- update (also used for archive/unarchive) --------------------
 // PATCH /clients/{slug}/
 export type UpdateClientRequest = {
   name?: string;
@@ -54,11 +63,15 @@ export type UpdateClientRequest = {
   phone?: string;
   address?: string;
   is_active?: boolean;
+  is_archived?: boolean;
 };
 
 export type UpdateClientResponse = Client;
 
-export type UpdateClientError = CreateClientError;
+// Unarchive tier-limit error is field-keyed under is_archived
+// e.g. { is_archived: ["You cannot unarchive more than 2 clients in COMMUNITY plan"] }
+export type UpdateClientErrorField = CreateClientErrorField | "is_archived";
+export type UpdateClientError = FieldErrors<UpdateClientErrorField>;
 
 // -------------------- usage --------------------
 // GET /clients/usage/

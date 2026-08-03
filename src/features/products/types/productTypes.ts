@@ -9,13 +9,14 @@ export type Product = {
   description: string;
   unit_price: string;
   slug: string;
+  is_archived: boolean;
   created_at: string;
   updated_at: string;
   is_active: boolean;
 };
 
 // -------------------- list --------------------
-// GET /products/
+// GET /products/?is_archived=true|false
 export type ProductsListResponse = {
   count: number;
   next: string | null;
@@ -33,8 +34,16 @@ export type CreateProductRequest = {
 
 export type CreateProductResponse = Product;
 
+// Tier-limit error comes back as a plain string array, not field-keyed
+// e.g. ["You cannot create more than 2 products in COMMUNITY plan"]
+export type CreateProductTierLimitError = string[];
+
 export type CreateProductErrorField = "title" | "description" | "unit_price";
-export type CreateProductError = FieldErrors<CreateProductErrorField>;
+export type CreateProductFieldError = FieldErrors<CreateProductErrorField>;
+
+export type CreateProductError =
+  | CreateProductFieldError
+  | CreateProductTierLimitError;
 
 // -------------------- detail --------------------
 // GET /products/{slug}/
@@ -44,21 +53,22 @@ export type ProductNotFoundError = {
   detail: string;
 };
 
-// -------------------- update --------------------
+// -------------------- update (also used for archive/unarchive) --------------------
 // PATCH /products/{slug}/
-// Note: slug may change in the response even if title didn't — backend
-// regenerates the slug on every save(), not just when title changes.
-// Always navigate using the slug from the response, never the old one.
 export type UpdateProductRequest = {
   title?: string;
   description?: string;
   unit_price?: string;
   is_active?: boolean;
+  is_archived?: boolean;
 };
 
 export type UpdateProductResponse = Product;
 
-export type UpdateProductError = CreateProductError;
+// Unarchive tier-limit error is field-keyed under is_archived
+// e.g. { is_archived: ["You cannot unarchive more than 2 products in COMMUNITY plan"] }
+export type UpdateProductErrorField = CreateProductErrorField | "is_archived";
+export type UpdateProductError = FieldErrors<UpdateProductErrorField>;
 
 // -------------------- usage --------------------
 // GET /products/usage/

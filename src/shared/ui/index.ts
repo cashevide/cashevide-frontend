@@ -12,6 +12,7 @@ export { SearchInput } from "./molecules/SearchInput";
 export { PillTabs } from "./molecules/PillTabs";
 export { Modal } from "./molecules/Modal";
 export { ConfirmDialog } from "./molecules/ConfirmDialog";
+export { InfoDialog } from "./molecules/InfoDialog";
 export { Toast } from "./molecules/Toast";
 export { EmptyState } from "./molecules/EmptyState";
 export { PhoneNumberInput } from "./molecules/PhoneNumberInput";

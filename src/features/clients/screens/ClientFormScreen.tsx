@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { AxiosError } from "axios";
 import { useClientDetails } from "../hooks/useClientDetails";
 import { useCreateClient } from "../hooks/useCreateClient";
 import { useUpdateClient } from "../hooks/useUpdateClient";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import type {
+  CreateClientError,
+  UpdateClientError,
+} from "../types/clientTypes";
 
 export default function ClientFormScreen() {
   const { clientSlug } = useLocalSearchParams<{ clientSlug?: string }>();
@@ -56,6 +61,34 @@ export default function ClientFormScreen() {
     );
   };
 
+  function getErrorMessage(): string | null {
+    if (!mutation.isError) return null;
+
+    const axiosError = mutation.error as AxiosError<
+      CreateClientError | UpdateClientError
+    >;
+    const responseData = axiosError.response?.data;
+
+    if (!responseData) {
+      return axiosError.message;
+    }
+
+    // Tier-limit error: plain string array, e.g. ["You cannot create more than 2 clients..."]
+    if (Array.isArray(responseData)) {
+      return responseData[0];
+    }
+
+    // Field-keyed error, e.g. { name: ["This field is required."] }
+    const firstFieldErrors = Object.values(responseData)[0];
+    if (Array.isArray(firstFieldErrors)) {
+      return firstFieldErrors[0];
+    }
+
+    return "Something went wrong. Please try again.";
+  }
+
+  const errorMessage = getErrorMessage();
+
   if (isEditMode && clientDetails.isLoading) {
     return (
       <View style={styles.container}>
@@ -103,13 +136,7 @@ export default function ClientFormScreen() {
         disabled={mutation.isPending || !name || !phone}
       />
 
-      {mutation.isError && (
-        <Text style={styles.error}>
-          {JSON.stringify(
-            (mutation.error as any)?.response?.data ?? mutation.error.message,
-          )}
-        </Text>
-      )}
+      {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
       <Button title="Back" onPress={() => router.back()} />
     </View>

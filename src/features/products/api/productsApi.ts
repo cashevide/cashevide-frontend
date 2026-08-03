@@ -13,6 +13,7 @@ import type {
 export type GetProductsParams = {
   search?: string;
   ordering?: "title" | "-title" | "created_at" | "-created_at";
+  is_archived?: boolean;
 };
 
 export async function getProductsApi(

@@ -13,6 +13,7 @@ import type {
 export type GetClientsParams = {
   search?: string;
   ordering?: "name" | "-name" | "created_at" | "-created_at";
+  is_archived?: boolean;
 };
 
 export async function getClientsApi(
