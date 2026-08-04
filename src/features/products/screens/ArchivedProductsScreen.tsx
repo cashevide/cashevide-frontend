@@ -48,6 +48,9 @@ export default function ArchivedProductsScreen() {
     updateProduct.mutate(
       { slug, payload: { is_archived: false } },
       {
+        onSuccess: () => {
+          archivedProducts.refetch();
+        },
         onError: (error) => {
           const axiosError = error as AxiosError<UpdateProductError>;
           const message = axiosError.response?.data?.is_archived?.[0];

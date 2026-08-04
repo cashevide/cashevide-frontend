@@ -48,6 +48,9 @@ export default function ArchivedClientsScreen() {
     updateClient.mutate(
       { slug, payload: { is_archived: false } },
       {
+        onSuccess: () => {
+          archivedClients.refetch();
+        },
         onError: (error) => {
           const axiosError = error as AxiosError<UpdateClientError>;
           const message = axiosError.response?.data?.is_archived?.[0];
