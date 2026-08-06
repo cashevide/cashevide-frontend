@@ -6,13 +6,15 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cashevidefrontend",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "ios": {
       "bundleIdentifier": "com.cashevide.app",
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "userInterfaceStyle": "dark"
     },
     "android": {
       "package": "com.cashevide.app",
+      "userInterfaceStyle": "dark",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -31,7 +33,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#010101",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
@@ -40,7 +42,8 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
