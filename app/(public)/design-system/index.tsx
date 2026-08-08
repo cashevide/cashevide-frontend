@@ -1,0 +1,59 @@
+import { View } from "react-native";
+import { Link } from "expo-router";
+
+import { Container } from "@/src/shared/layout/Container";
+import { Text } from "@/src/shared/ui";
+
+const SECTIONS = [
+  {
+    title: "Logo",
+    description: "Brand mark in multiple sizes",
+    href: "/design-system/logo",
+  },
+  {
+    title: "Colors",
+    description: "Semantic color tokens for light and dark mode",
+    href: "/design-system/colors",
+  },
+  {
+    title: "Buttons",
+    description: "Variants, sizes, icon buttons, loading and disabled states",
+    href: "/design-system/buttons",
+  },
+  {
+    title: "Inputs",
+    description: "Text fields with error, success, and password states",
+    href: "/design-system/inputs",
+  },
+] as const;
+
+export default function DesignOverview() {
+  return (
+    <Container variant="desktop" safeArea scroll>
+      <View className="py-12 px-6 gap-10">
+        <View className="gap-2">
+          <Text variant="title">Cashevide Design System</Text>
+          <Text variant="body" className="text-muted-foreground">
+            Reference for colors, typography, and reusable UI components used
+            across the app.
+          </Text>
+        </View>
+
+        <View className="gap-3">
+          {SECTIONS.map((section) => (
+            <Link key={section.title} href={section.href as any} asChild>
+              <View className="bg-card border border-border rounded-lg p-4 gap-1">
+                <Text variant="body-lg" className="font-semibold">
+                  {section.title}
+                </Text>
+                <Text variant="body-sm" className="text-muted-foreground">
+                  {section.description}
+                </Text>
+              </View>
+            </Link>
+          ))}
+        </View>
+      </View>
+    </Container>
+  );
+}

@@ -2,6 +2,8 @@ export { Button } from "./atoms/Button";
 export { Input } from "./atoms/Input";
 export { Text } from "./atoms/Text";
 export { Spinner } from "./atoms/Spinner";
+export { GoogleButton } from "./atoms/GoogleButton";
+export { Logo } from "./atoms/Logo";
 export { Checkbox } from "./atoms/Checkbox";
 export { Switch } from "./atoms/Switch";
 export { Avatar } from "./atoms/Avatar";
