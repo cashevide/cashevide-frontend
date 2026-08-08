@@ -1,5 +1,6 @@
 import { Text as RNText, TextProps } from "react-native";
-import { twMerge } from "tailwind-merge";
+
+import { cn } from "@/src/shared/utils/cn";
 
 type TextVariant =
   | "display"
@@ -44,7 +45,7 @@ export function Text({
 }: CustomTextProps) {
   return (
     <RNText
-      className={twMerge("font-sans", VARIANT_CLASS[variant], className)}
+      className={cn("font-sans", VARIANT_CLASS[variant], className)}
       style={style}
       {...props}
     />

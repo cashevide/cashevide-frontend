@@ -16,6 +16,11 @@ const SECTIONS = [
     href: "/design-system/colors",
   },
   {
+    title: "Text",
+    description: "Typography scale from display to caption",
+    href: "/design-system/text",
+  },
+  {
     title: "Buttons",
     description: "Variants, sizes, icon buttons, loading and disabled states",
     href: "/design-system/buttons",
@@ -24,6 +29,11 @@ const SECTIONS = [
     title: "Inputs",
     description: "Text fields with error, success, and password states",
     href: "/design-system/inputs",
+  },
+  {
+    title: "Switch",
+    description: "Toggle control with enabled, disabled, and label states",
+    href: "/design-system/switch",
   },
 ] as const;
 

@@ -8,15 +8,17 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Rect, Path } from "react-native-svg";
 
-import { Text, Button, Logo } from "@/src/shared/ui";
+import { Text, Switch, Logo } from "@/src/shared/ui";
 import { useThemeStore } from "@/src/store/themeStore";
 
 const NAV_ITEMS = [
   { label: "Overview", href: "/design-system" },
   { label: "Logo", href: "/design-system/logo" },
   { label: "Colors", href: "/design-system/colors" },
+  { label: "Text", href: "/design-system/text" },
   { label: "Buttons", href: "/design-system/buttons" },
   { label: "Inputs", href: "/design-system/inputs" },
+  { label: "Switch", href: "/design-system/switch" },
 ];
 
 const SIDEBAR_OPEN_WIDTH = 240;
@@ -172,12 +174,14 @@ export default function DesignLayout() {
             Design System
           </Text>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            title={theme === "dark" ? "☀️ Light" : "🌙 Dark"}
-            onPress={() => setTheme(theme === "dark" ? "light" : "dark")}
-          />
+          <View className="flex-row items-center gap-4">
+            <Text variant="body-sm">Dark mode</Text>
+            <Switch
+              value={theme === "dark"}
+              onValueChange={(next) => setTheme(next ? "dark" : "light")}
+              accessibilityLabel="Toggle dark mode"
+            />
+          </View>
         </View>
 
         <View className="flex-1">

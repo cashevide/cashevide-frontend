@@ -90,7 +90,7 @@
     --color-muted: 20 20 20; /* #141414 - landing page --bg-raised (exact) */
     --color-muted-foreground: 163 163 160; /* #a3a3a0 - landing page --text-secondary (exact) */
     --color-disabled: 20 20 20; /* #141414 */
-    --color-disabled-foreground: 110 110 107; /* #6e6e6b - landing page --text-tertiary (exact) */
+    --color-disabled-foreground: 80 80 77; /* #50504d - further darkened from landing --text-tertiary */
 
     /* 6. UI Elements */
     --color-border: 35 35 35; /* #232323 - solid blend of landing --border (white/0.09 on bg) */
