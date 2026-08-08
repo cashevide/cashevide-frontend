@@ -1,6 +1,7 @@
-import { View, ViewProps } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { twMerge } from "tailwind-merge";
+import { View, ViewProps, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { cn } from "@/src/shared/utils/cn";
 
 type ContainerVariant = "narrow" | "desktop" | "full";
 
@@ -14,36 +15,46 @@ interface ContainerProps extends ViewProps {
   variant?: ContainerVariant;
   className?: string;
   safeArea?: boolean;
-  padded?: boolean;
+  scroll?: boolean;
 }
 
 export function Container({
   variant = "full",
   className = "",
   safeArea = false,
-  padded = true,
+  scroll = false,
   children,
+  style,
   ...props
 }: ContainerProps) {
+  const insets = useSafeAreaInsets();
+
   const content = (
     <View
-      className={twMerge(
-        "flex-1 w-full mx-auto bg-background",
-        padded && "px-6",
-        VARIANT_CLASS[variant],
-        className,
-      )}
+      className={cn("flex-1 w-full mx-auto", VARIANT_CLASS[variant], className)}
+      style={[
+        safeArea && {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        },
+        style,
+      ]}
       {...props}
     >
       {children}
     </View>
   );
 
-  if (safeArea) {
+  if (scroll) {
     return (
-      <SafeAreaView className="flex-1 bg-background">{content}</SafeAreaView>
+      <ScrollView
+        className="flex-1 bg-background"
+        showsVerticalScrollIndicator={false}
+      >
+        {content}
+      </ScrollView>
     );
   }
 
-  return content;
+  return <View className="flex-1 bg-background">{content}</View>;
 }

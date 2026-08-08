@@ -1,7 +1,12 @@
 import { PropsWithChildren } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { QueryProvider } from "./QueryProvider";
 
 export function AppProviders({ children }: PropsWithChildren) {
-  return <QueryProvider>{children}</QueryProvider>;
+  return (
+    <SafeAreaProvider>
+      <QueryProvider>{children}</QueryProvider>
+    </SafeAreaProvider>
+  );
 }

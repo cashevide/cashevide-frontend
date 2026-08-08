@@ -28,7 +28,7 @@ const VARIANT_CLASS: Record<TextVariant, string> = {
   overline: "text-xs uppercase tracking-widest font-bold text-muted-foreground",
 
   link: "text-base font-medium underline text-link",
-  button: "text-base font-semibold",
+  button: "text-sm font-medium",
 };
 
 interface CustomTextProps extends TextProps {

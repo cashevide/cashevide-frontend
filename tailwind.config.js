@@ -61,10 +61,12 @@ module.exports = {
           DEFAULT: "rgb(var(--color-destructive) / <alpha-value>)",
           foreground:
             "rgb(var(--color-destructive-foreground) / <alpha-value>)",
+          text: "rgb(var(--color-destructive-text) / <alpha-value>)",
         },
         success: {
           DEFAULT: "rgb(var(--color-success) / <alpha-value>)",
           foreground: "rgb(var(--color-success-foreground) / <alpha-value>)",
+          text: "rgb(var(--color-success-text) / <alpha-value>)",
         },
         warning: {
           DEFAULT: "rgb(var(--color-warning) / <alpha-value>)",
