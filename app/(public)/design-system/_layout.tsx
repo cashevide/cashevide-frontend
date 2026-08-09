@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { label: "Buttons", href: "/design-system/buttons" },
   { label: "Inputs", href: "/design-system/inputs" },
   { label: "Switch", href: "/design-system/switch" },
+  { label: "Modal", href: "/design-system/modal" },
 ];
 
 const SIDEBAR_OPEN_WIDTH = 240;

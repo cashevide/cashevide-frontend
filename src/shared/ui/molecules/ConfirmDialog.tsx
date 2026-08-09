@@ -1,11 +1,6 @@
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { View } from "react-native";
 
+import { Button, Spinner } from "@/src/shared/ui";
 import { Modal } from "./Modal";
 
 type ConfirmDialogProps = {
@@ -32,44 +27,34 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   return (
-    <Modal visible={visible} dismissible onDismiss={onCancel}>
-      <View style={styles.container}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.message}>{message}</Text>
-
-        <View style={styles.row}>
-          <Button title={cancelLabel} onPress={onCancel} />
+    <Modal
+      visible={visible}
+      dismissible
+      onDismiss={onCancel}
+      title={title}
+      description={message}
+      footer={
+        <View className="flex-row justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            title={cancelLabel}
+            onPress={onCancel}
+            disabled={isConfirming}
+          />
 
           {isConfirming ? (
-            <ActivityIndicator />
+            <Spinner size="sm" />
           ) : (
             <Button
+              variant={destructive ? "destructive" : "primary"}
+              size="sm"
               title={confirmLabel}
               onPress={onConfirm}
-              color={destructive ? "#e53935" : undefined}
             />
           )}
         </View>
-      </View>
-    </Modal>
+      }
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    gap: 12,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  message: {
-    fontSize: 14,
-    color: "#333",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 8,
-  },
-});

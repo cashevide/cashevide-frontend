@@ -1,18 +1,27 @@
 import { PropsWithChildren, ReactNode } from "react";
-import { Modal as RNModal, View, StyleSheet } from "react-native";
+import { Modal as RNModal, View } from "react-native";
+
+import { cn } from "@/src/shared/utils/cn";
+import { Text } from "../atoms/Text";
 
 type ModalProps = PropsWithChildren<{
   visible: boolean;
   dismissible?: boolean;
   onDismiss?: () => void;
+  title?: string;
+  description?: ReactNode;
   footer?: ReactNode;
+  className?: string;
 }>;
 
 export function Modal({
   visible,
   dismissible = true,
   onDismiss,
+  title,
+  description,
   footer,
+  className = "",
   children,
 }: ModalProps) {
   function handleRequestClose() {
@@ -21,6 +30,8 @@ export function Modal({
     }
   }
 
+  const hasHeader = title || description;
+
   return (
     <RNModal
       visible={visible}
@@ -28,37 +39,33 @@ export function Modal({
       animationType="fade"
       onRequestClose={handleRequestClose}
     >
-      <View style={styles.backdrop}>
-        <View style={styles.content}>
-          <View style={styles.body}>{children}</View>
+      <View className="flex-1 items-center justify-center bg-overlay/50 px-4">
+        <View
+          className={cn(
+            "w-full max-w-[450px] max-h-[80%] gap-6 rounded-lg bg-secondary border border-border p-6 shadow-lg",
+            className,
+          )}
+        >
+          <View className="shrink gap-2">
+            {hasHeader ? (
+              <View className="gap-2">
+                {title ? <Text variant="subheading">{title}</Text> : null}
+                {description ? (
+                  typeof description === "string" ? (
+                    <Text variant="body-sm">{description}</Text>
+                  ) : (
+                    description
+                  )
+                ) : null}
+              </View>
+            ) : null}
 
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
+            {children}
+          </View>
+
+          {footer ? <View>{footer}</View> : null}
         </View>
       </View>
     </RNModal>
   );
 }
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  content: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    width: "90%",
-    maxWidth: 420,
-    maxHeight: "80%",
-  },
-  body: {
-    padding: 20,
-    flexShrink: 1,
-  },
-  footer: {
-    padding: 20,
-    paddingTop: 0,
-  },
-});

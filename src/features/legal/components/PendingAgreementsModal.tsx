@@ -1,16 +1,8 @@
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import Markdown from "react-native-markdown-display";
 
-import { Modal } from "@/src/shared/ui";
+import { Text, Button, Spinner, Modal } from "@/src/shared/ui";
 import { useAcceptLegalDocuments } from "../hooks/useAcceptLegalDocuments";
 import { useLegalDocument } from "../hooks/useLegalDocument";
 
@@ -29,6 +21,18 @@ type ExpandableSectionProps = {
   onToggle: () => void;
 };
 
+// react-native-markdown-display's `style` prop needs plain RGB/hex values —
+// it cannot resolve NativeWind's CSS custom properties (rgb(var(--x))),
+// same limitation as Reanimated worklets. Hardcoded to the dark theme's
+// foreground/muted-foreground tokens; revisit if/when light mode support
+// is needed here.
+const markdownStyle = {
+  body: { color: "#f2f2f0", fontSize: 14, lineHeight: 20 },
+  heading1: { color: "#f2f2f0" },
+  heading2: { color: "#f2f2f0" },
+  strong: { color: "#f2f2f0" },
+};
+
 function ExpandableSection({
   title,
   docType,
@@ -40,20 +44,27 @@ function ExpandableSection({
   );
 
   return (
-    <View style={styles.section}>
-      <Pressable onPress={onToggle} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <Text>{isExpanded ? "−" : "+"}</Text>
+    <View className="border-t border-border">
+      <Pressable
+        onPress={onToggle}
+        className="flex-row justify-between items-center py-3"
+      >
+        <Text variant="body-sm">{title}</Text>
+        <Text variant="body-sm">{isExpanded ? "−" : "+"}</Text>
       </Pressable>
 
       {isExpanded ? (
-        <View style={styles.sectionContent}>
+        <View className="pb-3">
           {legalDocumentQuery.isLoading ? (
-            <ActivityIndicator />
+            <Spinner size="sm" />
           ) : legalDocumentQuery.isError ? (
-            <Text style={styles.error}>Could not load this document.</Text>
+            <Text variant="body-sm" className="text-destructive-text">
+              Could not load this document.
+            </Text>
           ) : (
-            <Markdown>{legalDocumentQuery.data?.content ?? ""}</Markdown>
+            <Markdown style={markdownStyle}>
+              {legalDocumentQuery.data?.content ?? ""}
+            </Markdown>
           )}
         </View>
       ) : null}
@@ -85,25 +96,32 @@ export function PendingAgreementsModal({
       visible={visible}
       dismissible={false}
       footer={
-        <>
+        <View className="gap-2">
           {acceptMutation.isError ? (
-            <Text style={styles.error}>
+            <Text variant="body-sm" className="text-destructive-text">
               Could not accept the documents. Please try again.
             </Text>
           ) : null}
 
           {acceptMutation.isPending ? (
-            <ActivityIndicator />
+            <View className="items-center">
+              <Spinner size="sm" />
+            </View>
           ) : (
-            <Button title="Accept & Continue" onPress={handleAccept} />
+            <Button
+              variant="primary"
+              size="sm"
+              title="Accept & Continue"
+              onPress={handleAccept}
+            />
           )}
-        </>
+        </View>
       }
     >
-      <ScrollView>
-        <Text style={styles.title}>Updated Terms & Privacy Policy</Text>
+      <ScrollView className="max-h-[400px]">
+        <Text variant="heading">Updated Terms &amp; Privacy Policy</Text>
 
-        <Text style={styles.description}>
+        <Text variant="body" className="mt-2 mb-2">
           We have updated our legal documents. Please review and accept to
           continue using Cashevide.
         </Text>
@@ -125,32 +143,3 @@ export function PendingAgreementsModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  description: {
-    marginBottom: 16,
-  },
-  section: {
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 12,
-  },
-  sectionTitle: {
-    fontWeight: "500",
-  },
-  sectionContent: {
-    paddingBottom: 12,
-  },
-  error: {
-    color: "red",
-  },
-});

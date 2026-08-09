@@ -1,13 +1,14 @@
 import { useState } from "react";
+import { View } from "react-native";
+
 import {
-  ActivityIndicator,
-  Button,
   Text,
-  TextInput,
-  View,
-  StyleSheet,
-} from "react-native";
-import { ConfirmDialog, Modal } from "@/src/shared/ui";
+  Button,
+  Input,
+  Spinner,
+  ConfirmDialog,
+  Modal,
+} from "@/src/shared/ui";
 import { useDeleteAccount } from "../hooks/useDeleteAccount";
 
 type DeleteAccountModalProps = {
@@ -60,67 +61,56 @@ export function DeleteAccountModal({
   }
 
   return (
-    <Modal visible={visible} dismissible onDismiss={handleClose}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Confirm Deletion</Text>
-        <Text>
+    <Modal
+      visible={visible}
+      dismissible
+      onDismiss={handleClose}
+      title="Confirm Deletion"
+      description={
+        <Text variant="body-sm">
           This will permanently delete your account and all associated data.
-          Type your username <Text style={styles.username}>{username}</Text> to
-          confirm.
+          Type your username{" "}
+          <Text variant="body-sm" className="font-semibold">
+            {username}
+          </Text>{" "}
+          to confirm.
         </Text>
-        <TextInput
-          value={typedUsername}
-          onChangeText={setTypedUsername}
-          placeholder="Type your username"
-          autoCapitalize="none"
-          style={styles.input}
-        />
-        {deleteAccountMutation.isError ? (
-          <Text style={styles.error}>
-            Could not delete your account. Please try again.
-          </Text>
-        ) : null}
-        <View style={styles.row}>
-          <Button title="Cancel" onPress={handleClose} />
+      }
+      footer={
+        <View className="flex-row justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            title="Cancel"
+            onPress={handleClose}
+            disabled={deleteAccountMutation.isPending}
+          />
+
           {deleteAccountMutation.isPending ? (
-            <ActivityIndicator />
+            <Spinner size="sm" />
           ) : (
             <Button
+              variant="destructive"
+              size="sm"
               title="Confirm Delete"
               onPress={handleDelete}
               disabled={!isUsernameMatching}
             />
           )}
         </View>
-      </View>
+      }
+    >
+      <Input
+        value={typedUsername}
+        onChangeText={setTypedUsername}
+        placeholder="Type your username"
+        autoCapitalize="none"
+        error={
+          deleteAccountMutation.isError
+            ? "Could not delete your account. Please try again."
+            : undefined
+        }
+      />
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    gap: 12,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  username: {
-    fontWeight: "600",
-  },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#999",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 8,
-  },
-  error: {
-    color: "red",
-  },
-});

@@ -35,6 +35,11 @@ const SECTIONS = [
     description: "Toggle control with enabled, disabled, and label states",
     href: "/design-system/switch",
   },
+  {
+    title: "Modal",
+    description: "Dismissible dialog with optional footer actions",
+    href: "/design-system/modal",
+  },
 ] as const;
 
 export default function DesignOverview() {
