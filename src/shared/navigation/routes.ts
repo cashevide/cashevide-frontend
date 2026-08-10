@@ -28,10 +28,16 @@ export const ROUTES = {
   },
 
   settings: {
+    home: "/settings",
+
     security: {
       entry: "/settings/security",
       changePassword: "/settings/security/change-password",
     },
+  },
+
+  profile: {
+    home: "/profile",
   },
 
   reviews: {
