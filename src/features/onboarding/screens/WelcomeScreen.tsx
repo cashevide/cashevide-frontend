@@ -1,13 +1,17 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  View,
-  StyleSheet,
-  Text,
-} from "react-native";
+import { View } from "react-native";
+import { EnvelopeIcon } from "react-native-heroicons/outline";
 
+import { Container } from "@/src/shared/layout/Container";
+import {
+  Text,
+  Button,
+  GoogleButton,
+  Divider,
+  Logo,
+  Spinner,
+} from "@/src/shared/ui";
 import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { ROUTES } from "@/src/shared/navigation/routes";
 
@@ -22,53 +26,76 @@ export default function WelcomeScreen() {
 
   if (showLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator />
-      </View>
+      <Container variant="narrow" safeArea>
+        <View className="flex-1 items-center justify-center">
+          <Spinner />
+        </View>
+      </Container>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text>Welcome to Cashevide</Text>
+    <Container variant="narrow" safeArea>
+      <View className="flex-1 sm:justify-center px-6 pb-16 sm:pb-0 pt-16 sm:py-0">
+        <View className="flex-1 sm:flex-none items-center justify-center sm:justify-start gap-4">
+          <Logo width={64} />
+          <Text variant="subheading" className="text-center">
+            Never work blind again.
+          </Text>
+        </View>
 
-      <Button
-        title="Continue with Google"
-        onPress={() => promptAsync()}
-        disabled={!request}
-      />
+        <View className="gap-6 sm:mt-10">
+          <View className="gap-4">
+            <GoogleButton onPress={() => promptAsync()} disabled={!request} />
 
-      <Button
-        title="Continue with Email"
-        onPress={() => router.push(ROUTES.signup.referral)}
-      />
+            <Divider label="or" />
 
-      <Button title="Login" onPress={() => router.push(ROUTES.login)} />
+            <Button
+              variant="primary"
+              title="Continue with Email"
+              leftIcon={<EnvelopeIcon size={20} />}
+              onPress={() => router.push(ROUTES.signup.referral)}
+              fullWidth
+            />
+          </View>
 
-      <View style={styles.legalBox}>
-        <Text>By continuing, you agree to Cashevide</Text>
+          <View className="items-center gap-3">
+            <View className="items-center gap-1">
+              <Text variant="caption" className="text-center">
+                By continuing, you agree to Cashevide's
+              </Text>
+              <View className="flex-row gap-1">
+                <Text
+                  variant="caption"
+                  className="text-link"
+                  onPress={() => router.push(ROUTES.legal.terms)}
+                >
+                  Terms
+                </Text>
+                <Text variant="caption">and</Text>
+                <Text
+                  variant="caption"
+                  className="text-link"
+                  onPress={() => router.push(ROUTES.legal.privacyPolicy)}
+                >
+                  Privacy Policy
+                </Text>
+              </View>
+            </View>
 
-        <Button title="Terms" onPress={() => router.push(ROUTES.legal.terms)} />
-
-        <Button
-          title="Privacy Policy"
-          onPress={() => router.push(ROUTES.legal.privacyPolicy)}
-        />
+            <View className="flex-row items-center gap-1">
+              <Text variant="body-sm">Already have an account?</Text>
+              <Text
+                variant="body"
+                className="text-link"
+                onPress={() => router.push(ROUTES.login)}
+              >
+                Log in
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
-    </View>
+    </Container>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  legalBox: {
-    gap: 8,
-    marginTop: 24,
-    alignItems: "center",
-  },
-});

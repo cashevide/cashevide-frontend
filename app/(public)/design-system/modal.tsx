@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { Container } from "@/src/shared/layout/Container";
 import {
@@ -10,6 +10,8 @@ import {
   InfoDialog,
 } from "@/src/shared/ui";
 
+const LOREM_PARAGRAPHS = Array.from({ length: 8 }, (_, i) => i);
+
 export default function DesignModal() {
   const [basicVisible, setBasicVisible] = useState(false);
   const [nonDismissibleVisible, setNonDismissibleVisible] = useState(false);
@@ -19,6 +21,8 @@ export default function DesignModal() {
     useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [infoVisible, setInfoVisible] = useState(false);
+  const [stickyFooterVisible, setStickyFooterVisible] = useState(false);
+  const [scrollableVisible, setScrollableVisible] = useState(false);
 
   function handleDestructiveConfirm() {
     setIsConfirming(true);
@@ -51,6 +55,18 @@ export default function DesignModal() {
             size="sm"
             title="With Footer"
             onPress={() => setFooterVisible(true)}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            title="Scrollable Content"
+            onPress={() => setScrollableVisible(true)}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            title="Sticky Footer"
+            onPress={() => setStickyFooterVisible(true)}
           />
           <Button
             variant="outline"
@@ -117,6 +133,64 @@ export default function DesignModal() {
           </View>
         }
       />
+
+      <Modal
+        visible={scrollableVisible}
+        onDismiss={() => setScrollableVisible(false)}
+        title="Terms and Conditions"
+        description="Please review the full text below."
+      >
+        <ScrollView className="max-h-[280px]">
+          <View className="gap-3">
+            {LOREM_PARAGRAPHS.map((i) => (
+              <Text key={i} variant="body-sm">
+                Section {i + 1}. Lorem ipsum dolor sit amet, consectetur
+                adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                exercitation ullamco laboris nisi ut aliquip ex ea commodo
+                consequat.
+              </Text>
+            ))}
+          </View>
+        </ScrollView>
+      </Modal>
+
+      <Modal
+        visible={stickyFooterVisible}
+        onDismiss={() => setStickyFooterVisible(false)}
+        title="Updated Terms & Privacy Policy"
+        description="We have updated our legal documents. Please review and accept to continue."
+        footer={
+          <View className="flex-row justify-end gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              title="Decline"
+              onPress={() => setStickyFooterVisible(false)}
+            />
+            <Button
+              variant="primary"
+              size="sm"
+              title="Accept & Continue"
+              onPress={() => setStickyFooterVisible(false)}
+            />
+          </View>
+        }
+      >
+        <ScrollView className="max-h-[220px]">
+          <View className="gap-3">
+            {LOREM_PARAGRAPHS.map((i) => (
+              <Text key={i} variant="body-sm">
+                Section {i + 1}. Lorem ipsum dolor sit amet, consectetur
+                adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                exercitation ullamco laboris nisi ut aliquip ex ea commodo
+                consequat.
+              </Text>
+            ))}
+          </View>
+        </ScrollView>
+      </Modal>
 
       <ConfirmDialog
         visible={confirmVisible}
