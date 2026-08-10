@@ -47,6 +47,7 @@ export default function LoginScreen() {
           <Input
             value={email}
             onChangeText={setEmail}
+            onFocus={() => setEmailTouched(false)}
             onBlur={() => setEmailTouched(true)}
             placeholder="Email"
             autoCapitalize="none"

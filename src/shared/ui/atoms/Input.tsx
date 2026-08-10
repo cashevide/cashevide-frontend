@@ -9,6 +9,10 @@ import { EyeIcon, EyeSlashIcon } from "react-native-heroicons/outline";
 import { CheckCircleIcon, XCircleIcon } from "react-native-heroicons/solid";
 
 import { cn } from "@/src/shared/utils/cn";
+import {
+  getInputFieldClasses,
+  inputFieldWebResetStyle,
+} from "../utils/inputFieldStyles";
 import { Text } from "./Text";
 
 interface InputProps extends TextInputProps {
@@ -31,10 +35,13 @@ export function Input({
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
-  let borderClass = "border-border";
-  if (error) borderClass = "border-destructive";
-  else if (isSuccess) borderClass = "border-success";
-  else if (isFocused) borderClass = "border-ring";
+  const state = error
+    ? "error"
+    : isSuccess
+      ? "success"
+      : isFocused
+        ? "focused"
+        : "default";
 
   const hasTrailingIcon = isPassword || !!error || isSuccess;
 
@@ -44,14 +51,15 @@ export function Input({
 
       <View className="relative w-full justify-center">
         <TextInput
-          className={cn(
-            "w-full h-12 px-4 bg-card text-foreground rounded-lg border placeholder:text-muted-foreground",
-            borderClass,
-            hasTrailingIcon && "pr-12",
-            disabled && "opacity-50",
-          )}
+          style={inputFieldWebResetStyle}
+          className={getInputFieldClasses({
+            state,
+            disabled,
+            className: cn("w-full", hasTrailingIcon && "pr-12"),
+          })}
           editable={!disabled}
           secureTextEntry={isPassword && !showPassword}
+          {...props}
           onFocus={(e) => {
             setIsFocused(true);
             props.onFocus?.(e);
@@ -60,7 +68,6 @@ export function Input({
             setIsFocused(false);
             props.onBlur?.(e);
           }}
-          {...props}
         />
 
         <View className="absolute right-4 flex-row items-center">

@@ -74,6 +74,7 @@ export default function PasswordResetEmailScreen() {
         <Input
           value={email}
           onChangeText={setEmail}
+          onFocus={() => setEmailTouched(false)}
           onBlur={() => setEmailTouched(true)}
           placeholder="Email"
           autoCapitalize="none"
@@ -87,14 +88,15 @@ export default function PasswordResetEmailScreen() {
           </Text>
         ) : null}
 
-        <Button
-          variant="primary"
-          title="Send OTP"
-          onPress={handleContinue}
-          disabled={!isCooldownActive && !isValidEmailFormat}
-          isLoading={requestOtpMutation.isPending}
-          fullWidth
-        />
+        <View className="items-center">
+          <Button
+            variant="primary"
+            title="Send OTP"
+            onPress={handleContinue}
+            disabled={!isCooldownActive && !isValidEmailFormat}
+            isLoading={requestOtpMutation.isPending}
+          />
+        </View>
       </View>
     </View>
   );

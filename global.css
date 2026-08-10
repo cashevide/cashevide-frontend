@@ -48,7 +48,7 @@
     /* 6. UI Elements */
     --color-border: 225 225 221; /* #e1e1dd - light equivalent of landing --border */
     --color-input: 235 235 232; /* #ebebe8 */
-    --color-ring: 13 13 13; /* #0d0d0d */
+    --color-ring: 90 90 87; /* #5a5a57 - mid-tone grey, clearly distinct from foreground/border */
   }
 
   .dark {
@@ -95,6 +95,6 @@
     /* 6. UI Elements */
     --color-border: 35 35 35; /* #232323 - solid blend of landing --border (white/0.09 on bg) */
     --color-input: 20 20 20; /* #141414 */
-    --color-ring: 52 52 52; /* #343434 - solid blend of landing --border-strong (white/0.16 on bg) */
+    --color-ring: 120 120 118; /* #787876 - lighter mid-tone grey for visible contrast against border */
   }
 }
