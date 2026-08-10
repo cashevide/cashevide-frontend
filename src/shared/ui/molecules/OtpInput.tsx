@@ -82,7 +82,6 @@ export function OtpInput({
             editable={!disabled}
             autoFocus={autoFocus && index === 0}
             keyboardType="number-pad"
-            maxLength={2}
             textAlign="center"
             style={inputFieldWebResetStyle}
             className={getInputFieldClasses({

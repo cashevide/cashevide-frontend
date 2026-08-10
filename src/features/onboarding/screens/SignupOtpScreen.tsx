@@ -1,16 +1,9 @@
-import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { AxiosError } from "axios";
 
+import { Container } from "@/src/shared/layout/Container";
+import { Text, Button, OtpInput, Spinner } from "@/src/shared/ui";
 import { useSignupVerifyOtp } from "../hooks/useSignupVerifyOtp";
 import { useSignupRequestOtp } from "../hooks/useSignupRequestOtp";
 import { useCountdown } from "@/src/shared/hooks/useCountdown";
@@ -69,89 +62,84 @@ export default function SignupOtpScreen() {
     ? Object.values(resendOtpError.response.data).flat()
     : [];
 
-  return (
-    <View style={styles.container}>
-      <Text>Signup OTP Screen</Text>
-      <Text>OTP sent to {email}</Text>
-
-      <TextInput
-        value={otp}
-        onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
-        placeholder="Enter OTP"
-        keyboardType="number-pad"
-        maxLength={OTP_LENGTH}
-        style={styles.input}
-      />
-
-      {verifyOtpErrorMessages.map((message) => (
-        <Text key={message} style={styles.error}>
-          {message}
+  const content = (
+    <View className="flex-1 justify-center px-6 py-10 gap-8">
+      <View className="gap-2">
+        <Text variant="subheading" className="text-center">
+          Enter the code
         </Text>
-      ))}
-
-      {verifyOtpMutation.isPending ? (
-        <ActivityIndicator />
-      ) : (
-        <Button
-          title="Verify OTP"
-          onPress={handleVerify}
-          disabled={!isOtpComplete}
-        />
-      )}
-
-      <View style={styles.resendRow}>
-        {cooldownSeconds > 0 ? (
-          <Text>Resend OTP in {cooldownSeconds}s</Text>
-        ) : null}
-
-        {resendOtpMutation.isPending ? (
-          <ActivityIndicator />
-        ) : (
-          <Pressable onPress={handleResend} disabled={!canResend}>
-            <Text style={canResend ? styles.linkActive : styles.linkDisabled}>
-              Resend OTP
-            </Text>
-          </Pressable>
-        )}
+        <Text variant="body-sm" className="text-center">
+          OTP sent to {email}
+        </Text>
       </View>
 
-      {resendOtpErrorMessages.map((message) => (
-        <Text key={message} style={styles.error}>
-          {message}
-        </Text>
-      ))}
+      <View className="gap-4">
+        <OtpInput
+          value={otp}
+          onChangeText={setOtp}
+          error={verifyOtpErrorMessages.length > 0}
+          autoFocus
+        />
 
-      <Button title="Back" onPress={() => router.back()} />
+        {verifyOtpErrorMessages[0] ? (
+          <Text variant="body-sm" className="text-destructive-text">
+            {verifyOtpErrorMessages[0]}
+          </Text>
+        ) : null}
+
+        <View className="items-center">
+          <Button
+            variant="primary"
+            title="Verify OTP"
+            onPress={handleVerify}
+            disabled={!isOtpComplete}
+            isLoading={verifyOtpMutation.isPending}
+          />
+        </View>
+
+        <View className="items-center gap-1">
+          {cooldownSeconds > 0 ? (
+            <Text variant="body-sm">Resend OTP in {cooldownSeconds}s</Text>
+          ) : null}
+
+          {resendOtpMutation.isPending ? (
+            <Spinner size="sm" />
+          ) : (
+            <Text
+              variant="link"
+              className={canResend ? "" : "text-muted-foreground"}
+              onPress={canResend ? handleResend : undefined}
+            >
+              Resend OTP
+            </Text>
+          )}
+
+          {resendOtpErrorMessages[0] ? (
+            <Text variant="body-sm" className="text-destructive-text">
+              {resendOtpErrorMessages[0]}
+            </Text>
+          ) : null}
+        </View>
+      </View>
     </View>
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  input: {
-    width: "100%",
-    maxWidth: 360,
-    borderWidth: 1,
-    borderColor: "#999",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  resendRow: {
-    alignItems: "center",
-    gap: 4,
-  },
-  linkActive: {
-    color: "blue",
-  },
-  linkDisabled: {
-    color: "gray",
-  },
-  error: {
-    color: "red",
-  },
-});
+  if (Platform.OS === "web") {
+    return (
+      <Container variant="narrow" safeArea scroll>
+        {content}
+      </Container>
+    );
+  }
+
+  return (
+    <Container variant="narrow" safeArea>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {content}
+      </KeyboardAvoidingView>
+    </Container>
+  );
+}

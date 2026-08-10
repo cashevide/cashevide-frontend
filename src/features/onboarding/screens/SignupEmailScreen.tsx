@@ -1,15 +1,10 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { AxiosError } from "axios";
 
+import { Container } from "@/src/shared/layout/Container";
+import { Text, Button, Input, Spinner } from "@/src/shared/ui";
 import { useCheckUser } from "../hooks/useCheckUser";
 import { useSignupRequestOtp } from "../hooks/useSignupRequestOtp";
 import { useCountdown } from "@/src/shared/hooks/useCountdown";
@@ -71,84 +66,89 @@ export default function SignupEmailScreen() {
     ? Object.values(requestOtpError.response.data).flat()
     : [];
 
-  return (
-    <View style={styles.container}>
-      <Text>Signup Email Screen</Text>
-
-      <TextInput
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={styles.input}
-      />
-
-      {showFormatError ? (
-        <Text style={styles.error}>Enter a valid email address.</Text>
-      ) : null}
-
-      {isValidEmailFormat && emailCheck.isFetching ? (
-        <ActivityIndicator />
-      ) : null}
-
-      {isValidEmailFormat && emailCheck.data ? (
-        <Text
-          style={emailCheck.data.is_available ? styles.success : styles.error}
-        >
-          {emailCheck.data.is_available
+  const availabilityMessage =
+    isValidEmailFormat && emailCheck.data
+      ? {
+          text: emailCheck.data.is_available
             ? "Email is available."
-            : "This email is already registered."}
-        </Text>
-      ) : null}
+            : "This email is already registered.",
+          isSuccess: emailCheck.data.is_available,
+        }
+      : null;
 
-      {requestOtpErrorMessages.map((message) => (
-        <Text key={message} style={styles.error}>
-          {message}
-        </Text>
-      ))}
+  const emailError = showFormatError
+    ? "Enter a valid email address."
+    : availabilityMessage && !availabilityMessage.isSuccess
+      ? availabilityMessage.text
+      : requestOtpErrorMessages[0];
 
-      {isCooldownActive ? (
-        <Text>
-          An OTP was already sent to this email. You can enter it in{" "}
-          {cooldownSeconds}s, or continue now.
-        </Text>
-      ) : null}
+  const content = (
+    <View className="flex-1 justify-center px-6 py-10 gap-8">
+      <Text variant="subheading" className="text-center">
+        What's your email?
+      </Text>
 
-      {signupRequestOtpMutation.isPending ? (
-        <ActivityIndicator />
-      ) : (
-        <Button
-          title="Continue"
-          onPress={handleContinue}
-          disabled={!isCooldownActive && !canContinue}
-        />
-      )}
+      <View className="gap-4">
+        <View className="gap-2">
+          <Input
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            isSuccess={availabilityMessage?.isSuccess}
+            error={emailError}
+          />
 
-      <Button title="Back" onPress={() => router.back()} />
+          {isValidEmailFormat && emailCheck.isFetching ? (
+            <View className="items-center">
+              <Spinner size="sm" />
+            </View>
+          ) : null}
+
+          {availabilityMessage?.isSuccess ? (
+            <Text variant="body-sm" className="text-success-text">
+              {availabilityMessage.text}
+            </Text>
+          ) : null}
+
+          {isCooldownActive ? (
+            <Text variant="body-sm" className="text-center">
+              An OTP was already sent to this email. You can enter it in{" "}
+              {cooldownSeconds}s, or continue now.
+            </Text>
+          ) : null}
+        </View>
+
+        <View className="items-center">
+          <Button
+            variant="primary"
+            title="Continue"
+            onPress={handleContinue}
+            disabled={!isCooldownActive && !canContinue}
+            isLoading={signupRequestOtpMutation.isPending}
+          />
+        </View>
+      </View>
     </View>
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  input: {
-    width: "100%",
-    maxWidth: 360,
-    borderWidth: 1,
-    borderColor: "#999",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  error: {
-    color: "red",
-  },
-  success: {
-    color: "green",
-  },
-});
+  if (Platform.OS === "web") {
+    return (
+      <Container variant="narrow" safeArea scroll>
+        {content}
+      </Container>
+    );
+  }
+
+  return (
+    <Container variant="narrow" safeArea>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {content}
+      </KeyboardAvoidingView>
+    </Container>
+  );
+}
