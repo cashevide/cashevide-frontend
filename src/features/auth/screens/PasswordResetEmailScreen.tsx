@@ -1,15 +1,10 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { AxiosError } from "axios";
 
+import { Container } from "@/src/shared/layout/Container";
+import { Text, Button, Input } from "@/src/shared/ui";
 import { useRequestPasswordResetOtp } from "../hooks/useRequestPasswordResetOtp";
 import { useCountdown } from "@/src/shared/hooks/useCountdown";
 import { usePasswordResetStore } from "@/src/store/passwordResetStore";
@@ -21,6 +16,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function PasswordResetEmailScreen() {
   const [email, setEmail] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
 
   const isValidEmailFormat = EMAIL_REGEX.test(email.trim());
 
@@ -46,6 +42,11 @@ export default function PasswordResetEmailScreen() {
       return;
     }
 
+    if (!isValidEmailFormat) {
+      setEmailTouched(true);
+      return;
+    }
+
     requestOtpMutation.mutate({ email: email.trim() });
   }
 
@@ -56,60 +57,64 @@ export default function PasswordResetEmailScreen() {
     ? Object.values(requestOtpError.response.data).flat()
     : [];
 
-  return (
-    <View style={styles.container}>
-      <Text>Password Reset Email Screen</Text>
+  const emailFormatError =
+    emailTouched && email.trim().length > 0 && !isValidEmailFormat
+      ? "Enter a valid email address."
+      : undefined;
 
-      <TextInput
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={styles.input}
-      />
+  const emailError = emailFormatError ?? errorMessages[0];
 
-      {errorMessages.map((message) => (
-        <Text key={message} style={styles.error}>
-          {message}
-        </Text>
-      ))}
+  const content = (
+    <View className="flex-1 justify-center px-6 py-10 gap-8">
+      <Text variant="subheading" className="text-center">
+        Reset your password
+      </Text>
 
-      {isCooldownActive ? (
-        <Text>You can enter it in {cooldownSeconds}s, or continue now.</Text>
-      ) : null}
+      <View className="gap-4">
+        <Input
+          value={email}
+          onChangeText={setEmail}
+          onBlur={() => setEmailTouched(true)}
+          placeholder="Email"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          error={emailError}
+        />
 
-      {requestOtpMutation.isPending ? (
-        <ActivityIndicator />
-      ) : (
+        {isCooldownActive ? (
+          <Text variant="body-sm" className="text-center">
+            You can enter it in {cooldownSeconds}s, or continue now.
+          </Text>
+        ) : null}
+
         <Button
+          variant="primary"
           title="Send OTP"
           onPress={handleContinue}
           disabled={!isCooldownActive && !isValidEmailFormat}
+          isLoading={requestOtpMutation.isPending}
+          fullWidth
         />
-      )}
-
-      <Button title="Back" onPress={() => router.back()} />
+      </View>
     </View>
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  input: {
-    width: "100%",
-    maxWidth: 360,
-    borderWidth: 1,
-    borderColor: "#999",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  error: {
-    color: "red",
-  },
-});
+  if (Platform.OS === "web") {
+    return (
+      <Container variant="narrow" safeArea scroll>
+        {content}
+      </Container>
+    );
+  }
+
+  return (
+    <Container variant="narrow" safeArea>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {content}
+      </KeyboardAvoidingView>
+    </Container>
+  );
+}

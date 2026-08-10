@@ -49,6 +49,7 @@ export function Container({
     return (
       <ScrollView
         className="flex-1 bg-background"
+        contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
         {content}

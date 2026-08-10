@@ -28,7 +28,7 @@ const VARIANT_CLASS: Record<TextVariant, string> = {
   caption: "text-xs text-muted-foreground",
   overline: "text-xs uppercase tracking-widest font-bold text-muted-foreground",
 
-  link: "text-base font-medium underline text-link",
+  link: "text-sm font-medium text-link",
   button: "text-sm font-medium",
 };
 
