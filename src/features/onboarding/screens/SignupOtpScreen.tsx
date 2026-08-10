@@ -82,7 +82,7 @@ export default function SignupOtpScreen() {
         />
 
         {verifyOtpErrorMessages[0] ? (
-          <Text variant="body-sm" className="text-destructive-text">
+          <Text variant="body-sm" className="text-destructive-text text-center">
             {verifyOtpErrorMessages[0]}
           </Text>
         ) : null}

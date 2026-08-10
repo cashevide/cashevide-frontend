@@ -107,7 +107,7 @@ export default function SignupEmailScreen() {
           ) : null}
 
           {availabilityMessage?.isSuccess ? (
-            <Text variant="body-sm" className="text-success-text">
+            <Text variant="body-sm" className="text-success-text text-center">
               {availabilityMessage.text}
             </Text>
           ) : null}

@@ -1,15 +1,9 @@
-import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { AxiosError } from "axios";
 
+import { Container } from "@/src/shared/layout/Container";
+import { Text, Button, Input, Spinner } from "@/src/shared/ui";
 import { useCheckUser } from "../hooks/useCheckUser";
 import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { useGoogleAuthStore } from "@/src/store/googleAuthStore";
@@ -44,76 +38,87 @@ export default function GoogleUsernameScreen() {
     ? Object.values(googleAuthError.response.data).flat()
     : [];
 
+  const usernameMessage = usernameCheck.data
+    ? {
+        text: usernameCheck.data.is_available
+          ? "Username is available."
+          : "This username is already taken.",
+        isSuccess: usernameCheck.data.is_available,
+      }
+    : null;
+
   if (isPending) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator />
+      <Container variant="narrow" safeArea>
+        <View className="flex-1 items-center justify-center">
+          <Spinner />
+        </View>
+      </Container>
+    );
+  }
+
+  const content = (
+    <View className="flex-1 justify-center px-6 py-10 gap-8">
+      <Text variant="subheading" className="text-center">
+        Choose a username
+      </Text>
+
+      <View className="gap-4">
+        <View className="gap-2">
+          <Input
+            value={username}
+            onChangeText={setUsername}
+            placeholder="Username"
+            autoCapitalize="none"
+            isSuccess={usernameMessage?.isSuccess}
+            error={
+              (usernameMessage && !usernameMessage.isSuccess
+                ? usernameMessage.text
+                : undefined) ?? errorMessages[0]
+            }
+          />
+
+          {usernameCheck.isFetching ? (
+            <View className="items-center">
+              <Spinner size="sm" />
+            </View>
+          ) : null}
+
+          {usernameMessage?.isSuccess ? (
+            <Text variant="body-sm" className="text-success-text text-center">
+              {usernameMessage.text}
+            </Text>
+          ) : null}
+        </View>
+
+        <View className="items-center">
+          <Button
+            variant="primary"
+            title="Create Google Account"
+            onPress={handleCreateAccount}
+            disabled={!isUsernameAvailable}
+          />
+        </View>
       </View>
+    </View>
+  );
+
+  if (Platform.OS === "web") {
+    return (
+      <Container variant="narrow" safeArea scroll>
+        {content}
+      </Container>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text>Google Username Screen</Text>
-
-      <TextInput
-        value={username}
-        onChangeText={setUsername}
-        placeholder="Username"
-        autoCapitalize="none"
-        style={styles.input}
-      />
-
-      {usernameCheck.isFetching ? <ActivityIndicator /> : null}
-
-      {usernameCheck.data ? (
-        <Text
-          style={
-            usernameCheck.data.is_available ? styles.success : styles.error
-          }
-        >
-          {usernameCheck.data.is_available
-            ? "Username is available."
-            : "This username is already taken."}
-        </Text>
-      ) : null}
-
-      {errorMessages.map((message) => (
-        <Text key={message} style={styles.error}>
-          {message}
-        </Text>
-      ))}
-
-      <Button
-        title="Create Google Account"
-        onPress={handleCreateAccount}
-        disabled={!isUsernameAvailable}
-      />
-
-      <Button title="Back" onPress={() => router.back()} />
-    </View>
+    <Container variant="narrow" safeArea>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {content}
+      </KeyboardAvoidingView>
+    </Container>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  input: {
-    width: "100%",
-    maxWidth: 360,
-    borderWidth: 1,
-    borderColor: "#999",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  error: {
-    color: "red",
-  },
-  success: {
-    color: "green",
-  },
-});

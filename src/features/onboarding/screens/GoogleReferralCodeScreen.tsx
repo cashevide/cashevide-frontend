@@ -1,14 +1,9 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 
+import { Container } from "@/src/shared/layout/Container";
+import { Text, Button, Input, Spinner } from "@/src/shared/ui";
 import { useCheckReferralCode } from "../hooks/useCheckReferralCode";
 import { useGoogleAuthStore } from "@/src/store/googleAuthStore";
 import { ROUTES } from "@/src/shared/navigation/routes";
@@ -29,58 +24,75 @@ export default function GoogleReferralCodeScreen() {
 
   const canContinue = referralCheck.data?.is_valid === true;
 
-  return (
-    <View style={styles.container}>
-      <Text>Google Referral Code Screen</Text>
+  const referralCheckMessage = referralCheck.data
+    ? {
+        text: referralCheck.data.message,
+        isSuccess: referralCheck.data.is_valid,
+      }
+    : null;
 
-      <TextInput
-        value={referralCode}
-        onChangeText={(text) => setReferralCode(text.toUpperCase())}
-        placeholder="Referral Code"
-        autoCapitalize="characters"
-        style={styles.input}
-      />
+  const content = (
+    <View className="flex-1 justify-center px-6 py-10 gap-8">
+      <Text variant="subheading" className="text-center">
+        Enter your referral code
+      </Text>
 
-      {referralCheck.isFetching ? <ActivityIndicator /> : null}
+      <View className="gap-4">
+        <View className="gap-2">
+          <Input
+            value={referralCode}
+            onChangeText={(text) => setReferralCode(text.toUpperCase())}
+            placeholder="Referral Code"
+            autoCapitalize="characters"
+            isSuccess={referralCheckMessage?.isSuccess}
+            error={
+              referralCheckMessage && !referralCheckMessage.isSuccess
+                ? referralCheckMessage.text
+                : undefined
+            }
+          />
 
-      {referralCheck.data ? (
-        <Text
-          style={referralCheck.data.is_valid ? styles.success : styles.error}
-        >
-          {referralCheck.data.message}
-        </Text>
-      ) : null}
+          {referralCheck.isFetching ? (
+            <View className="items-center">
+              <Spinner size="sm" />
+            </View>
+          ) : null}
 
-      <Button
-        title="Continue"
-        onPress={handleContinue}
-        disabled={!canContinue}
-      />
+          {referralCheckMessage?.isSuccess ? (
+            <Text variant="body-sm" className="text-success-text text-center">
+              {referralCheckMessage.text}
+            </Text>
+          ) : null}
+        </View>
 
-      <Button title="Back" onPress={() => router.back()} />
+        <View className="items-center">
+          <Button
+            variant="primary"
+            title="Continue"
+            onPress={handleContinue}
+            disabled={!canContinue}
+          />
+        </View>
+      </View>
     </View>
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  input: {
-    width: "100%",
-    maxWidth: 360,
-    borderWidth: 1,
-    borderColor: "#999",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  error: {
-    color: "red",
-  },
-  success: {
-    color: "green",
-  },
-});
+  if (Platform.OS === "web") {
+    return (
+      <Container variant="narrow" safeArea scroll>
+        {content}
+      </Container>
+    );
+  }
+
+  return (
+    <Container variant="narrow" safeArea>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {content}
+      </KeyboardAvoidingView>
+    </Container>
+  );
+}

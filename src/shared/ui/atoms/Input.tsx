@@ -98,7 +98,7 @@ export function Input({
       </View>
 
       {error && (
-        <Text variant="body-sm" className="text-destructive">
+        <Text variant="body-sm" className="text-destructive text-center">
           {error}
         </Text>
       )}

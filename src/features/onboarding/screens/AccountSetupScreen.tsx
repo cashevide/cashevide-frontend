@@ -80,7 +80,7 @@ export default function AccountSetupScreen() {
           ) : null}
 
           {usernameMessage?.isSuccess ? (
-            <Text variant="body-sm" className="text-success-text">
+            <Text variant="body-sm" className="text-success-text text-center">
               {usernameMessage.text}
             </Text>
           ) : null}

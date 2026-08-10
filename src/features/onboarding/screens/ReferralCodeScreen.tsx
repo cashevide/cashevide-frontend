@@ -61,7 +61,7 @@ export default function ReferralCodeScreen() {
           ) : null}
 
           {referralCheckMessage?.isSuccess ? (
-            <Text variant="body-sm" className="text-success-text">
+            <Text variant="body-sm" className="text-success-text text-center">
               {referralCheckMessage.text}
             </Text>
           ) : null}
