@@ -93,7 +93,7 @@ function DesktopTabButton({
       accessibilityState={{ selected: isFocused }}
       className={cn(
         "w-full flex-row items-center gap-3 rounded-lg px-3 py-2.5",
-        isFocused && "bg-secondary",
+        isFocused && "bg-foreground/10",
       )}
     >
       {isProfileTab ? (
@@ -194,7 +194,7 @@ function MobileTabBar() {
             pillStyle,
           ]}
         >
-          <View className="h-full w-full rounded-full bg-secondary" />
+          <View className="h-full w-full rounded-full bg-foreground/10" />
         </Animated.View>
 
         {APP_TABS.map((tab, index) => (
