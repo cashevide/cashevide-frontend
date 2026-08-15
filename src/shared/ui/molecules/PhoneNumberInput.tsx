@@ -1,216 +1,293 @@
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { FlatList, Pressable, TextInput, View } from "react-native";
+import { MagnifyingGlassIcon } from "react-native-heroicons/outline";
+import worldCountries from "world-countries";
+
 import {
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+  getInputFieldClasses,
+  inputFieldWebResetStyle,
+} from "../utils/inputFieldStyles";
+import { Text } from "../atoms/Text";
+import { Divider } from "../atoms/Divider";
+import { Modal } from "./Modal";
 
 type Country = {
   name: string;
-  code: string;
+  cca2: string;
   flag: string;
   callingCode: string;
 };
 
-// Small static list — extend as needed. Not exhaustive by design.
-const COUNTRIES: Country[] = [
-  { name: "India", code: "IN", flag: "🇮🇳", callingCode: "91" },
-  { name: "United States", code: "US", flag: "🇺🇸", callingCode: "1" },
-  { name: "United Kingdom", code: "GB", flag: "🇬🇧", callingCode: "44" },
-  { name: "United Arab Emirates", code: "AE", flag: "🇦🇪", callingCode: "971" },
-  { name: "Saudi Arabia", code: "SA", flag: "🇸🇦", callingCode: "966" },
-  { name: "Canada", code: "CA", flag: "🇨🇦", callingCode: "1" },
-  { name: "Australia", code: "AU", flag: "🇦🇺", callingCode: "61" },
-  { name: "Singapore", code: "SG", flag: "🇸🇬", callingCode: "65" },
-  { name: "Germany", code: "DE", flag: "🇩🇪", callingCode: "49" },
-  { name: "Pakistan", code: "PK", flag: "🇵🇰", callingCode: "92" },
-  { name: "Bangladesh", code: "BD", flag: "🇧🇩", callingCode: "880" },
-  { name: "Qatar", code: "QA", flag: "🇶🇦", callingCode: "974" },
-];
+// For most countries idd.root + idd.suffixes[0] is the calling code.
+// But a handful of countries share a root that's already a complete,
+// standalone calling code, where the "suffixes" list is really just
+// regional/area-code numbering, not part of the country code itself —
+// most notably root "+1" (NANP: US, Canada, Dominican Republic, Puerto
+// Rico, and ~20 Caribbean nations, whose suffixes are area codes like
+// "201" for New Jersey) and root "+7" (Russia/Kazakhstan). Appending
+// idd.suffixes[0] there would produce garbage like "+1201" for the US.
+// Verified against the actual world-countries data: this split correctly
+// resolves every case we checked (US/Canada -> +1, Vatican -> +3906698,
+// Åland -> +35818, Western Sahara -> +2125288, Norway -> +47).
+const SHARED_STANDALONE_ROOTS = new Set(["1", "7"]);
 
-const COUNTRIES_BY_CALLING_CODE: Record<string, Country> = COUNTRIES.reduce(
+// world-countries lists each further-subdivided nation only once per
+// entry (not once per suffix) — collapse is not needed, but multiple
+// countries can still resolve to the same final calling code (see
+// SHARED_STANDALONE_ROOTS above), which is handled at lookup time below.
+const ALL_COUNTRIES: Country[] = worldCountries
+  .filter((country) => country.idd?.root)
+  .map((country) => {
+    const root = country.idd.root.replace("+", "");
+    const suffixes = country.idd.suffixes ?? [];
+
+    const callingCode =
+      suffixes.length === 0 || SHARED_STANDALONE_ROOTS.has(root)
+        ? root
+        : `${root}${suffixes[0]}`;
+
+    return {
+      name: country.name.common,
+      cca2: country.cca2,
+      flag: country.flag,
+      callingCode,
+    };
+  })
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+// Multiple countries can share the same calling code (+1 covers the US,
+// Canada, and a dozen Caribbean nations). Auto-detection below only fires
+// on an unambiguous match, so this intentionally keeps just the first
+// country seen per code — good enough for a lookup table, not used to
+// decide ambiguous matches.
+const COUNTRY_BY_CALLING_CODE = new Map<string, Country>();
+for (const country of ALL_COUNTRIES) {
+  if (!COUNTRY_BY_CALLING_CODE.has(country.callingCode)) {
+    COUNTRY_BY_CALLING_CODE.set(country.callingCode, country);
+  }
+}
+
+// How many countries share this exact calling code — used to decide
+// whether typing it is enough to auto-select (only when unambiguous).
+const CALLING_CODE_COUNTS = ALL_COUNTRIES.reduce<Record<string, number>>(
   (acc, country) => {
-    acc[country.callingCode] = country;
+    acc[country.callingCode] = (acc[country.callingCode] ?? 0) + 1;
     return acc;
   },
-  {} as Record<string, Country>,
+  {},
 );
+
+const ALL_CALLING_CODES = [...COUNTRY_BY_CALLING_CODE.keys()];
+
+// Codes that are themselves a *prefix* of some other, longer calling
+// code — e.g. "39" (Italy) is a prefix of "3906698" (Vatican City), and
+// "47" (Norway) is a prefix of "4779" (Svalbard and Jan Mayen). A handful
+// of dependent territories share their parent country's code with an
+// extended suffix like this. If we auto-jumped the instant "39" matched
+// Italy exactly, a user typing toward "3906698" for Vatican City would
+// get yanked to the number field after the 2nd digit and never get the
+// chance to finish. So codes in this set are excluded from auto-jump —
+// the user finishes typing, then explicitly moves on (blur/next field)
+// or opens the picker to disambiguate.
+const CODES_WITH_LONGER_MATCH = new Set(
+  ALL_CALLING_CODES.filter((code) =>
+    ALL_CALLING_CODES.some((other) => other !== code && other.startsWith(code)),
+  ),
+);
+
+const DEFAULT_COUNTRY = COUNTRY_BY_CALLING_CODE.get("91") ?? ALL_COUNTRIES[0];
 
 type PhoneNumberInputProps = {
   onChangeFullNumber: (fullNumber: string) => void;
 };
 
-export const PhoneNumberInput = ({
+export function PhoneNumberInput({
   onChangeFullNumber,
-}: PhoneNumberInputProps) => {
-  // No country selected initially — flag shown blank until the user
-  // either picks manually or types a calling code that exact-matches.
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+}: PhoneNumberInputProps) {
+  const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [codeDigits, setCodeDigits] = useState(DEFAULT_COUNTRY.callingCode);
   const [localNumber, setLocalNumber] = useState("");
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCodeFocused, setIsCodeFocused] = useState(false);
+  const [isNumberFocused, setIsNumberFocused] = useState(false);
 
-  const emitChange = (country: Country | null, number: string) => {
-    if (!country) {
-      onChangeFullNumber("");
+  const numberInputRef = useRef<TextInput>(null);
+  const codeInputRef = useRef<TextInput>(null);
+
+  function emitChange(callingCode: string, number: string) {
+    onChangeFullNumber(number ? `+${callingCode}${number}` : "");
+  }
+
+  function handleCodeChange(text: string) {
+    const digits = text.replace(/\D/g, "");
+    setCodeDigits(digits);
+
+    // Only auto-select and jump ahead on an exact, unambiguous match:
+    // unique to one country (not shared like +1) AND not itself a
+    // prefix of some longer valid code (not like +39 vs +3906698).
+    const match = COUNTRY_BY_CALLING_CODE.get(digits);
+    const isUnambiguous =
+      match &&
+      CALLING_CODE_COUNTS[digits] === 1 &&
+      !CODES_WITH_LONGER_MATCH.has(digits);
+
+    if (isUnambiguous) {
+      setCountry(match);
+      emitChange(digits, localNumber);
+      numberInputRef.current?.focus();
       return;
     }
-    onChangeFullNumber(`+${country.callingCode}${number}`);
-  };
 
-  const handleSelectCountry = (country: Country) => {
-    setSelectedCountry(country);
-    emitChange(country, localNumber);
+    emitChange(digits, localNumber);
+  }
+
+  // When the code field loses focus (user tapped/tabbed to the number
+  // field, or elsewhere) without an auto-jump having fired — e.g. they
+  // typed "1" and moved on manually, or typed "39" and tapped away
+  // rather than continuing toward "3906698" — resolve whatever exact
+  // match exists now so the flag/country shown isn't left stale.
+  function handleCodeBlur() {
+    setIsCodeFocused(false);
+    const match = COUNTRY_BY_CALLING_CODE.get(codeDigits);
+    if (match && match.cca2 !== country.cca2) {
+      setCountry(match);
+    }
+  }
+
+  function handleNumberChange(text: string) {
+    const digits = text.replace(/\D/g, "");
+    setLocalNumber(digits);
+    emitChange(codeDigits, digits);
+  }
+
+  // Backspacing out of an empty number field returns focus to the code
+  // field, mirroring how a single continuous field would behave.
+  function handleNumberKeyPress(key: string) {
+    if (key === "Backspace" && localNumber.length === 0) {
+      codeInputRef.current?.focus();
+    }
+  }
+
+  function handleSelectCountry(selected: Country) {
+    setCountry(selected);
+    setCodeDigits(selected.callingCode);
+    emitChange(selected.callingCode, localNumber);
     setIsPickerOpen(false);
-  };
+    setSearchQuery("");
+    numberInputRef.current?.focus();
+  }
 
-  const handleLocalNumberChange = (text: string) => {
-    const digitsOnly = text.replace(/\D/g, "");
+  function openPicker() {
+    setSearchQuery("");
+    setIsPickerOpen(true);
+  }
 
-    // Only auto-detect while no country is locked in yet, and only on an
-    // exact calling-code match — never re-interpret digits once a country
-    // is already selected (avoids "92..." inside an Indian number being
-    // mistaken for Pakistan's code).
-    if (!selectedCountry && COUNTRIES_BY_CALLING_CODE[digitsOnly]) {
-      const matchedCountry = COUNTRIES_BY_CALLING_CODE[digitsOnly];
-      setSelectedCountry(matchedCountry);
-      setLocalNumber("");
-      emitChange(matchedCountry, "");
-      return;
-    }
+  const filteredCountries = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return ALL_COUNTRIES;
 
-    setLocalNumber(digitsOnly);
-    emitChange(selectedCountry, digitsOnly);
-  };
+    return ALL_COUNTRIES.filter(
+      (item) =>
+        item.name.toLowerCase().includes(query) ||
+        item.callingCode.includes(query),
+    );
+  }, [searchQuery]);
+
+  const isFocused = isCodeFocused || isNumberFocused;
+  const fieldState = isFocused ? "focused" : "default";
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.flagButton}
-        onPress={() => setIsPickerOpen(true)}
+    <View className="w-full">
+      <View
+        className={getInputFieldClasses({
+          state: fieldState,
+          className: "w-full flex-row items-center px-0",
+        })}
       >
-        <Text style={styles.flagText}>
-          {selectedCountry ? selectedCountry.flag : "🏳️"}
-        </Text>
-      </TouchableOpacity>
+        <Pressable onPress={openPicker} className="pl-4 pr-2" hitSlop={8}>
+          <Text variant="body">{country.flag}</Text>
+        </Pressable>
 
-      <View style={styles.divider} />
-
-      <View style={styles.numberSection}>
-        {selectedCountry && (
-          <Text style={styles.callingCodePrefix}>
-            +{selectedCountry.callingCode}
-          </Text>
-        )}
         <TextInput
-          style={styles.numberInput}
-          placeholder="98765 43210"
-          value={localNumber}
-          onChangeText={handleLocalNumberChange}
+          ref={codeInputRef}
+          value={`+${codeDigits}`}
+          onChangeText={(text) => handleCodeChange(text.replace("+", ""))}
+          onFocus={() => setIsCodeFocused(true)}
+          onBlur={handleCodeBlur}
           keyboardType="phone-pad"
+          style={inputFieldWebResetStyle}
+          className="w-16 h-full bg-transparent text-foreground border-0 placeholder:text-muted-foreground"
+        />
+
+        <Divider orientation="vertical" className="my-3" />
+
+        <TextInput
+          ref={numberInputRef}
+          value={localNumber}
+          onChangeText={handleNumberChange}
+          onKeyPress={(e) => handleNumberKeyPress(e.nativeEvent.key)}
+          onFocus={() => setIsNumberFocused(true)}
+          onBlur={() => setIsNumberFocused(false)}
+          placeholder="Phone number"
+          keyboardType="phone-pad"
+          style={inputFieldWebResetStyle}
+          className="flex-1 h-full pl-3 pr-4 bg-transparent text-foreground border-0 placeholder:text-muted-foreground"
         />
       </View>
 
       <Modal
         visible={isPickerOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIsPickerOpen(false)}
+        dismissible
+        onDismiss={() => setIsPickerOpen(false)}
+        title="Select country"
+        className="max-h-[80%]"
       >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setIsPickerOpen(false)}
-        >
-          <View style={styles.modalContent}>
-            <FlatList
-              data={COUNTRIES}
-              keyExtractor={(item) => item.code}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.countryRow}
-                  onPress={() => handleSelectCountry(item)}
-                >
-                  <Text style={styles.countryRowFlag}>{item.flag}</Text>
-                  <Text style={styles.countryRowCode}>+{item.callingCode}</Text>
-                  <Text style={styles.countryRowName}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
+        <View className="gap-3">
+          <View className="relative justify-center">
+            <View className="absolute left-3 z-10">
+              <MagnifyingGlassIcon
+                width={18}
+                height={18}
+                color="rgb(var(--color-muted-foreground))"
+              />
+            </View>
+
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search country or code"
+              autoFocus
+              style={inputFieldWebResetStyle}
+              className={getInputFieldClasses({
+                state: "default",
+                className: "pl-10",
+              })}
             />
           </View>
-        </Pressable>
+
+          <FlatList
+            data={filteredCountries}
+            keyExtractor={(item) => item.cca2}
+            style={{ maxHeight: 360 }}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => handleSelectCountry(item)}
+                className="flex-row items-center gap-3 py-3"
+              >
+                <Text variant="body">{item.flag}</Text>
+                <Text variant="body" className="flex-1">
+                  {item.name}
+                </Text>
+                <Text variant="body-sm" className="text-muted-foreground">
+                  +{item.callingCode}
+                </Text>
+              </Pressable>
+            )}
+          />
+        </View>
       </Modal>
     </View>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "80%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-  },
-  flagButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  flagText: {
-    fontSize: 20,
-  },
-  divider: {
-    width: 1,
-    height: "60%",
-    backgroundColor: "#ccc",
-  },
-  numberSection: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingLeft: 8,
-  },
-  callingCodePrefix: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  numberInput: {
-    flex: 1,
-    padding: 8,
-  },
-  modalBackdrop: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    maxHeight: "60%",
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-  countryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  countryRowFlag: {
-    fontSize: 20,
-  },
-  countryRowCode: {
-    fontSize: 16,
-    width: 50,
-  },
-  countryRowName: {
-    fontSize: 16,
-    flex: 1,
-  },
-});
+}

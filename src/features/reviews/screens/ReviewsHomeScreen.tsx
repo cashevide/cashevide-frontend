@@ -4,6 +4,7 @@ import { router } from "expo-router";
 
 import { useCreateReviewedClient } from "../hooks/useCreateReviewedClient";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
 import {
@@ -16,10 +17,19 @@ import {
 
 export default function ReviewsHomeScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [validationError, setValidationError] = useState<string | undefined>(
+    undefined,
+  );
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
   const createReviewedClient = useCreateReviewedClient();
 
   function handleSearchOrAddReview() {
+    if (!phoneNumber.trim()) {
+      setValidationError("Enter a phone number to continue.");
+      return;
+    }
+
+    setValidationError(undefined);
     createReviewedClient.mutate(
       { phone_number: phoneNumber },
       {
@@ -30,36 +40,44 @@ export default function ReviewsHomeScreen() {
     );
   }
 
-  const errorMessage = createReviewedClient.isError
-    ? JSON.stringify(
-        (createReviewedClient.error as any)?.response?.data ??
-          createReviewedClient.error.message,
-      )
-    : undefined;
+  const errorMessage =
+    validationError ??
+    (createReviewedClient.isError
+      ? getFieldErrorMessage(createReviewedClient.error)
+      : undefined);
 
   const content = (
-    <View className="flex-1 justify-center px-6 py-10 gap-8">
-      <Text variant="subheading" className="text-center">
-        Find a client
-      </Text>
-
-      <View className="gap-4">
-        <PhoneNumberInput onChangeFullNumber={setPhoneNumber} />
-
-        <View className="items-center">
-          <Button
-            variant="primary"
-            title="Search or Add Review"
-            onPress={handleSearchOrAddReview}
-            isLoading={createReviewedClient.isPending}
-          />
-        </View>
-
-        {errorMessage && (
-          <Text variant="body-sm" className="text-destructive text-center">
-            {errorMessage}
+    <View className="flex-1 justify-center py-10">
+      <View className="w-full max-w-narrow mx-auto">
+        <View className="px-6 gap-8">
+          <Text variant="subheading" className="text-center">
+            Find a client
           </Text>
-        )}
+
+          <View className="gap-4">
+            <PhoneNumberInput
+              onChangeFullNumber={(value) => {
+                setPhoneNumber(value);
+                if (validationError) setValidationError(undefined);
+              }}
+            />
+
+            <View className="items-center">
+              <Button
+                variant="primary"
+                title="Search or Add Review"
+                onPress={handleSearchOrAddReview}
+                isLoading={createReviewedClient.isPending}
+              />
+            </View>
+
+            {errorMessage && (
+              <Text variant="body-sm" className="text-destructive text-center">
+                {errorMessage}
+              </Text>
+            )}
+          </View>
+        </View>
       </View>
     </View>
   );
