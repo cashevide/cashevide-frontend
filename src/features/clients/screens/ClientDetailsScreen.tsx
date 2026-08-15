@@ -1,13 +1,34 @@
 import { useCallback, useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { AxiosError } from "axios";
-import { ConfirmDialog, InfoDialog } from "@/src/shared/ui";
+
 import { useClientDetails } from "../hooks/useClientDetails";
 import { useDeleteClient } from "../hooks/useDeleteClient";
 import { useUpdateClient } from "../hooks/useUpdateClient";
+import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { ROUTES } from "@/src/shared/navigation/routes";
-import type { UpdateClientError } from "../types/clientTypes";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import {
+  Text,
+  Button,
+  Avatar,
+  Badge,
+  Spinner,
+  ConfirmDialog,
+  InfoDialog,
+} from "@/src/shared/ui";
+
+function InfoRow({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+
+  return (
+    <View className="gap-0.5">
+      <Text variant="caption">{label}</Text>
+      <Text variant="body">{value}</Text>
+    </View>
+  );
+}
 
 export default function ClientDetailsScreen() {
   const { clientSlug } = useLocalSearchParams<{ clientSlug: string }>();
@@ -27,90 +48,117 @@ export default function ClientDetailsScreen() {
     }, [clientSlug]),
   );
 
-  const handleConfirmDelete = () => {
+  function handleConfirmDelete() {
     deleteClient.mutate(clientSlug, {
       onSuccess: () => {
         router.replace(ROUTES.invoices.clients.list);
       },
     });
-  };
+  }
 
-  const handleArchive = () => {
+  function handleArchive() {
     updateClient.mutate({ slug: clientSlug, payload: { is_archived: true } });
-  };
+  }
 
-  const handleUnarchive = () => {
+  function handleUnarchive() {
     updateClient.mutate(
       { slug: clientSlug, payload: { is_archived: false } },
       {
         onError: (error) => {
-          const axiosError = error as AxiosError<UpdateClientError>;
-          const message = axiosError.response?.data?.is_archived?.[0];
-          setLimitErrorMessage(
-            message ?? "Could not unarchive this client. Please try again.",
-          );
+          setLimitErrorMessage(getFieldErrorMessage(error));
         },
       },
     );
-  };
+  }
 
   if (clientDetails.isLoading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading client...</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader title="Client" showBackButton />
+        <View className="flex-1 items-center justify-center">
+          <Spinner />
+        </View>
       </View>
     );
   }
 
   if (clientDetails.isError) {
     return (
-      <View style={styles.container}>
-        <Text>Client not found.</Text>
-        <Button
-          title="Back to Clients"
-          onPress={() => router.replace(ROUTES.invoices.clients.list)}
-        />
+      <View className="flex-1 bg-background">
+        <ScreenHeader title="Client" showBackButton />
+        <View className="flex-1 items-center justify-center gap-3">
+          <Text variant="body" className="text-muted-foreground">
+            Client not found.
+          </Text>
+          <Button
+            variant="outline"
+            title="Back to Clients"
+            onPress={() => router.replace(ROUTES.invoices.clients.list)}
+          />
+        </View>
       </View>
     );
   }
 
-  const isArchived = clientDetails.data?.is_archived ?? false;
+  const client = clientDetails.data;
+  const isArchived = client?.is_archived ?? false;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.name}>{clientDetails.data?.name}</Text>
-      <Text>{clientDetails.data?.email}</Text>
-      <Text>{clientDetails.data?.phone}</Text>
-      <Text>{clientDetails.data?.address}</Text>
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Client" showBackButton />
 
-      {!isArchived && (
-        <Button
-          title="Edit Client"
-          onPress={() => router.push(ROUTES.invoices.clients.edit(clientSlug))}
-        />
-      )}
+      <Container variant="desktop" safeArea="bottom" scroll>
+        <View className="px-6 py-6 gap-6">
+          <View className="items-center gap-3">
+            <Avatar name={client?.name} size={72} />
 
-      {isArchived ? (
-        <Button
-          title="Unarchive Client"
-          onPress={handleUnarchive}
-          disabled={updateClient.isPending}
-        />
-      ) : (
-        <Button
-          title="Archive Client"
-          onPress={handleArchive}
-          disabled={updateClient.isPending}
-        />
-      )}
+            <View className="items-center gap-1">
+              <Text variant="heading">{client?.name}</Text>
+              {isArchived && <Badge label="Archived" variant="default" />}
+            </View>
+          </View>
 
-      <Button
-        title="Delete Client"
-        color="red"
-        onPress={() => setShowDeleteConfirm(true)}
-      />
+          <View className="bg-card border border-border rounded-lg p-4 gap-4">
+            <InfoRow label="Email" value={client?.email} />
+            <InfoRow label="Phone" value={client?.phone} />
+            <InfoRow label="Address" value={client?.address} />
+          </View>
 
-      <Button title="Back" onPress={() => router.back()} />
+          <View className="gap-3">
+            {!isArchived && (
+              <Button
+                variant="primary"
+                title="Edit Client"
+                onPress={() =>
+                  router.push(ROUTES.invoices.clients.edit(clientSlug))
+                }
+              />
+            )}
+
+            {isArchived ? (
+              <Button
+                variant="outline"
+                title="Unarchive Client"
+                onPress={handleUnarchive}
+                isLoading={updateClient.isPending}
+              />
+            ) : (
+              <Button
+                variant="outline"
+                title="Archive Client"
+                onPress={handleArchive}
+                isLoading={updateClient.isPending}
+              />
+            )}
+
+            <Button
+              variant="destructive"
+              title="Delete Client"
+              onPress={() => setShowDeleteConfirm(true)}
+            />
+          </View>
+        </View>
+      </Container>
 
       <ConfirmDialog
         visible={showDeleteConfirm}
@@ -133,17 +181,3 @@ export default function ClientDetailsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});

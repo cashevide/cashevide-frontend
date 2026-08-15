@@ -14,6 +14,7 @@ export type GetClientsParams = {
   search?: string;
   ordering?: "name" | "-name" | "created_at" | "-created_at";
   is_archived?: boolean;
+  page?: number;
 };
 
 export async function getClientsApi(

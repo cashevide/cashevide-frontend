@@ -26,6 +26,8 @@ export default function ClientPickerModal({
     ordering: "name",
   });
 
+  const clientResults = clients.data?.pages[0]?.results ?? [];
+
   function handleSelect(client: Client) {
     onSelect(client);
     setSearchText("");
@@ -51,16 +53,16 @@ export default function ClientPickerModal({
         </View>
       )}
 
-      {clients.data && clients.data.results.length === 0 && (
+      {!clients.isLoading && clientResults.length === 0 && (
         <Text variant="body-sm" className="text-center py-3">
           No clients found.
         </Text>
       )}
 
-      {clients.data && clients.data.results.length > 0 && (
+      {clientResults.length > 0 && (
         <FlatList
           className="max-h-[400px] grow-0"
-          data={clients.data.results}
+          data={clientResults}
           keyExtractor={(item) => item.slug}
           renderItem={({ item }) => (
             <Pressable

@@ -1,23 +1,50 @@
 import { useCallback, useState } from "react";
-import {
-  Button,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import { InfoDialog } from "@/src/shared/ui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PlusIcon } from "react-native-heroicons/outline";
+
 import { useClients } from "../hooks/useClients";
 import { useClientUsage } from "../hooks/useClientUsage";
 import { useDebouncedValue } from "@/src/shared/hooks/useDebouncedValue";
 import { ROUTES } from "@/src/shared/navigation/routes";
 import InvoiceSubTabs from "@/src/features/invoices/components/InvoiceSubTabs";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import {
+  Text,
+  SearchInput,
+  PillTabs,
+  Spinner,
+  Avatar,
+  InfoDialog,
+} from "@/src/shared/ui";
+
 import type { GetClientsParams } from "../api/clientsApi";
+import type { Client } from "../types/clientTypes";
+
+const ORDERING_OPTIONS: {
+  key: NonNullable<GetClientsParams["ordering"]>;
+  label: string;
+}[] = [
+  { key: "-created_at", label: "Newest" },
+  { key: "name", label: "Name A-Z" },
+];
+
+function SkeletonRow() {
+  return (
+    <View className="flex-row items-center gap-3 border-b border-border py-3">
+      <View className="h-10 w-10 rounded-full bg-muted" />
+      <View className="gap-2">
+        <View className="h-4 w-32 rounded bg-muted" />
+        <View className="h-3 w-24 rounded bg-muted" />
+      </View>
+    </View>
+  );
+}
 
 export default function InvoiceClientsScreen() {
+  const insets = useSafeAreaInsets();
   const [searchText, setSearchText] = useState("");
   const [ordering, setOrdering] =
     useState<GetClientsParams["ordering"]>("-created_at");
@@ -39,98 +66,158 @@ export default function InvoiceClientsScreen() {
     }, []),
   );
 
+  const allClients: Client[] =
+    clients.data?.pages.flatMap((page) => page.results) ?? [];
+  const totalCount = clients.data?.pages[0]?.count ?? 0;
+
   const isUsageLimitReached =
     clientUsage.data?.max_allowed_client != null &&
     clientUsage.data.current_client_count >=
       clientUsage.data.max_allowed_client;
 
-  const handleAddClientPress = () => {
+  function handleAddClientPress() {
     if (isUsageLimitReached) {
       setShowLimitDialog(true);
       return;
     }
     router.push(ROUTES.invoices.clients.create);
-  };
+  }
+
+  function renderClientRow({ item }: { item: Client }) {
+    return (
+      <Pressable
+        onPress={() => router.push(ROUTES.invoices.clients.detail(item.slug))}
+        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        className="flex-row items-center gap-3 border-b border-border py-3"
+      >
+        <Avatar name={item.name} size={40} />
+
+        <View className="flex-1 gap-0.5">
+          <Text variant="body" className="font-semibold" numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text
+            variant="body-sm"
+            className="text-muted-foreground"
+            numberOfLines={1}
+          >
+            {item.phone || item.email || "No contact info"}
+          </Text>
+        </View>
+      </Pressable>
+    );
+  }
+
+  const searchActive = debouncedSearchText.length > 0;
 
   return (
-    <View style={styles.container}>
-      <InvoiceSubTabs />
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Clients" />
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search by name, email or phone"
-        value={searchText}
-        onChangeText={setSearchText}
-      />
+      <Container variant="desktop" safeArea="bottom">
+        <View className="flex-1 px-6 py-6 gap-4">
+          <InvoiceSubTabs />
 
-      <View style={styles.orderingRow}>
-        <TouchableOpacity onPress={() => setOrdering("-created_at")}>
-          <Text
-            style={
-              ordering === "-created_at"
-                ? styles.orderingActive
-                : styles.orderingInactive
-            }
-          >
-            Newest
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setOrdering("name")}>
-          <Text
-            style={
-              ordering === "name"
-                ? styles.orderingActive
-                : styles.orderingInactive
-            }
-          >
-            Name A-Z
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <SearchInput
+            value={searchText}
+            onChangeText={setSearchText}
+            onClear={() => setSearchText("")}
+            placeholder="Search by name, email or phone"
+          />
 
-      <TouchableOpacity
-        style={styles.archivedRow}
-        onPress={() => router.push(ROUTES.invoices.clients.archived)}
-      >
-        <Text style={styles.archivedRowText}>Archived Clients</Text>
-      </TouchableOpacity>
-
-      {clients.isLoading && <Text>Loading clients...</Text>}
-
-      {clients.data && clients.data.results.length === 0 && (
-        <Text>No clients yet — add your first client to get started.</Text>
-      )}
-
-      {clients.data && clients.data.results.length > 0 && (
-        <FlatList
-          style={styles.list}
-          data={clients.data.results}
-          keyExtractor={(item) => item.slug}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.clientRow}
-              onPress={() =>
-                router.push(ROUTES.invoices.clients.detail(item.slug))
+          <View className="flex-row items-center justify-between">
+            <PillTabs
+              items={ORDERING_OPTIONS}
+              activeKey={ordering ?? ORDERING_OPTIONS[0].key}
+              onSelect={(key) =>
+                setOrdering(key as GetClientsParams["ordering"])
               }
+              className="flex-1"
+            />
+
+            <Pressable
+              onPress={() => router.push(ROUTES.invoices.clients.archived)}
             >
-              <Text style={styles.clientName}>{item.name}</Text>
-              <Text style={styles.clientMeta}>{item.phone}</Text>
-            </TouchableOpacity>
+              <Text variant="body-sm" className="text-link">
+                Archived
+              </Text>
+            </Pressable>
+          </View>
+
+          {!clients.isLoading && allClients.length > 0 && (
+            <Text variant="caption">
+              {totalCount} {totalCount === 1 ? "client" : "clients"}
+            </Text>
           )}
-        />
-      )}
 
-      {clientUsage.data && (
-        <Text style={styles.usageText}>
-          {clientUsage.data.current_client_count}
-          {clientUsage.data.max_allowed_client != null
-            ? ` / ${clientUsage.data.max_allowed_client}`
-            : ""}{" "}
-          clients
-        </Text>
-      )}
+          {clients.isLoading ? (
+            <View>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </View>
+          ) : allClients.length === 0 ? (
+            <View className="items-center py-16 gap-1">
+              <Text variant="body-lg" className="font-semibold">
+                {searchActive ? "No matching clients" : "No clients yet"}
+              </Text>
+              <Text
+                variant="body-sm"
+                className="text-muted-foreground text-center max-w-[280px]"
+              >
+                {searchActive
+                  ? "Try a different search term."
+                  : "Add your first client to get started."}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              className="flex-1"
+              data={allClients}
+              keyExtractor={(item) => item.slug}
+              renderItem={renderClientRow}
+              onEndReached={() => {
+                if (clients.hasNextPage && !clients.isFetchingNextPage) {
+                  clients.fetchNextPage();
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={
+                clients.isFetchingNextPage ? (
+                  <View className="items-center py-4">
+                    <Spinner size="sm" />
+                  </View>
+                ) : null
+              }
+            />
+          )}
 
-      <Button title="+ Add Client" onPress={handleAddClientPress} />
+          {clientUsage.data && (
+            <Text variant="caption" className="text-center">
+              {clientUsage.data.current_client_count}
+              {clientUsage.data.max_allowed_client != null
+                ? ` / ${clientUsage.data.max_allowed_client}`
+                : ""}{" "}
+              clients used
+            </Text>
+          )}
+        </View>
+
+        <Pressable
+          onPress={handleAddClientPress}
+          accessibilityRole="button"
+          accessibilityLabel="Add client"
+          style={{ bottom: insets.bottom + 24 }}
+          className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+        >
+          <PlusIcon
+            width={24}
+            height={24}
+            color="rgb(var(--color-primary-foreground))"
+          />
+        </Pressable>
+      </Container>
 
       <InfoDialog
         visible={showLimitDialog}
@@ -141,56 +228,3 @@ export default function InvoiceClientsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    padding: 16,
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    borderRadius: 4,
-  },
-  orderingRow: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  orderingActive: {
-    fontWeight: "bold",
-    color: "#3399ff",
-  },
-  orderingInactive: {
-    color: "#666",
-  },
-  archivedRow: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  archivedRowText: {
-    fontSize: 14,
-    color: "#3399ff",
-  },
-  list: {
-    flex: 1,
-  },
-  clientRow: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  clientName: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  clientMeta: {
-    color: "#666",
-  },
-  usageText: {
-    textAlign: "center",
-    color: "#666",
-  },
-});

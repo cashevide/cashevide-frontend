@@ -1,23 +1,47 @@
 import { useCallback, useState } from "react";
-import {
-  Button,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import { AxiosError } from "axios";
-import { InfoDialog } from "@/src/shared/ui";
+
 import { useClients } from "../hooks/useClients";
 import { useUpdateClient } from "../hooks/useUpdateClient";
 import { useDebouncedValue } from "@/src/shared/hooks/useDebouncedValue";
+import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { ROUTES } from "@/src/shared/navigation/routes";
 import InvoiceSubTabs from "@/src/features/invoices/components/InvoiceSubTabs";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import {
+  Text,
+  Button,
+  SearchInput,
+  PillTabs,
+  Spinner,
+  Avatar,
+  InfoDialog,
+} from "@/src/shared/ui";
+
 import type { GetClientsParams } from "../api/clientsApi";
-import type { UpdateClientError } from "../types/clientTypes";
+import type { Client } from "../types/clientTypes";
+
+const ORDERING_OPTIONS: {
+  key: NonNullable<GetClientsParams["ordering"]>;
+  label: string;
+}[] = [
+  { key: "-created_at", label: "Newest" },
+  { key: "name", label: "Name A-Z" },
+];
+
+function SkeletonRow() {
+  return (
+    <View className="flex-row items-center gap-3 border-b border-border py-3">
+      <View className="h-10 w-10 rounded-full bg-muted" />
+      <View className="flex-1 gap-2">
+        <View className="h-4 w-32 rounded bg-muted" />
+        <View className="h-3 w-24 rounded bg-muted" />
+      </View>
+    </View>
+  );
+}
 
 export default function ArchivedClientsScreen() {
   const [searchText, setSearchText] = useState("");
@@ -44,6 +68,10 @@ export default function ArchivedClientsScreen() {
     }, []),
   );
 
+  const allArchivedClients: Client[] =
+    archivedClients.data?.pages.flatMap((page) => page.results) ?? [];
+  const totalCount = archivedClients.data?.pages[0]?.count ?? 0;
+
   function handleUnarchive(slug: string) {
     updateClient.mutate(
       { slug, payload: { is_archived: false } },
@@ -52,87 +80,123 @@ export default function ArchivedClientsScreen() {
           archivedClients.refetch();
         },
         onError: (error) => {
-          const axiosError = error as AxiosError<UpdateClientError>;
-          const message = axiosError.response?.data?.is_archived?.[0];
-          setLimitErrorMessage(
-            message ?? "Could not unarchive this client. Please try again.",
-          );
+          setLimitErrorMessage(getFieldErrorMessage(error));
         },
       },
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <InvoiceSubTabs />
+  function renderClientRow({ item }: { item: Client }) {
+    const isUnarchiving =
+      updateClient.isPending && updateClient.variables?.slug === item.slug;
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search by name, email or phone"
-        value={searchText}
-        onChangeText={setSearchText}
-      />
+    return (
+      <Pressable
+        onPress={() => router.push(ROUTES.invoices.clients.detail(item.slug))}
+        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        className="flex-row items-center gap-3 border-b border-border py-3"
+      >
+        <Avatar name={item.name} size={40} />
 
-      <View style={styles.orderingRow}>
-        <TouchableOpacity onPress={() => setOrdering("-created_at")}>
-          <Text
-            style={
-              ordering === "-created_at"
-                ? styles.orderingActive
-                : styles.orderingInactive
-            }
-          >
-            Newest
+        <View className="flex-1 gap-0.5">
+          <Text variant="body" className="font-semibold" numberOfLines={1}>
+            {item.name}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setOrdering("name")}>
           <Text
-            style={
-              ordering === "name"
-                ? styles.orderingActive
-                : styles.orderingInactive
-            }
+            variant="body-sm"
+            className="text-muted-foreground"
+            numberOfLines={1}
           >
-            Name A-Z
+            {item.phone || item.email || "No contact info"}
           </Text>
-        </TouchableOpacity>
-      </View>
+        </View>
 
-      {archivedClients.isLoading && <Text>Loading archived clients...</Text>}
-
-      {archivedClients.data && archivedClients.data.results.length === 0 && (
-        <Text>No archived clients.</Text>
-      )}
-
-      {archivedClients.data && archivedClients.data.results.length > 0 && (
-        <FlatList
-          style={styles.list}
-          data={archivedClients.data.results}
-          keyExtractor={(item) => item.slug}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.clientRow}
-              onPress={() =>
-                router.push(ROUTES.invoices.clients.detail(item.slug))
-              }
-            >
-              <View style={styles.clientInfo}>
-                <Text style={styles.clientName}>{item.name}</Text>
-                <Text style={styles.clientMeta}>{item.phone}</Text>
-              </View>
-
-              <Button
-                title="Unarchive"
-                onPress={() => handleUnarchive(item.slug)}
-                disabled={
-                  updateClient.isPending &&
-                  updateClient.variables?.slug === item.slug
-                }
-              />
-            </TouchableOpacity>
-          )}
+        <Button
+          variant="outline"
+          size="sm"
+          title="Unarchive"
+          onPress={() => handleUnarchive(item.slug)}
+          isLoading={isUnarchiving}
         />
-      )}
+      </Pressable>
+    );
+  }
+
+  const searchActive = debouncedSearchText.length > 0;
+
+  return (
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Archived Clients" showBackButton />
+
+      <Container variant="desktop" safeArea="bottom">
+        <View className="flex-1 px-6 py-6 gap-4">
+          <InvoiceSubTabs />
+
+          <SearchInput
+            value={searchText}
+            onChangeText={setSearchText}
+            onClear={() => setSearchText("")}
+            placeholder="Search by name, email or phone"
+          />
+
+          <PillTabs
+            items={ORDERING_OPTIONS}
+            activeKey={ordering ?? ORDERING_OPTIONS[0].key}
+            onSelect={(key) => setOrdering(key as GetClientsParams["ordering"])}
+          />
+
+          {!archivedClients.isLoading && allArchivedClients.length > 0 && (
+            <Text variant="caption">
+              {totalCount} archived {totalCount === 1 ? "client" : "clients"}
+            </Text>
+          )}
+
+          {archivedClients.isLoading ? (
+            <View>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </View>
+          ) : allArchivedClients.length === 0 ? (
+            <View className="items-center py-16 gap-1">
+              <Text variant="body-lg" className="font-semibold">
+                {searchActive ? "No matching clients" : "No archived clients"}
+              </Text>
+              <Text
+                variant="body-sm"
+                className="text-muted-foreground text-center max-w-[280px]"
+              >
+                {searchActive
+                  ? "Try a different search term."
+                  : "Clients you archive will show up here."}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              className="flex-1"
+              data={allArchivedClients}
+              keyExtractor={(item) => item.slug}
+              renderItem={renderClientRow}
+              onEndReached={() => {
+                if (
+                  archivedClients.hasNextPage &&
+                  !archivedClients.isFetchingNextPage
+                ) {
+                  archivedClients.fetchNextPage();
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={
+                archivedClients.isFetchingNextPage ? (
+                  <View className="items-center py-4">
+                    <Spinner size="sm" />
+                  </View>
+                ) : null
+              }
+            />
+          )}
+        </View>
+      </Container>
 
       <InfoDialog
         visible={limitErrorMessage !== null}
@@ -143,49 +207,3 @@ export default function ArchivedClientsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    padding: 16,
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    borderRadius: 4,
-  },
-  orderingRow: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  orderingActive: {
-    fontWeight: "bold",
-    color: "#3399ff",
-  },
-  orderingInactive: {
-    color: "#666",
-  },
-  list: {
-    flex: 1,
-  },
-  clientRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  clientInfo: {
-    flex: 1,
-  },
-  clientName: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  clientMeta: {
-    color: "#666",
-  },
-});

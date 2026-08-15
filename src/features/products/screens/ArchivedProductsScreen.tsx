@@ -37,6 +37,8 @@ export default function ArchivedProductsScreen() {
 
   const updateProduct = useUpdateProduct();
 
+  const archivedProductResults = archivedProducts.data?.pages[0]?.results ?? [];
+
   useFocusEffect(
     useCallback(() => {
       archivedProducts.refetch();
@@ -100,14 +102,14 @@ export default function ArchivedProductsScreen() {
 
       {archivedProducts.isLoading && <Text>Loading archived products...</Text>}
 
-      {archivedProducts.data && archivedProducts.data.results.length === 0 && (
+      {archivedProducts.data && archivedProductResults.length === 0 && (
         <Text>No archived products.</Text>
       )}
 
-      {archivedProducts.data && archivedProducts.data.results.length > 0 && (
+      {archivedProducts.data && archivedProductResults.length > 0 && (
         <FlatList
           style={styles.list}
-          data={archivedProducts.data.results}
+          data={archivedProductResults}
           keyExtractor={(item) => item.slug}
           renderItem={({ item }) => (
             <TouchableOpacity

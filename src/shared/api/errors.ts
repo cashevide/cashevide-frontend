@@ -6,16 +6,21 @@ export type FieldErrors<T extends string = string> = Partial<
 >;
 
 // Extracts a single human-readable message from an Axios error whose
-// response body follows the DRF field-errors shape above. Falls back to
-// a generic message rather than ever showing raw JSON to the user.
+// response body follows either of two DRF error shapes: the field-keyed
+// FieldErrors shape above, or a plain array of message strings (seen on
+// tier/usage-limit errors, e.g. ["You cannot create more than 2 clients
+// on your current plan."]). Falls back to a generic message rather than
+// ever showing raw JSON to the user.
 //
-// Only handles the common case (FieldErrors). Endpoints with a genuinely
-// different error shape (mixed {field: {detail: string}} objects, plain
-// string arrays for credit-points errors, etc. — see
-// cashevide-work-style-summary.md) need their own extraction logic;
-// don't route those through this helper.
+// Endpoints with a genuinely different error shape (mixed
+// {field: {detail: string}} objects — see cashevide-work-style-summary.md)
+// need their own extraction logic; don't route those through this helper.
 export function getFieldErrorMessage(error: unknown): string {
   const data = (error as { response?: { data?: unknown } })?.response?.data;
+
+  if (Array.isArray(data) && typeof data[0] === "string") {
+    return data[0];
+  }
 
   if (data && typeof data === "object") {
     const fieldErrors = data as FieldErrors;

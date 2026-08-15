@@ -1,24 +1,49 @@
-import { useState } from "react";
-import {
-  Button,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useCallback, useState } from "react";
+import { FlatList, Pressable, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback } from "react";
-import { InfoDialog } from "@/src/shared/ui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PlusIcon } from "react-native-heroicons/outline";
+
 import { useProducts } from "../hooks/useProducts";
 import { useProductUsage } from "../hooks/useProductUsage";
 import { useDebouncedValue } from "@/src/shared/hooks/useDebouncedValue";
 import { ROUTES } from "@/src/shared/navigation/routes";
 import InvoiceSubTabs from "@/src/features/invoices/components/InvoiceSubTabs";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import {
+  Text,
+  SearchInput,
+  PillTabs,
+  Spinner,
+  InfoDialog,
+} from "@/src/shared/ui";
+
 import type { GetProductsParams } from "../api/productsApi";
+import type { Product } from "../types/productTypes";
+
+const ORDERING_OPTIONS: {
+  key: NonNullable<GetProductsParams["ordering"]>;
+  label: string;
+}[] = [
+  { key: "-created_at", label: "Newest" },
+  { key: "title", label: "Title A-Z" },
+];
+
+function SkeletonRow() {
+  return (
+    <View className="gap-2 border-b border-border py-3">
+      <View className="flex-row items-center justify-between">
+        <View className="h-4 w-32 rounded bg-muted" />
+        <View className="h-4 w-16 rounded bg-muted" />
+      </View>
+      <View className="h-3 w-48 rounded bg-muted" />
+    </View>
+  );
+}
 
 export default function InvoiceProductsScreen() {
+  const insets = useSafeAreaInsets();
   const [searchText, setSearchText] = useState("");
   const [ordering, setOrdering] =
     useState<GetProductsParams["ordering"]>("-created_at");
@@ -40,98 +65,166 @@ export default function InvoiceProductsScreen() {
     }, []),
   );
 
+  const allProducts: Product[] =
+    products.data?.pages.flatMap((page) => page.results) ?? [];
+  const totalCount = products.data?.pages[0]?.count ?? 0;
+
   const isUsageLimitReached =
     productUsage.data?.max_allowed_product != null &&
     productUsage.data.current_product_count >=
       productUsage.data.max_allowed_product;
 
-  const handleAddProductPress = () => {
+  function handleAddProductPress() {
     if (isUsageLimitReached) {
       setShowLimitDialog(true);
       return;
     }
     router.push(ROUTES.invoices.products.create);
-  };
+  }
+
+  function renderProductRow({ item }: { item: Product }) {
+    return (
+      <Pressable
+        onPress={() => router.push(ROUTES.invoices.products.detail(item.slug))}
+        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        className="gap-1 border-b border-border py-3"
+      >
+        <View className="flex-row items-center justify-between gap-2">
+          <Text
+            variant="body"
+            className="flex-1 font-semibold"
+            numberOfLines={1}
+          >
+            {item.title}
+          </Text>
+          <Text variant="body-sm" className="font-semibold">
+            ₹{item.unit_price}
+          </Text>
+        </View>
+
+        {item.description && (
+          <Text
+            variant="body-sm"
+            className="text-muted-foreground"
+            numberOfLines={1}
+          >
+            {item.description}
+          </Text>
+        )}
+      </Pressable>
+    );
+  }
+
+  const searchActive = debouncedSearchText.length > 0;
 
   return (
-    <View style={styles.container}>
-      <InvoiceSubTabs />
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Products" />
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search by title"
-        value={searchText}
-        onChangeText={setSearchText}
-      />
+      <Container variant="desktop" safeArea="bottom">
+        <View className="flex-1 px-6 py-6 gap-4">
+          <InvoiceSubTabs />
 
-      <View style={styles.orderingRow}>
-        <TouchableOpacity onPress={() => setOrdering("-created_at")}>
-          <Text
-            style={
-              ordering === "-created_at"
-                ? styles.orderingActive
-                : styles.orderingInactive
-            }
-          >
-            Newest
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setOrdering("title")}>
-          <Text
-            style={
-              ordering === "title"
-                ? styles.orderingActive
-                : styles.orderingInactive
-            }
-          >
-            Title A-Z
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <SearchInput
+            value={searchText}
+            onChangeText={setSearchText}
+            onClear={() => setSearchText("")}
+            placeholder="Search by title"
+          />
 
-      <TouchableOpacity
-        style={styles.archivedRow}
-        onPress={() => router.push(ROUTES.invoices.products.archived)}
-      >
-        <Text style={styles.archivedRowText}>Archived Products</Text>
-      </TouchableOpacity>
-
-      {products.isLoading && <Text>Loading products...</Text>}
-
-      {products.data && products.data.results.length === 0 && (
-        <Text>No products yet — add your first product to get started.</Text>
-      )}
-
-      {products.data && products.data.results.length > 0 && (
-        <FlatList
-          style={styles.list}
-          data={products.data.results}
-          keyExtractor={(item) => item.slug}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.productRow}
-              onPress={() =>
-                router.push(ROUTES.invoices.products.detail(item.slug))
+          <View className="flex-row items-center justify-between">
+            <PillTabs
+              items={ORDERING_OPTIONS}
+              activeKey={ordering ?? ORDERING_OPTIONS[0].key}
+              onSelect={(key) =>
+                setOrdering(key as GetProductsParams["ordering"])
               }
+              className="flex-1"
+            />
+
+            <Pressable
+              onPress={() => router.push(ROUTES.invoices.products.archived)}
             >
-              <Text style={styles.productTitle}>{item.title}</Text>
-              <Text style={styles.productMeta}>₹{item.unit_price}</Text>
-            </TouchableOpacity>
+              <Text variant="body-sm" className="text-link">
+                Archived
+              </Text>
+            </Pressable>
+          </View>
+
+          {!products.isLoading && allProducts.length > 0 && (
+            <Text variant="caption">
+              {totalCount} {totalCount === 1 ? "product" : "products"}
+            </Text>
           )}
-        />
-      )}
 
-      {productUsage.data && (
-        <Text style={styles.usageText}>
-          {productUsage.data.current_product_count}
-          {productUsage.data.max_allowed_product != null
-            ? ` / ${productUsage.data.max_allowed_product}`
-            : ""}{" "}
-          products
-        </Text>
-      )}
+          {products.isLoading ? (
+            <View>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </View>
+          ) : allProducts.length === 0 ? (
+            <View className="items-center py-16 gap-1">
+              <Text variant="body-lg" className="font-semibold">
+                {searchActive ? "No matching products" : "No products yet"}
+              </Text>
+              <Text
+                variant="body-sm"
+                className="text-muted-foreground text-center max-w-[280px]"
+              >
+                {searchActive
+                  ? "Try a different search term."
+                  : "Add your first product to get started."}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              className="flex-1"
+              data={allProducts}
+              keyExtractor={(item) => item.slug}
+              renderItem={renderProductRow}
+              onEndReached={() => {
+                if (products.hasNextPage && !products.isFetchingNextPage) {
+                  products.fetchNextPage();
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={
+                products.isFetchingNextPage ? (
+                  <View className="items-center py-4">
+                    <Spinner size="sm" />
+                  </View>
+                ) : null
+              }
+            />
+          )}
 
-      <Button title="+ Add Product" onPress={handleAddProductPress} />
+          {productUsage.data && (
+            <Text variant="caption" className="text-center">
+              {productUsage.data.current_product_count}
+              {productUsage.data.max_allowed_product != null
+                ? ` / ${productUsage.data.max_allowed_product}`
+                : ""}{" "}
+              products used
+            </Text>
+          )}
+        </View>
+
+        <Pressable
+          onPress={handleAddProductPress}
+          accessibilityRole="button"
+          accessibilityLabel="Add product"
+          style={{ bottom: insets.bottom + 24 }}
+          className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+        >
+          <PlusIcon
+            width={24}
+            height={24}
+            color="rgb(var(--color-primary-foreground))"
+          />
+        </Pressable>
+      </Container>
 
       <InfoDialog
         visible={showLimitDialog}
@@ -142,56 +235,3 @@ export default function InvoiceProductsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    padding: 16,
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    borderRadius: 4,
-  },
-  orderingRow: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  orderingActive: {
-    fontWeight: "bold",
-    color: "#3399ff",
-  },
-  orderingInactive: {
-    color: "#666",
-  },
-  archivedRow: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  archivedRowText: {
-    fontSize: 14,
-    color: "#3399ff",
-  },
-  list: {
-    flex: 1,
-  },
-  productRow: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  productTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  productMeta: {
-    color: "#666",
-  },
-  usageText: {
-    textAlign: "center",
-    color: "#666",
-  },
-});

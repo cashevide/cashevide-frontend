@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   FunnelIcon,
   PlusIcon,
@@ -98,6 +99,7 @@ function SkeletonRow() {
 }
 
 export default function InvoiceListScreen() {
+  const insets = useSafeAreaInsets();
   const [searchText, setSearchText] = useState("");
   const [ordering, setOrdering] =
     useState<GetInvoicesParams["ordering"]>("-created_at");
@@ -181,26 +183,7 @@ export default function InvoiceListScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader>
-        <View className="flex-row items-center justify-between">
-          <Text variant="body-lg" className="font-semibold">
-            Invoices
-          </Text>
-
-          <Pressable
-            onPress={() => router.push(ROUTES.invoices.create)}
-            accessibilityRole="button"
-            accessibilityLabel="New invoice"
-            className="h-9 w-9 items-center justify-center rounded-full bg-secondary border border-border"
-          >
-            <PlusIcon
-              width={18}
-              height={18}
-              color="rgb(var(--color-foreground))"
-            />
-          </Pressable>
-        </View>
-      </ScreenHeader>
+      <ScreenHeader title="Invoices" />
 
       <Container variant="desktop" safeArea="bottom">
         <View className="flex-1 px-6 py-6 gap-4">
@@ -314,6 +297,20 @@ export default function InvoiceListScreen() {
             />
           )}
         </View>
+
+        <Pressable
+          onPress={() => router.push(ROUTES.invoices.create)}
+          accessibilityRole="button"
+          accessibilityLabel="New invoice"
+          style={{ bottom: insets.bottom + 24 }}
+          className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+        >
+          <PlusIcon
+            width={24}
+            height={24}
+            color="rgb(var(--color-primary-foreground))"
+          />
+        </Pressable>
       </Container>
 
       <InvoiceFilterModal

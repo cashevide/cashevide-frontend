@@ -26,6 +26,8 @@ export default function ProductPickerModal({
     ordering: "title",
   });
 
+  const productResults = products.data?.pages[0]?.results ?? [];
+
   function handleSelect(product: Product) {
     onSelect(product);
     setSearchText("");
@@ -51,16 +53,16 @@ export default function ProductPickerModal({
         </View>
       )}
 
-      {products.data && products.data.results.length === 0 && (
+      {!products.isLoading && productResults.length === 0 && (
         <Text variant="body-sm" className="text-center py-3">
           No products found.
         </Text>
       )}
 
-      {products.data && products.data.results.length > 0 && (
+      {productResults.length > 0 && (
         <FlatList
           className="max-h-[400px] grow-0"
-          data={products.data.results}
+          data={productResults}
           keyExtractor={(item) => item.slug}
           renderItem={({ item }) => (
             <Pressable
