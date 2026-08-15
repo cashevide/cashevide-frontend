@@ -1,21 +1,22 @@
 import { useCallback, useState } from "react";
-import {
-  Button,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
+import {
+  FunnelIcon,
+  PlusIcon,
+  XMarkIcon,
+} from "react-native-heroicons/outline";
 
 import { useInvoices } from "../hooks/useInvoices";
 import { useDebouncedValue } from "@/src/shared/hooks/useDebouncedValue";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import { cn } from "@/src/shared/utils/cn";
 import InvoiceSubTabs from "../components/InvoiceSubTabs";
 import InvoiceStatusBadge from "../components/InvoiceStatusBadge";
 import InvoiceFilterModal from "../components/InvoiceFilterModal";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, SearchInput, PillTabs, Spinner } from "@/src/shared/ui";
 
 import type { InvoiceFilters } from "../components/InvoiceFilterModal";
 import type { GetInvoicesParams } from "../api/invoicesApi";
@@ -30,12 +31,70 @@ const EMPTY_FILTERS: InvoiceFilters = {
   to_due_date: undefined,
 };
 
+const ORDERING_OPTIONS: {
+  key: NonNullable<GetInvoicesParams["ordering"]>;
+  label: string;
+}[] = [
+  { key: "-created_at", label: "Newest" },
+  { key: "-due_date", label: "Due Date" },
+  { key: "-total_amount", label: "Amount" },
+];
+
+const STATUS_LABELS: Record<NonNullable<InvoiceFilters["status"]>, string> = {
+  DRAFT: "Draft",
+  UNPAID: "Unpaid",
+  PARTIALLY_PAID: "Partially Paid",
+  PAID: "Paid",
+};
+
 function formatAmount(amount: string, currency: string): string {
   return `${currency || ""} ${amount}`.trim();
 }
 
-function isFiltersActive(filters: InvoiceFilters): boolean {
-  return Object.values(filters).some((value) => value !== undefined);
+// One removable chip per active filter key — lets the person see (and
+// clear) exactly what's narrowing the list without reopening the filter
+// modal. Each chip carries the key it clears so onRemove can null out
+// just that one field.
+type FilterChip = { key: keyof InvoiceFilters; label: string };
+
+function getFilterChips(filters: InvoiceFilters): FilterChip[] {
+  const chips: FilterChip[] = [];
+
+  if (filters.status) {
+    chips.push({ key: "status", label: STATUS_LABELS[filters.status] });
+  }
+  if (filters.currency) {
+    chips.push({ key: "currency", label: filters.currency });
+  }
+  if (filters.from_issue_date || filters.to_issue_date) {
+    chips.push({
+      key: "from_issue_date",
+      label: `Issued ${filters.from_issue_date ?? "…"} – ${filters.to_issue_date ?? "…"}`,
+    });
+  }
+  if (filters.from_due_date || filters.to_due_date) {
+    chips.push({
+      key: "from_due_date",
+      label: `Due ${filters.from_due_date ?? "…"} – ${filters.to_due_date ?? "…"}`,
+    });
+  }
+
+  return chips;
+}
+
+function SkeletonRow() {
+  return (
+    <View className="gap-2 border-b border-border py-3">
+      <View className="flex-row items-center justify-between">
+        <View className="h-4 w-20 rounded bg-muted" />
+        <View className="h-5 w-16 rounded-full bg-muted" />
+      </View>
+      <View className="flex-row items-center justify-between">
+        <View className="h-3 w-32 rounded bg-muted" />
+        <View className="h-3 w-16 rounded bg-muted" />
+      </View>
+    </View>
+  );
 }
 
 export default function InvoiceListScreen() {
@@ -60,121 +119,202 @@ export default function InvoiceListScreen() {
     }, []),
   );
 
-  const filtersActive = isFiltersActive(filters);
+  const allInvoices: Invoice[] =
+    invoices.data?.pages.flatMap((page) => page.results) ?? [];
+  const totalCount = invoices.data?.pages[0]?.count ?? 0;
+
+  const chips = getFilterChips(filters);
+  const filtersActive = chips.length > 0;
+  const searchOrFilterActive = filtersActive || debouncedSearchText.length > 0;
+
+  function removeChip(key: keyof InvoiceFilters) {
+    if (key === "from_issue_date") {
+      setFilters((prev) => ({
+        ...prev,
+        from_issue_date: undefined,
+        to_issue_date: undefined,
+      }));
+      return;
+    }
+    if (key === "from_due_date") {
+      setFilters((prev) => ({
+        ...prev,
+        from_due_date: undefined,
+        to_due_date: undefined,
+      }));
+      return;
+    }
+    setFilters((prev) => ({ ...prev, [key]: undefined }));
+  }
 
   function renderInvoiceRow({ item }: { item: Invoice }) {
     return (
-      <TouchableOpacity
-        style={styles.invoiceRow}
+      <Pressable
         onPress={() => router.push(ROUTES.invoices.detail(item.id))}
+        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        className="gap-1 border-b border-border py-3"
       >
-        <View style={styles.rowLine}>
-          <Text style={styles.invoiceNumber}>{item.invoice_number}</Text>
+        <View className="flex-row items-center justify-between gap-2">
+          <Text variant="body" className="font-semibold">
+            {item.invoice_number}
+          </Text>
           <InvoiceStatusBadge status={item.status} />
         </View>
 
-        <View style={styles.rowLine}>
-          <Text style={styles.clientName}>
+        <View className="flex-row items-center justify-between gap-2">
+          <Text
+            variant="body-sm"
+            className="flex-1 text-muted-foreground"
+            numberOfLines={1}
+          >
             {item.name || "Untitled Client"}
           </Text>
-          <Text style={styles.amount}>
+          <Text variant="body-sm" className="font-semibold text-right">
             {formatAmount(item.total_amount, item.currency)}
           </Text>
         </View>
 
-        {item.due_date && (
-          <Text style={styles.dueDate}>Due {item.due_date}</Text>
-        )}
-      </TouchableOpacity>
+        {item.due_date && <Text variant="caption">Due {item.due_date}</Text>}
+      </Pressable>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <InvoiceSubTabs />
-
-      <View style={styles.searchRow}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by invoice #, name, email or phone"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            filtersActive && styles.filterButtonActive,
-          ]}
-          onPress={() => setFilterModalVisible(true)}
-        >
-          <Text
-            style={
-              filtersActive
-                ? styles.filterButtonTextActive
-                : styles.filterButtonText
-            }
-          >
-            Filter
+    <View className="flex-1 bg-background">
+      <ScreenHeader>
+        <View className="flex-row items-center justify-between">
+          <Text variant="body-lg" className="font-semibold">
+            Invoices
           </Text>
-        </TouchableOpacity>
-      </View>
 
-      <View style={styles.orderingRow}>
-        <TouchableOpacity onPress={() => setOrdering("-created_at")}>
-          <Text
-            style={
-              ordering === "-created_at"
-                ? styles.orderingActive
-                : styles.orderingInactive
-            }
+          <Pressable
+            onPress={() => router.push(ROUTES.invoices.create)}
+            accessibilityRole="button"
+            accessibilityLabel="New invoice"
+            className="h-9 w-9 items-center justify-center rounded-full bg-secondary border border-border"
           >
-            Newest
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setOrdering("-due_date")}>
-          <Text
-            style={
-              ordering === "-due_date"
-                ? styles.orderingActive
-                : styles.orderingInactive
+            <PlusIcon
+              width={18}
+              height={18}
+              color="rgb(var(--color-foreground))"
+            />
+          </Pressable>
+        </View>
+      </ScreenHeader>
+
+      <Container variant="desktop" safeArea="bottom">
+        <View className="flex-1 px-6 py-6 gap-4">
+          <InvoiceSubTabs />
+
+          <View className="flex-row items-center gap-2">
+            <SearchInput
+              value={searchText}
+              onChangeText={setSearchText}
+              onClear={() => setSearchText("")}
+              placeholder="Search by invoice #, name, email or phone"
+              className="flex-1"
+            />
+
+            <Pressable
+              onPress={() => setFilterModalVisible(true)}
+              className={cn(
+                "h-12 w-12 items-center justify-center rounded-lg border",
+                filtersActive
+                  ? "bg-secondary border-border"
+                  : "bg-card border-border",
+              )}
+            >
+              <FunnelIcon
+                width={20}
+                height={20}
+                color={
+                  filtersActive
+                    ? "rgb(var(--color-foreground))"
+                    : "rgb(var(--color-muted-foreground))"
+                }
+              />
+            </Pressable>
+          </View>
+
+          {chips.length > 0 && (
+            <View className="flex-row flex-wrap gap-2">
+              {chips.map((chip) => (
+                <Pressable
+                  key={chip.key}
+                  onPress={() => removeChip(chip.key)}
+                  className="flex-row items-center gap-1.5 rounded-full bg-secondary border border-border pl-3 pr-2 py-1.5"
+                >
+                  <Text variant="body-sm">{chip.label}</Text>
+                  <XMarkIcon
+                    width={14}
+                    height={14}
+                    color="rgb(var(--color-muted-foreground))"
+                  />
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          <PillTabs
+            items={ORDERING_OPTIONS}
+            activeKey={ordering ?? ORDERING_OPTIONS[0].key}
+            onSelect={(key) =>
+              setOrdering(key as GetInvoicesParams["ordering"])
             }
-          >
-            Due Date
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setOrdering("-total_amount")}>
-          <Text
-            style={
-              ordering === "-total_amount"
-                ? styles.orderingActive
-                : styles.orderingInactive
-            }
-          >
-            Amount
-          </Text>
-        </TouchableOpacity>
-      </View>
+          />
 
-      {invoices.isLoading && <Text>Loading invoices...</Text>}
+          {!invoices.isLoading && allInvoices.length > 0 && (
+            <Text variant="caption">
+              {totalCount} {totalCount === 1 ? "invoice" : "invoices"}
+            </Text>
+          )}
 
-      {invoices.data && invoices.data.results.length === 0 && (
-        <Text>No invoices yet — create your first invoice to get started.</Text>
-      )}
-
-      {invoices.data && invoices.data.results.length > 0 && (
-        <FlatList
-          style={styles.list}
-          data={invoices.data.results}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderInvoiceRow}
-        />
-      )}
-
-      <Button
-        title="+ New Invoice"
-        onPress={() => router.push(ROUTES.invoices.create)}
-      />
+          {invoices.isLoading ? (
+            <View>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </View>
+          ) : allInvoices.length === 0 ? (
+            <View className="items-center py-16 gap-1">
+              <Text variant="body-lg" className="font-semibold">
+                {searchOrFilterActive
+                  ? "No matching invoices"
+                  : "No invoices yet"}
+              </Text>
+              <Text
+                variant="body-sm"
+                className="text-muted-foreground text-center max-w-[280px]"
+              >
+                {searchOrFilterActive
+                  ? "Try a different search term or clear your filters."
+                  : "Create your first invoice to get started."}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              className="flex-1"
+              data={allInvoices}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={renderInvoiceRow}
+              onEndReached={() => {
+                if (invoices.hasNextPage && !invoices.isFetchingNextPage) {
+                  invoices.fetchNextPage();
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={
+                invoices.isFetchingNextPage ? (
+                  <View className="items-center py-4">
+                    <Spinner size="sm" />
+                  </View>
+                ) : null
+              }
+            />
+          )}
+        </View>
+      </Container>
 
       <InvoiceFilterModal
         visible={filterModalVisible}
@@ -185,79 +325,3 @@ export default function InvoiceListScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    padding: 16,
-  },
-  searchRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  searchInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    borderRadius: 4,
-  },
-  filterButton: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    justifyContent: "center",
-  },
-  filterButtonActive: {
-    backgroundColor: "#3399ff",
-    borderColor: "#3399ff",
-  },
-  filterButtonText: {
-    color: "#333",
-  },
-  filterButtonTextActive: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  orderingRow: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  orderingActive: {
-    fontWeight: "bold",
-    color: "#3399ff",
-  },
-  orderingInactive: {
-    color: "#666",
-  },
-  list: {
-    flex: 1,
-  },
-  invoiceRow: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    gap: 4,
-  },
-  rowLine: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  invoiceNumber: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  clientName: {
-    color: "#333",
-  },
-  amount: {
-    fontWeight: "bold",
-  },
-  dueDate: {
-    fontSize: 12,
-    color: "#666",
-  },
-});

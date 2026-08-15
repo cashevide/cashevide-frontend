@@ -1,24 +1,30 @@
 import { useEffect, useState } from "react";
-import {
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, TextInput, View } from "react-native";
 
-import { DateField, Modal } from "@/src/shared/ui";
+import { Text, Button, DateField, Modal, PillTabs } from "@/src/shared/ui";
+import {
+  getInputFieldClasses,
+  inputFieldWebResetStyle,
+} from "@/src/shared/ui/utils/inputFieldStyles";
 
 import type { GetInvoicesParams } from "../api/invoicesApi";
 import type { InvoiceStatus } from "../types/invoiceTypes";
 
-const STATUS_OPTIONS: { label: string; value: InvoiceStatus | undefined }[] = [
-  { label: "All", value: undefined },
-  { label: "Draft", value: "DRAFT" },
-  { label: "Unpaid", value: "UNPAID" },
-  { label: "Partially Paid", value: "PARTIALLY_PAID" },
-  { label: "Paid", value: "PAID" },
+// PillTabs items need a string key — "All" is represented as an empty
+// string here (mapped back to `undefined` on select) since the filter
+// value itself is `InvoiceStatus | undefined`.
+const ALL_STATUS_KEY = "";
+
+const STATUS_OPTIONS: {
+  key: string;
+  label: string;
+  value: InvoiceStatus | undefined;
+}[] = [
+  { key: ALL_STATUS_KEY, label: "All", value: undefined },
+  { key: "DRAFT", label: "Draft", value: "DRAFT" },
+  { key: "UNPAID", label: "Unpaid", value: "UNPAID" },
+  { key: "PARTIALLY_PAID", label: "Partially Paid", value: "PARTIALLY_PAID" },
+  { key: "PAID", label: "Paid", value: "PAID" },
 ];
 
 type InvoiceFilterKeys =
@@ -71,140 +77,106 @@ export default function InvoiceFilterModal({
     setFilters(EMPTY_FILTERS);
   }
 
+  function handleSelectStatus(key: string) {
+    const option = STATUS_OPTIONS.find((o) => o.key === key);
+    setFilters((prev) => ({ ...prev, status: option?.value }));
+  }
+
+  const activeStatusKey =
+    STATUS_OPTIONS.find((o) => o.value === filters.status)?.key ??
+    ALL_STATUS_KEY;
+
   return (
     <Modal
       visible={visible}
       dismissible
       onDismiss={onDismiss}
+      title="Filter Invoices"
       footer={
-        <View style={styles.footerRow}>
-          <Button title="Clear" onPress={handleClear} />
-          <Button title="Apply" onPress={handleApply} />
+        <View className="flex-row justify-between gap-3">
+          <Button variant="ghost" title="Clear" onPress={handleClear} />
+          <Button variant="primary" title="Apply" onPress={handleApply} />
         </View>
       }
     >
-      <Text style={styles.sectionTitle}>Status</Text>
-      <View style={styles.statusRow}>
-        {STATUS_OPTIONS.map((option) => (
-          <TouchableOpacity
-            key={option.label}
-            style={[
-              styles.statusPill,
-              filters.status === option.value && styles.statusPillActive,
-            ]}
-            onPress={() =>
-              setFilters((prev) => ({ ...prev, status: option.value }))
-            }
-          >
-            <Text
-              style={
-                filters.status === option.value
-                  ? styles.statusPillTextActive
-                  : styles.statusPillText
-              }
-            >
-              {option.label}
+      <ScrollView className="max-h-[360px]">
+        <View className="gap-5">
+          <View className="gap-2">
+            <Text variant="body-sm" className="font-semibold">
+              Status
             </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            <PillTabs
+              items={STATUS_OPTIONS}
+              activeKey={activeStatusKey}
+              onSelect={handleSelectStatus}
+            />
+          </View>
 
-      <Text style={styles.sectionTitle}>Currency</Text>
-      <TextInput
-        style={styles.currencyInput}
-        placeholder="e.g. INR, USD"
-        autoCapitalize="characters"
-        maxLength={3}
-        value={filters.currency ?? ""}
-        onChangeText={(text) =>
-          setFilters((prev) => ({
-            ...prev,
-            currency: text ? text.toUpperCase() : undefined,
-          }))
-        }
-      />
+          <View className="gap-2">
+            <Text variant="body-sm" className="font-semibold">
+              Currency
+            </Text>
+            <TextInput
+              placeholder="e.g. INR, USD"
+              autoCapitalize="characters"
+              maxLength={3}
+              value={filters.currency ?? ""}
+              onChangeText={(text) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  currency: text ? text.toUpperCase() : undefined,
+                }))
+              }
+              style={inputFieldWebResetStyle}
+              className={getInputFieldClasses({ state: "default" })}
+            />
+          </View>
 
-      <Text style={styles.sectionTitle}>Issue Date</Text>
-      <View style={styles.dateRangeRow}>
-        <DateField
-          label="From"
-          value={filters.from_issue_date}
-          onChange={(value) =>
-            setFilters((prev) => ({ ...prev, from_issue_date: value }))
-          }
-        />
-        <DateField
-          label="To"
-          value={filters.to_issue_date}
-          onChange={(value) =>
-            setFilters((prev) => ({ ...prev, to_issue_date: value }))
-          }
-        />
-      </View>
+          <View className="gap-2">
+            <Text variant="body-sm" className="font-semibold">
+              Issue Date
+            </Text>
+            <View className="flex-row gap-3">
+              <DateField
+                label="From"
+                value={filters.from_issue_date}
+                onChange={(value) =>
+                  setFilters((prev) => ({ ...prev, from_issue_date: value }))
+                }
+              />
+              <DateField
+                label="To"
+                value={filters.to_issue_date}
+                onChange={(value) =>
+                  setFilters((prev) => ({ ...prev, to_issue_date: value }))
+                }
+              />
+            </View>
+          </View>
 
-      <Text style={styles.sectionTitle}>Due Date</Text>
-      <View style={styles.dateRangeRow}>
-        <DateField
-          label="From"
-          value={filters.from_due_date}
-          onChange={(value) =>
-            setFilters((prev) => ({ ...prev, from_due_date: value }))
-          }
-        />
-        <DateField
-          label="To"
-          value={filters.to_due_date}
-          onChange={(value) =>
-            setFilters((prev) => ({ ...prev, to_due_date: value }))
-          }
-        />
-      </View>
+          <View className="gap-2">
+            <Text variant="body-sm" className="font-semibold">
+              Due Date
+            </Text>
+            <View className="flex-row gap-3">
+              <DateField
+                label="From"
+                value={filters.from_due_date}
+                onChange={(value) =>
+                  setFilters((prev) => ({ ...prev, from_due_date: value }))
+                }
+              />
+              <DateField
+                label="To"
+                value={filters.to_due_date}
+                onChange={(value) =>
+                  setFilters((prev) => ({ ...prev, to_due_date: value }))
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionTitle: {
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  statusRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  statusPill: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  statusPillActive: {
-    backgroundColor: "#3399ff",
-    borderColor: "#3399ff",
-  },
-  statusPillText: {
-    color: "#333",
-  },
-  statusPillTextActive: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  currencyInput: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-  },
-  dateRangeRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  footerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-});

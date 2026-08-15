@@ -71,10 +71,12 @@ module.exports = {
         warning: {
           DEFAULT: "rgb(var(--color-warning) / <alpha-value>)",
           foreground: "rgb(var(--color-warning-foreground) / <alpha-value>)",
+          text: "rgb(var(--color-warning-text) / <alpha-value>)",
         },
         info: {
           DEFAULT: "rgb(var(--color-info) / <alpha-value>)",
           foreground: "rgb(var(--color-info-foreground) / <alpha-value>)",
+          text: "rgb(var(--color-info-text) / <alpha-value>)",
         },
 
         /* Muted / Disabled */

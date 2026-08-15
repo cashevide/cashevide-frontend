@@ -1,5 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 
+import { Text } from "@/src/shared/ui";
+import { cn } from "@/src/shared/utils/cn";
 import { formatDashboardAmount } from "../utils/invoiceDashboardUtils";
 
 import type { CurrencyAmountMap } from "../types/invoiceDashboardTypes";
@@ -17,17 +19,26 @@ function SummaryRow({
   label,
   bucket,
   currency,
+  isLast,
 }: {
   label: string;
   bucket: CurrencyAmountMap;
   currency: string;
+  isLast: boolean;
 }) {
   const amount = bucket[currency];
 
   return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>
+    <View
+      className={cn(
+        "flex-row items-center justify-between py-2.5",
+        !isLast && "border-b border-border/50",
+      )}
+    >
+      <Text variant="body-sm" className="text-muted-foreground">
+        {label}
+      </Text>
+      <Text variant="body-sm" className="font-semibold text-right">
         {amount != null ? formatDashboardAmount(amount, currency) : "—"}
       </Text>
     </View>
@@ -42,47 +53,29 @@ export default function DashboardSummaryCard({
   lastYear,
   currency,
 }: DashboardSummaryCardProps) {
-  return (
-    <View style={styles.card}>
-      <Text style={styles.title}>Revenue Breakdown</Text>
+  const rows = [
+    { label: "This Month", bucket: thisMonth },
+    { label: "Last Month", bucket: lastMonth },
+    { label: "Last 3 Months", bucket: lastThreeMonths },
+    { label: "This Year", bucket: thisYear },
+    { label: "Last Year", bucket: lastYear },
+  ];
 
-      <SummaryRow label="This Month" bucket={thisMonth} currency={currency} />
-      <SummaryRow label="Last Month" bucket={lastMonth} currency={currency} />
-      <SummaryRow
-        label="Last 3 Months"
-        bucket={lastThreeMonths}
-        currency={currency}
-      />
-      <SummaryRow label="This Year" bucket={thisYear} currency={currency} />
-      <SummaryRow label="Last Year" bucket={lastYear} currency={currency} />
+  return (
+    <View className="bg-card border border-border rounded-lg p-4 gap-1">
+      <Text variant="body-sm" className="font-semibold mb-1">
+        Revenue Breakdown
+      </Text>
+
+      {rows.map((row, index) => (
+        <SummaryRow
+          key={row.label}
+          label={row.label}
+          bucket={row.bucket}
+          currency={currency}
+          isLast={index === rows.length - 1}
+        />
+      ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#eee",
-    padding: 16,
-    gap: 8,
-  },
-  title: {
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f5f5f5",
-  },
-  rowLabel: {
-    color: "#666",
-  },
-  rowValue: {
-    fontWeight: "bold",
-  },
-});

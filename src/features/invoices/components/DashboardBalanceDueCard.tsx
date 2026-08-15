@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 
+import { Text } from "@/src/shared/ui";
 import {
   isBucketEmpty,
-  formatDashboardAmount,
+  formatDashboardAmountParts,
 } from "../utils/invoiceDashboardUtils";
 
 import type { CurrencyAmountMap } from "../types/invoiceDashboardTypes";
@@ -18,33 +19,33 @@ export default function DashboardBalanceDueCard({
 }: DashboardBalanceDueCardProps) {
   const isEmpty = isBucketEmpty(totalBalanceDue);
   const amount = totalBalanceDue[currency] ?? 0;
+  const parts = formatDashboardAmountParts(amount, currency);
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.label}>Balance Due</Text>
-      <Text style={styles.amount}>
-        {isEmpty ? "—" : formatDashboardAmount(amount, currency)}
+    <View className="flex-1 bg-destructive/15 border border-destructive/30 rounded-lg p-4 gap-1">
+      <Text variant="overline" className="text-destructive-text">
+        Balance Due
       </Text>
+
+      {isEmpty ? (
+        <Text variant="heading" className="text-destructive-text">
+          —
+        </Text>
+      ) : parts.isSymbol ? (
+        <Text variant="heading" className="text-destructive-text">
+          {parts.currency}
+          {parts.value}
+        </Text>
+      ) : (
+        <View className="flex-row items-baseline gap-1.5">
+          <Text variant="body-sm" className="text-destructive-text">
+            {parts.currency}
+          </Text>
+          <Text variant="heading" className="text-destructive-text">
+            {parts.value}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    flex: 1,
-    backgroundColor: "#fff3e0",
-    borderRadius: 8,
-    padding: 16,
-    gap: 4,
-  },
-  label: {
-    fontSize: 12,
-    color: "#e65100",
-    fontWeight: "bold",
-  },
-  amount: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#bf360c",
-  },
-});

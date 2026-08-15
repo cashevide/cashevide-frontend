@@ -40,3 +40,32 @@ export function formatDashboardAmount(
 ): string {
   return `${currency} ${amount.toLocaleString()}`;
 }
+
+// Same formatting, split into parts — for hero-amount displays (the two
+// stat cards). INR/USD show their symbol (the two currencies most
+// Cashevide users deal with day to day); everything else falls back to
+// the plain ISO code, same as before.
+//
+// isSymbol tells the caller how to render the two parts: a currency
+// SYMBOL sits directly against the number at the same size with no gap
+// ($1,000 — the standard typographic convention), while an ISO CODE (no
+// symbol available) reads as a separate, smaller label before the
+// amount (AED 1,000) since it's a multi-letter abbreviation, not a
+// single glyph meant to look "attached" to the number.
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  INR: "₹",
+  USD: "$",
+};
+
+export function formatDashboardAmountParts(
+  amount: number,
+  currency: string,
+): { currency: string; value: string; isSymbol: boolean } {
+  const symbol = CURRENCY_SYMBOLS[currency];
+
+  return {
+    currency: symbol ?? currency,
+    value: amount.toLocaleString(),
+    isSymbol: symbol != null,
+  };
+}

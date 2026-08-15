@@ -9,8 +9,9 @@ export default function PublicLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const isLegalRoute = segments.includes("legal");
+  const isDesignSystemRoute = segments.includes("design-system");
 
-  if (isAuthenticated && !isLegalRoute) {
+  if (isAuthenticated && !isLegalRoute && !isDesignSystemRoute) {
     return <Redirect href={ROUTES.reviews.home} />;
   }
 

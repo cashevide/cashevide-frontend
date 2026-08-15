@@ -40,6 +40,16 @@ const SECTIONS = [
     description: "Dismissible dialog with optional footer actions",
     href: "/design-system/modal",
   },
+  {
+    title: "Pill Tabs",
+    description: "Horizontal pill tabs for navigation and filter selection",
+    href: "/design-system/pilltabs",
+  },
+  {
+    title: "Avatar",
+    description: "Image, initial-letter, and generic-icon fallback chain",
+    href: "/design-system/avatar",
+  },
 ] as const;
 
 export default function DesignOverview() {

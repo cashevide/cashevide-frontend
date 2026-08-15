@@ -12,6 +12,7 @@ export { Divider } from "./atoms/Divider";
 
 export { SearchInput } from "./molecules/SearchInput";
 export { PillTabs } from "./molecules/PillTabs";
+export type { PillTabItem } from "./molecules/PillTabs";
 export { Modal } from "./molecules/Modal";
 export { ConfirmDialog } from "./molecules/ConfirmDialog";
 export { InfoDialog } from "./molecules/InfoDialog";

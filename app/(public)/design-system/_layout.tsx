@@ -20,6 +20,8 @@ const NAV_ITEMS = [
   { label: "Inputs", href: "/design-system/inputs" },
   { label: "Switch", href: "/design-system/switch" },
   { label: "Modal", href: "/design-system/modal" },
+  { label: "Pill Tabs", href: "/design-system/pilltabs" },
+  { label: "Avatar", href: "/design-system/avatar" },
 ];
 
 const SIDEBAR_OPEN_WIDTH = 240;

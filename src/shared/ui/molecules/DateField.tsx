@@ -1,11 +1,8 @@
 import { useState } from "react";
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Platform, TouchableOpacity, View } from "react-native";
+
+import { Text } from "../atoms/Text";
+import { getInputFieldClasses } from "../utils/inputFieldStyles";
 
 // Native-only import — @expo/ui wraps Jetpack Compose (Android) / SwiftUI
 // (iOS) pickers, no web support. Web uses the plain HTML <input type="date">
@@ -53,8 +50,17 @@ export function DateField({
 
   if (Platform.OS === "web") {
     return (
-      <View style={styles.fieldWeb}>
-        <Text style={styles.label}>{label}</Text>
+      <View className="flex-1 gap-1">
+        <Text variant="body-sm" className="text-muted-foreground">
+          {label}
+        </Text>
+        {/* Raw HTML element — NativeWind's className doesn't apply to it
+            (react-native-web's style transform only covers RN
+            components), so this stays a plain inline style object using
+            the same token values as getInputFieldClasses, rather than
+            hardcoded hex. Safe to reference CSS custom properties
+            directly here since this branch only ever runs in the
+            browser. */}
         {/* eslint-disable-next-line react-native/no-raw-text */}
         <input
           type="date"
@@ -67,13 +73,20 @@ export function DateField({
   }
 
   return (
-    <View style={styles.fieldNative}>
-      <Text style={styles.label}>{label}</Text>
+    <View className="flex-1 gap-1">
+      <Text variant="body-sm" className="text-muted-foreground">
+        {label}
+      </Text>
       <TouchableOpacity
-        style={styles.button}
         onPress={() => setPickerOpen(true)}
+        className={getInputFieldClasses({ state: "default" })}
       >
-        <Text>{value ?? placeholder}</Text>
+        <Text
+          variant="body-sm"
+          className={value ? "" : "text-muted-foreground"}
+        >
+          {value ?? placeholder}
+        </Text>
       </TouchableOpacity>
 
       {pickerOpen && NativeDateTimePicker && (
@@ -96,28 +109,10 @@ export function DateField({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const webDateInputStyle: any = {
   borderWidth: 1,
-  borderColor: "#ccc",
-  borderRadius: 4,
+  borderColor: "rgb(var(--color-border))",
+  backgroundColor: "rgb(var(--color-card))",
+  color: "rgb(var(--color-foreground))",
+  borderRadius: 10,
   padding: 8,
   fontSize: 14,
 };
-
-const styles = StyleSheet.create({
-  fieldWeb: {
-    flex: 1,
-  },
-  fieldNative: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 4,
-  },
-  button: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-  },
-});

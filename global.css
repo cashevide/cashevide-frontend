@@ -36,8 +36,10 @@
     --color-success-text: 26 137 56; /* #1a8938 - softer for readable text on light bg fill */
     --color-warning: 180 83 9; /* #b45309 */
     --color-warning-foreground: 250 250 250; /* #fafafa */
+    --color-warning-text: 180 83 9; /* #b45309 - already readable on light bg fill (4.89:1 contrast), reused as-is */
     --color-info: 55 122 255; /* #377aff */
     --color-info-foreground: 255 255 255; /* #ffffff */
+    --color-info-text: 29 91 204; /* #1d5bcc - darker than raw info for readable text on light bg fill (5.12:1 contrast) */
 
     /* 5. Muted / Disabled */
     --color-muted: 240 240 238; /* #f0f0ee */
@@ -83,8 +85,10 @@
     --color-success-text: 62 218 104; /* #3eda68 - softer than raw success for readable text */
     --color-warning: 245 158 11; /* #f59e0b */
     --color-warning-foreground: 1 1 1; /* #010101 */
+    --color-warning-text: 245 158 11; /* #f59e0b - already readable on dark bg fill (9.05:1 contrast), reused as-is */
     --color-info: 55 122 255; /* #377aff */
     --color-info-foreground: 255 255 255; /* #ffffff */
+    --color-info-text: 130 176 255; /* #82b0ff - lighter than raw info for readable text on dark bg fill (7.18:1 contrast) */
 
     /* 5. Muted / Disabled */
     --color-muted: 20 20 20; /* #141414 - landing page --bg-raised (exact) */
