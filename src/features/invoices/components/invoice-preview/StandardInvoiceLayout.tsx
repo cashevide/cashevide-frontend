@@ -1,0 +1,262 @@
+import { Image, View } from "react-native";
+
+import { useBusinessProfile } from "@/src/features/business-profile/hooks/useBusinessProfile";
+import { Text } from "@/src/shared/ui";
+import InvoicePreviewStatusBadge from "./InvoicePreviewStatusBadge";
+import { invoicePreviewColors as colors } from "./invoicePreviewColors";
+
+import type { InvoicePreviewData } from "../InvoicePreview";
+
+type StandardInvoiceLayoutProps = {
+  invoice: InvoicePreviewData;
+};
+
+function formatMoney(amount: string, currency: string): string {
+  return `${currency || ""} ${amount}`.trim();
+}
+
+// Always light — see invoicePreviewColors.ts. Every color here comes
+// from the `colors` constant via `style`, never a NativeWind className,
+// so this layout looks identical whether the app is in dark or light
+// mode.
+//
+// Visually distinct from ClassicInvoiceLayout: centered header instead
+// of a left/right split, and a borderless spaced item list instead of a
+// bordered table. Same information, different presentation — this is a
+// first pass and can be revisited later.
+export default function StandardInvoiceLayout({
+  invoice,
+}: StandardInvoiceLayoutProps) {
+  const businessProfile = useBusinessProfile();
+
+  const hasLogo = !!businessProfile.data?.logo;
+  const hasBusinessAddress = !!businessProfile.data?.address;
+  const hasBusinessPhone = !!businessProfile.data?.phone_number;
+  const hasEmail = !!invoice.email;
+  const hasPhone = !!invoice.phone;
+  const hasAddress = !!invoice.address;
+  const hasAmountPaid = invoice.amount_paid != null;
+  const hasBalanceDue = invoice.balance_due != null;
+
+  return (
+    <View
+      className="gap-4 rounded-lg p-5 shadow"
+      style={{ backgroundColor: colors.card }}
+    >
+      {/* -------------------- Centered header -------------------- */}
+      <View className="items-center gap-1">
+        {hasLogo && (
+          <Image
+            source={{ uri: businessProfile.data?.logo ?? undefined }}
+            className="mb-1 h-12 w-12"
+            resizeMode="contain"
+          />
+        )}
+        <Text
+          variant="body-lg"
+          className="font-semibold text-center"
+          style={{ color: colors.cardForeground }}
+        >
+          {businessProfile.data?.business_name || "Your Business"}
+        </Text>
+        {hasBusinessAddress && (
+          <Text
+            variant="caption"
+            className="text-center"
+            style={{ color: colors.mutedForeground }}
+          >
+            {businessProfile.data?.address}
+          </Text>
+        )}
+        {hasBusinessPhone && (
+          <Text
+            variant="caption"
+            className="text-center"
+            style={{ color: colors.mutedForeground }}
+          >
+            {businessProfile.data?.phone_number}
+          </Text>
+        )}
+
+        {invoice.status && (
+          <View className="mt-2">
+            <InvoicePreviewStatusBadge status={invoice.status} />
+          </View>
+        )}
+      </View>
+
+      <View className="h-px" style={{ backgroundColor: colors.border }} />
+
+      {/* -------------------- Invoice meta -------------------- */}
+      <View className="flex-row justify-between">
+        <View>
+          <Text
+            variant="caption"
+            className="uppercase"
+            style={{ color: colors.mutedForeground }}
+          >
+            Invoice
+          </Text>
+          <Text
+            variant="body-sm"
+            className="font-semibold"
+            style={{ color: colors.cardForeground }}
+          >
+            {invoice.invoice_number ?? "—"}
+          </Text>
+        </View>
+        <View className="items-end">
+          <Text
+            variant="caption"
+            className="uppercase"
+            style={{ color: colors.mutedForeground }}
+          >
+            Issued
+          </Text>
+          <Text variant="body-sm" style={{ color: colors.cardForeground }}>
+            {invoice.issue_date ?? "—"}
+          </Text>
+        </View>
+        <View className="items-end">
+          <Text
+            variant="caption"
+            className="uppercase"
+            style={{ color: colors.mutedForeground }}
+          >
+            Due
+          </Text>
+          <Text variant="body-sm" style={{ color: colors.cardForeground }}>
+            {invoice.due_date ?? "—"}
+          </Text>
+        </View>
+      </View>
+
+      {/* -------------------- Bill To -------------------- */}
+      <View className="gap-0.5">
+        <Text
+          variant="caption"
+          className="uppercase"
+          style={{ color: colors.mutedForeground }}
+        >
+          Billed To
+        </Text>
+        <Text
+          variant="body-sm"
+          className="font-semibold"
+          style={{ color: colors.cardForeground }}
+        >
+          {invoice.name || "Untitled Client"}
+        </Text>
+        {hasEmail && (
+          <Text variant="caption" style={{ color: colors.mutedForeground }}>
+            {invoice.email}
+          </Text>
+        )}
+        {hasPhone && (
+          <Text variant="caption" style={{ color: colors.mutedForeground }}>
+            {invoice.phone}
+          </Text>
+        )}
+        {hasAddress && (
+          <Text variant="caption" style={{ color: colors.mutedForeground }}>
+            {invoice.address}
+          </Text>
+        )}
+      </View>
+
+      {/* -------------------- Items (borderless spaced list) -------------------- */}
+      <View className="gap-3">
+        {invoice.items.map((item) => (
+          <View key={item.id} className="flex-row justify-between">
+            <View className="flex-1 pr-3">
+              <Text
+                variant="body-sm"
+                className="font-semibold"
+                style={{ color: colors.cardForeground }}
+              >
+                {item.title || "—"}
+              </Text>
+              <Text variant="caption" style={{ color: colors.mutedForeground }}>
+                {item.quantity || "—"} × {item.unit_price || "—"}
+              </Text>
+            </View>
+            <Text
+              variant="body-sm"
+              className="font-semibold"
+              style={{ color: colors.cardForeground }}
+            >
+              {formatMoney(item.total, invoice.currency)}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <View className="h-px" style={{ backgroundColor: colors.border }} />
+
+      {/* -------------------- Totals -------------------- */}
+      <View className="gap-1">
+        <View className="flex-row justify-between">
+          <Text variant="body-sm" style={{ color: colors.mutedForeground }}>
+            Subtotal
+          </Text>
+          <Text variant="body-sm" style={{ color: colors.cardForeground }}>
+            {formatMoney(invoice.subtotal, invoice.currency)}
+          </Text>
+        </View>
+        <View className="flex-row justify-between">
+          <Text variant="body-sm" style={{ color: colors.mutedForeground }}>
+            Discount
+          </Text>
+          <Text variant="body-sm" style={{ color: colors.cardForeground }}>
+            {formatMoney(invoice.discount, invoice.currency)}
+          </Text>
+        </View>
+        <View className="flex-row justify-between pt-1">
+          <Text
+            variant="body"
+            className="font-semibold"
+            style={{ color: colors.cardForeground }}
+          >
+            Total
+          </Text>
+          <Text
+            variant="body"
+            className="font-semibold"
+            style={{ color: colors.cardForeground }}
+          >
+            {formatMoney(invoice.total_amount, invoice.currency)}
+          </Text>
+        </View>
+
+        {hasAmountPaid && (
+          <View className="flex-row justify-between">
+            <Text variant="body-sm" style={{ color: colors.mutedForeground }}>
+              Amount Paid
+            </Text>
+            <Text variant="body-sm" style={{ color: colors.cardForeground }}>
+              {formatMoney(invoice.amount_paid!, invoice.currency)}
+            </Text>
+          </View>
+        )}
+        {hasBalanceDue && (
+          <View className="flex-row justify-between">
+            <Text
+              variant="body-sm"
+              className="font-semibold"
+              style={{ color: colors.cardForeground }}
+            >
+              Balance Due
+            </Text>
+            <Text
+              variant="body-sm"
+              className="font-semibold"
+              style={{ color: colors.cardForeground }}
+            >
+              {formatMoney(invoice.balance_due!, invoice.currency)}
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}

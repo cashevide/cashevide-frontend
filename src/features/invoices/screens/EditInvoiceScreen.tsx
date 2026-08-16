@@ -1,34 +1,51 @@
-import { useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Alert, Pressable, useWindowDimensions, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
 import { useInvoiceDetails } from "../hooks/useInvoiceDetails";
 import { useUpdateInvoice } from "../hooks/useUpdateInvoice";
 import { ROUTES } from "@/src/shared/navigation/routes";
-import { CurrencyPicker, DateField } from "@/src/shared/ui";
-import InvoiceSubTabs from "../components/InvoiceSubTabs";
+import { cn } from "@/src/shared/utils/cn";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import {
+  Text,
+  Input,
+  Button,
+  Spinner,
+  PillTabs,
+  CurrencyPicker,
+  DateField,
+} from "@/src/shared/ui";
 import ClientPickerModal from "../components/ClientPickerModal";
 import InvoiceItemFormRow from "../components/InvoiceItemFormRow";
 import InvoicePaymentFormRow from "../components/InvoicePaymentFormRow";
+import InvoicePreview from "../components/InvoicePreview";
 
 import type { Client } from "@/src/features/clients/types/clientTypes";
 import type { InvoiceItemRequest } from "../types/invoiceItemTypes";
 import type { PaymentRecordRequest } from "../types/paymentTypes";
 import type {
   CreateInvoiceError,
+  InvoiceTemplate,
   UpdateInvoiceRequest,
 } from "../types/invoiceTypes";
+import type { InvoicePreviewData } from "../components/InvoicePreview";
 
 type Section = "details" | "payments";
+
+const SECTION_TABS = [
+  { key: "details", label: "Details & Items" },
+  { key: "payments", label: "Payments" },
+];
+
+// Display-only label for the locked template — backend rejects any PUT
+// that changes this value ("Template cannot be changed once the invoice
+// is created."), so this screen never lets it be edited.
+const TEMPLATE_LABEL: Record<InvoiceTemplate, string> = {
+  classic: "Classic",
+  standard: "Standard",
+};
 
 function extractErrorMessage(error: CreateInvoiceError): string {
   if (Array.isArray(error)) {
@@ -71,12 +88,29 @@ function createEmptyPayment(): PaymentRecordRequest {
   };
 }
 
+// Same client-side "live running total" preview math as CreateInvoiceScreen
+// — the backend recomputes subtotal/total_amount from what it actually
+// saves and is always the source of truth. This only mirrors it while
+// the person is still editing.
+function calculateItemTotal(item: InvoiceItemRequest): number {
+  const quantity = parseFloat(item.quantity ?? "0");
+  const unitPrice = parseFloat(item.unit_price ?? "0");
+  if (Number.isNaN(quantity) || Number.isNaN(unitPrice)) {
+    return 0;
+  }
+  return quantity * unitPrice;
+}
+
 export default function EditInvoiceScreen() {
   const { invoiceId, section } = useLocalSearchParams<{
     invoiceId: string;
     section?: string;
   }>();
   const id = Number(invoiceId);
+  const { width } = useWindowDimensions();
+  // Same 768px breakpoint used across the app (see CreateInvoiceScreen,
+  // InvoiceDetailsScreen).
+  const isDesktopLayout = width >= 768;
 
   const invoiceDetails = useInvoiceDetails(id, { enabled: !Number.isNaN(id) });
   const updateInvoice = useUpdateInvoice();
@@ -97,6 +131,9 @@ export default function EditInvoiceScreen() {
   const [discount, setDiscount] = useState("0");
   const [items, setItems] = useState<InvoiceItemRequest[]>([]);
   const [payments, setPayments] = useState<PaymentRecordRequest[]>([]);
+  // Locked at load time — never exposed as an editable field, only ever
+  // read back and sent unchanged in the PUT payload (see handleSubmit).
+  const [template, setTemplate] = useState<InvoiceTemplate>("classic");
 
   const [formInitialized, setFormInitialized] = useState(false);
 
@@ -113,6 +150,7 @@ export default function EditInvoiceScreen() {
       setIssueDate(invoice.issue_date ?? undefined);
       setDueDate(invoice.due_date ?? undefined);
       setDiscount(invoice.discount);
+      setTemplate(invoice.template);
 
       setItems(
         invoice.items.map((item) => ({
@@ -140,26 +178,115 @@ export default function EditInvoiceScreen() {
     }
   }, [invoiceDetails.data, formInitialized]);
 
+  const subtotal = useMemo(
+    () => items.reduce((sum, item) => sum + calculateItemTotal(item), 0),
+    [items],
+  );
+  const discountValue = parseFloat(discount) || 0;
+  const total = Math.max(subtotal - discountValue, 0);
+
+  // Live draft preview built from current form state. amount_paid /
+  // balance_due are NOT recalculated here — they stay pinned to the
+  // originally loaded invoice, since accurately deriving them from
+  // in-progress payment edits would require replicating backend payment-
+  // allocation logic on the client. The backend is the source of truth
+  // for those two fields once the form is actually saved.
+  const draftPreview: InvoicePreviewData | null = useMemo(() => {
+    if (!invoiceDetails.data) {
+      return null;
+    }
+
+    return {
+      invoice_number: invoiceDetails.data.invoice_number,
+      status: invoiceDetails.data.status,
+      template,
+      currency,
+      issue_date: issueDate,
+      due_date: dueDate,
+      name: name || "Untitled Client",
+      email,
+      phone,
+      address,
+      items: items.map((item, index) => ({
+        id: item.id ?? `draft-${index}`,
+        title: item.title ?? "",
+        quantity: item.quantity ?? "",
+        unit_price: item.unit_price ?? "",
+        total: calculateItemTotal(item).toFixed(2),
+      })),
+      subtotal: subtotal.toFixed(2),
+      discount: discountValue.toFixed(2),
+      total_amount: total.toFixed(2),
+      amount_paid: invoiceDetails.data.amount_paid,
+      balance_due: invoiceDetails.data.balance_due,
+    };
+  }, [
+    invoiceDetails.data,
+    template,
+    currency,
+    issueDate,
+    dueDate,
+    name,
+    email,
+    phone,
+    address,
+    items,
+    subtotal,
+    discountValue,
+    total,
+  ]);
+
   if (Number.isNaN(id)) {
     return (
-      <View style={styles.centered}>
-        <Text>Invalid invoice.</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Invoice"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <Container variant="desktop" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Text variant="body" className="text-muted-foreground">
+              Invalid invoice.
+            </Text>
+          </View>
+        </Container>
       </View>
     );
   }
 
   if (invoiceDetails.isLoading || !formInitialized) {
     return (
-      <View style={styles.centered}>
-        <Text>Loading invoice...</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Edit Invoice"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <Container variant="desktop" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Spinner />
+          </View>
+        </Container>
       </View>
     );
   }
 
   if (invoiceDetails.isError || !invoiceDetails.data) {
     return (
-      <View style={styles.centered}>
-        <Text>This invoice could not be found.</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Edit Invoice"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <Container variant="desktop" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Text variant="body" className="text-muted-foreground">
+              This invoice could not be found.
+            </Text>
+          </View>
+        </Container>
       </View>
     );
   }
@@ -255,6 +382,9 @@ export default function EditInvoiceScreen() {
       issue_date: issueDate ?? null,
       due_date: dueDate ?? null,
       discount: discount || "0",
+      // Always the same value loaded from the invoice — the backend
+      // rejects any change to this field after creation.
+      template,
       items,
       payments,
     };
@@ -282,229 +412,253 @@ export default function EditInvoiceScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <InvoiceSubTabs />
-
-      <View style={styles.tabRow}>
-        <TouchableOpacity onPress={() => setActiveSection("details")}>
-          <Text
-            style={
-              activeSection === "details"
-                ? styles.tabActive
-                : styles.tabInactive
-            }
-          >
-            Details & Items
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveSection("payments")}>
-          <Text
-            style={
-              activeSection === "payments"
-                ? styles.tabActive
-                : styles.tabInactive
-            }
-          >
-            Payments
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {activeSection === "details" && (
-        <>
-          <Text style={styles.sectionTitle}>Client</Text>
-
-          {selectedClientId != null ? (
-            <View style={styles.selectedClientCard}>
-              <Text style={styles.selectedClientName}>{name}</Text>
-              <TouchableOpacity onPress={handleClearClient}>
-                <Text style={styles.clearClientText}>Clear</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.pickClientButton}
-              onPress={() => setClientPickerVisible(true)}
-            >
-              <Text style={styles.pickClientButtonText}>
-                Select from existing clients
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          <TextInput
-            style={styles.input}
-            placeholder="Client name"
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email (optional)"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Phone (optional)"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Address (optional)"
-            value={address}
-            onChangeText={setAddress}
-            multiline
-          />
-
-          <Text style={styles.sectionTitle}>Currency</Text>
-          <CurrencyPicker value={currency} onChange={setCurrency} />
-
-          <Text style={styles.sectionTitle}>Dates</Text>
-          <View style={styles.dateRow}>
-            <DateField
-              label="Issue Date"
-              value={issueDate}
-              onChange={setIssueDate}
-              placeholder="Not set"
-            />
-            <DateField
-              label="Due Date"
-              value={dueDate}
-              onChange={setDueDate}
-              placeholder="Not set"
-            />
-          </View>
-
-          <Text style={styles.sectionTitle}>Items</Text>
-
-          {items.map((item, index) => (
-            <InvoiceItemFormRow
-              key={index}
-              item={item}
-              onChange={(updatedItem) => handleItemChange(index, updatedItem)}
-              onRemove={() => handleRemoveItem(index)}
-            />
-          ))}
-
-          <Button title="+ Add Item" onPress={handleAddItem} />
-
-          <Text style={styles.sectionTitle}>Discount</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="0"
-            keyboardType="decimal-pad"
-            value={discount}
-            onChangeText={setDiscount}
-          />
-        </>
-      )}
-
-      {activeSection === "payments" && (
-        <>
-          <Text style={styles.sectionTitle}>Payments</Text>
-
-          {payments.map((payment, index) => (
-            <InvoicePaymentFormRow
-              key={index}
-              payment={payment}
-              onChange={(updatedPayment) =>
-                handlePaymentChange(index, updatedPayment)
-              }
-              onRemove={() => handleRemovePayment(index)}
-            />
-          ))}
-
-          <Button title="+ Add Payment" onPress={handleAddPayment} />
-        </>
-      )}
-
-      <Button
-        title={updateInvoice.isPending ? "Saving..." : "Save Changes"}
-        onPress={handleSubmit}
-        disabled={updateInvoice.isPending}
+    <View className="flex-1 bg-background">
+      <ScreenHeader
+        title={invoiceDetails.data.invoice_number}
+        showBackButton
+        containerVariant="desktop"
       />
 
-      <Button title="Back" onPress={() => router.back()} />
+      <Container variant="desktop" safeArea="bottom" scroll>
+        <View
+          className={cn(
+            "px-6 py-6 gap-8 pb-32",
+            isDesktopLayout && "flex-row items-start gap-8",
+          )}
+        >
+          {/* -------------------- Form column -------------------- */}
+          <View className={cn("gap-6", isDesktopLayout && "flex-1")}>
+            <PillTabs
+              items={SECTION_TABS}
+              activeKey={activeSection}
+              onSelect={(key) => setActiveSection(key as Section)}
+            />
+
+            {activeSection === "details" && (
+              <>
+                {/* -------------------- Template (locked) -------------------- */}
+                <View className="gap-1">
+                  <Text variant="subheading">Template</Text>
+                  <View className="flex-row items-center justify-between rounded-lg border border-border bg-card p-4">
+                    <Text variant="body-sm">{TEMPLATE_LABEL[template]}</Text>
+                    <Text variant="caption" className="text-muted-foreground">
+                      Locked after creation
+                    </Text>
+                  </View>
+                </View>
+
+                {/* -------------------- Client -------------------- */}
+                <View className="gap-3">
+                  <Text variant="subheading">Client</Text>
+
+                  {selectedClientId != null ? (
+                    <View className="flex-row items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+                      <View className="flex-1 gap-0.5">
+                        <Text variant="body" className="font-semibold">
+                          {name}
+                        </Text>
+                      </View>
+                      <Pressable onPress={handleClearClient}>
+                        <Text
+                          variant="body-sm"
+                          className="text-muted-foreground"
+                        >
+                          Clear
+                        </Text>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      title="Select from existing clients"
+                      onPress={() => setClientPickerVisible(true)}
+                    />
+                  )}
+
+                  <Input
+                    placeholder="Client name"
+                    value={name}
+                    onChangeText={setName}
+                  />
+                  <Input
+                    placeholder="Email (optional)"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                  <Input
+                    placeholder="Phone (optional)"
+                    keyboardType="phone-pad"
+                    value={phone}
+                    onChangeText={setPhone}
+                  />
+                  <Input
+                    placeholder="Address (optional)"
+                    value={address}
+                    onChangeText={setAddress}
+                    multiline
+                  />
+                </View>
+
+                {/* -------------------- Invoice details -------------------- */}
+                <View className="gap-3">
+                  <Text variant="subheading">Invoice Details</Text>
+
+                  <View className="gap-1">
+                    <Text variant="body-sm" className="text-muted-foreground">
+                      Currency
+                    </Text>
+                    <CurrencyPicker value={currency} onChange={setCurrency} />
+                  </View>
+
+                  <View className="flex-row gap-3">
+                    <DateField
+                      label="Issue date"
+                      value={issueDate}
+                      onChange={setIssueDate}
+                      placeholder="Not set"
+                    />
+                    <DateField
+                      label="Due date"
+                      value={dueDate}
+                      onChange={setDueDate}
+                      placeholder="Not set"
+                    />
+                  </View>
+                </View>
+
+                {/* -------------------- Items -------------------- */}
+                <View className="gap-3">
+                  <Text variant="subheading">Items</Text>
+
+                  <View className="gap-3">
+                    {items.map((item, index) => (
+                      <InvoiceItemFormRow
+                        key={index}
+                        item={item}
+                        onChange={(updatedItem) =>
+                          handleItemChange(index, updatedItem)
+                        }
+                        onRemove={() => handleRemoveItem(index)}
+                        canRemove={items.length > 1}
+                      />
+                    ))}
+                  </View>
+
+                  <Button
+                    variant="outline"
+                    title="+ Add Item"
+                    onPress={handleAddItem}
+                  />
+                </View>
+
+                {/* -------------------- Discount -------------------- */}
+                <View className="gap-3">
+                  <Text variant="subheading">Discount</Text>
+                  <Input
+                    placeholder="0"
+                    keyboardType="decimal-pad"
+                    value={discount}
+                    onChangeText={setDiscount}
+                  />
+
+                  {/* Mirrors CreateInvoiceScreen: on mobile there's no
+                      side-by-side preview for the running total, so this
+                      summary card stays as the only place to see it. */}
+                  {!isDesktopLayout && (
+                    <View className="gap-2 rounded-lg border border-border bg-card p-4">
+                      <View className="flex-row items-center justify-between">
+                        <Text
+                          variant="body-sm"
+                          className="text-muted-foreground"
+                        >
+                          Subtotal
+                        </Text>
+                        <Text variant="body-sm">
+                          {currency} {subtotal.toFixed(2)}
+                        </Text>
+                      </View>
+                      <View className="flex-row items-center justify-between">
+                        <Text
+                          variant="body-sm"
+                          className="text-muted-foreground"
+                        >
+                          Discount
+                        </Text>
+                        <Text variant="body-sm">
+                          -{currency} {discountValue.toFixed(2)}
+                        </Text>
+                      </View>
+                      <View className="h-px bg-border" />
+                      <View className="flex-row items-center justify-between">
+                        <Text variant="body" className="font-semibold">
+                          Total
+                        </Text>
+                        <Text variant="body" className="font-semibold">
+                          {currency} {total.toFixed(2)}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </>
+            )}
+
+            {activeSection === "payments" && (
+              <View className="gap-3">
+                <Text variant="subheading">Payments</Text>
+
+                <View className="gap-3">
+                  {payments.map((payment, index) => (
+                    <InvoicePaymentFormRow
+                      key={index}
+                      payment={payment}
+                      onChange={(updatedPayment) =>
+                        handlePaymentChange(index, updatedPayment)
+                      }
+                      onRemove={() => handleRemovePayment(index)}
+                    />
+                  ))}
+                </View>
+
+                <Button
+                  variant="outline"
+                  title="+ Add Payment"
+                  onPress={handleAddPayment}
+                />
+              </View>
+            )}
+          </View>
+
+          {/* -------------------- Live preview column (desktop only) -------------------- */}
+          {isDesktopLayout && draftPreview && (
+            <View className="w-[380px]">
+              <InvoicePreview invoice={draftPreview} />
+            </View>
+          )}
+        </View>
+      </Container>
+
+      {/* -------------------- Sticky bottom submit -------------------- */}
+      <View className="w-full border-t border-border bg-background">
+        <View className="w-full max-w-desktop mx-auto">
+          <View className="flex-row items-center justify-end gap-4 px-6 py-4">
+            <Button
+              variant="primary"
+              title="Save Changes"
+              onPress={handleSubmit}
+              isLoading={updateInvoice.isPending}
+            />
+          </View>
+        </View>
+      </View>
 
       <ClientPickerModal
         visible={clientPickerVisible}
         onSelect={handleSelectClient}
         onDismiss={() => setClientPickerVisible(false)}
       />
-    </ScrollView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 16,
-    gap: 12,
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  tabRow: {
-    flexDirection: "row",
-    gap: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    paddingBottom: 10,
-  },
-  tabActive: {
-    fontWeight: "bold",
-    color: "#3399ff",
-  },
-  tabInactive: {
-    color: "#666",
-  },
-  sectionTitle: {
-    fontWeight: "bold",
-    marginTop: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-  },
-  dateRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  pickClientButton: {
-    borderWidth: 1,
-    borderColor: "#3399ff",
-    borderRadius: 4,
-    padding: 10,
-    alignItems: "center",
-  },
-  pickClientButtonText: {
-    color: "#3399ff",
-    fontWeight: "bold",
-  },
-  selectedClientCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#eee",
-    borderRadius: 8,
-    padding: 12,
-  },
-  selectedClientName: {
-    fontWeight: "bold",
-  },
-  clearClientText: {
-    color: "#999",
-  },
-});

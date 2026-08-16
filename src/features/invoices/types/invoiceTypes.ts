@@ -14,6 +14,12 @@ type FieldErrors<T extends string> = Partial<Record<T, string[]>>;
 
 export type InvoiceStatus = "DRAFT" | "UNPAID" | "PARTIALLY_PAID" | "PAID";
 
+// Backend validates this strictly — any other value returns a 400 with
+// "'<value>' is not a valid template. Choose from: classic, standard."
+// Kept as a strict union (not a plain string) so invalid values are
+// caught at compile time across the whole app.
+export type InvoiceTemplate = "classic" | "standard";
+
 // -------------------- shared shape --------------------
 // This is the full InvoiceSerialzer shape — used for create response,
 // detail response, and update (PUT) response. All financial fields
@@ -39,6 +45,7 @@ export type Invoice = {
   amount_paid: string;
   balance_due: string;
   payments: PaymentRecord[];
+  template: InvoiceTemplate;
   created_at: string;
   updated_at: string;
   is_active: boolean;
@@ -66,6 +73,8 @@ export type InvoicesListResponse = {
 //   none, but in practice an invoice needs items to have any value.
 // - `payments` is required too — send `[]` on create, since you can't
 //   record a payment before the invoice exists.
+// - `template` is optional — omitting it defaults to "classic" on the
+//   backend. Only "classic" | "standard" are accepted.
 // - Do NOT send status/invoice_number/subtotal/total_amount/amount_paid/
 //   balance_due — they are read-only and will be ignored/rejected.
 export type CreateInvoiceRequest = {
@@ -78,6 +87,7 @@ export type CreateInvoiceRequest = {
   issue_date?: string | null;
   due_date?: string | null;
   discount?: string;
+  template?: InvoiceTemplate;
   items: InvoiceItemRequest[];
   payments: PaymentRecordRequest[];
 };
@@ -97,6 +107,11 @@ export type InvoiceNotFoundError = {
 // invoices (items/payments become required-field errors without a full
 // payload) — always use PUT, always send the FULL items and payments
 // arrays (existing entries included, with their `id`, to keep them).
+//
+// `template` is locked after creation — sending a DIFFERENT value than
+// the invoice's current template returns a 400: "Template cannot be
+// changed once the invoice is created." Always send back the SAME
+// template value you loaded, never let the user edit it on this screen.
 export type UpdateInvoiceRequest = CreateInvoiceRequest;
 
 export type UpdateInvoiceResponse = Invoice;
@@ -111,7 +126,8 @@ export type InvoiceFieldErrorField =
   | "currency"
   | "issue_date"
   | "due_date"
-  | "discount";
+  | "discount"
+  | "template";
 
 export type InvoiceFieldError = FieldErrors<InvoiceFieldErrorField>;
 

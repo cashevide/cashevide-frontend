@@ -25,8 +25,14 @@ import type { InvoiceItemRequest } from "../types/invoiceItemTypes";
 import type {
   CreateInvoiceError,
   CreateInvoiceRequest,
+  InvoiceTemplate,
 } from "../types/invoiceTypes";
 import type { InvoicePreviewData } from "../components/InvoicePreview";
+
+const TEMPLATE_OPTIONS: { label: string; value: InvoiceTemplate }[] = [
+  { label: "Classic", value: "classic" },
+  { label: "Standard", value: "standard" },
+];
 
 function isBusinessProfileComplete(profile: {
   business_name: string;
@@ -112,6 +118,10 @@ export default function CreateInvoiceScreen() {
   const [dueDate, setDueDate] = useState<string | undefined>(undefined);
   const [discount, setDiscount] = useState("0");
   const [items, setItems] = useState<InvoiceItemRequest[]>([createEmptyItem()]);
+  // Defaults to "classic" — matches the backend's own default when this
+  // field is omitted, so an untouched form and a submitted-without-
+  // changing-it form behave identically.
+  const [template, setTemplate] = useState<InvoiceTemplate>("classic");
 
   const [currencyInitialized, setCurrencyInitialized] = useState(false);
 
@@ -136,6 +146,7 @@ export default function CreateInvoiceScreen() {
   // invoice doesn't exist on the server until submit succeeds.
   const draftPreview: InvoicePreviewData = useMemo(
     () => ({
+      template,
       currency,
       issue_date: issueDate,
       due_date: dueDate,
@@ -155,6 +166,7 @@ export default function CreateInvoiceScreen() {
       total_amount: total.toFixed(2),
     }),
     [
+      template,
       currency,
       issueDate,
       dueDate,
@@ -283,6 +295,7 @@ export default function CreateInvoiceScreen() {
       issue_date: issueDate ?? null,
       due_date: dueDate ?? null,
       discount: discount || "0",
+      template,
       items,
       payments: [],
     };
@@ -323,6 +336,41 @@ export default function CreateInvoiceScreen() {
         >
           {/* -------------------- Form column -------------------- */}
           <View className={cn("gap-8", isDesktopLayout && "flex-1")}>
+            {/* -------------------- Template -------------------- */}
+            <View className="gap-3">
+              <Text variant="subheading">Template</Text>
+              <View className="flex-row gap-2">
+                {TEMPLATE_OPTIONS.map((option) => {
+                  const isActive = template === option.value;
+                  return (
+                    <Pressable
+                      key={option.value}
+                      onPress={() => setTemplate(option.value)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isActive }}
+                      className={cn(
+                        "h-12 flex-1 items-center justify-center rounded-lg border",
+                        isActive
+                          ? "bg-primary border-primary"
+                          : "bg-card border-border",
+                      )}
+                    >
+                      <Text
+                        variant="body-sm"
+                        className={
+                          isActive
+                            ? "text-primary-foreground"
+                            : "text-foreground"
+                        }
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
             {/* -------------------- Client -------------------- */}
             <View className="gap-3">
               <Text variant="subheading">Client</Text>

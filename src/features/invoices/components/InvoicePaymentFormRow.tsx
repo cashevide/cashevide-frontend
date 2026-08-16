@@ -1,12 +1,7 @@
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Pressable, View } from "react-native";
+import { TrashIcon } from "react-native-heroicons/outline";
 
-import { DateField } from "@/src/shared/ui";
+import { Text, Input, DateField } from "@/src/shared/ui";
 
 import type { PaymentRecordRequest } from "../types/paymentTypes";
 
@@ -22,18 +17,26 @@ export default function InvoicePaymentFormRow({
   onRemove,
 }: InvoicePaymentFormRowProps) {
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.headerText}>
+    <View className="gap-3 rounded-lg border border-border bg-card p-4">
+      <View className="flex-row items-center justify-between">
+        <Text variant="body-sm" className="font-semibold text-muted-foreground">
           {payment.id ? `Payment #${payment.id}` : "New Payment"}
         </Text>
-        <TouchableOpacity onPress={onRemove}>
-          <Text style={styles.removeText}>Remove</Text>
-        </TouchableOpacity>
+        <Pressable
+          onPress={onRemove}
+          accessibilityRole="button"
+          accessibilityLabel="Remove payment"
+          hitSlop={8}
+        >
+          <TrashIcon
+            width={18}
+            height={18}
+            color="rgb(var(--color-destructive-text))"
+          />
+        </Pressable>
       </View>
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Amount"
         keyboardType="decimal-pad"
         value={payment.amount}
@@ -49,15 +52,13 @@ export default function InvoicePaymentFormRow({
         placeholder="Select date"
       />
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Payment method (optional)"
         value={payment.payment_method ?? ""}
         onChangeText={(text) => onChange({ ...payment, payment_method: text })}
       />
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Note (optional)"
         value={payment.note ?? ""}
         onChangeText={(text) => onChange({ ...payment, note: text })}
@@ -65,31 +66,3 @@ export default function InvoicePaymentFormRow({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: "#eee",
-    borderRadius: 8,
-    padding: 12,
-    gap: 8,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerText: {
-    fontWeight: "bold",
-    color: "#666",
-  },
-  removeText: {
-    color: "#e53935",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-  },
-});
