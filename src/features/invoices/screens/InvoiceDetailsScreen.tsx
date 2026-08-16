@@ -1,17 +1,25 @@
 import { useCallback } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, useWindowDimensions, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 
 import { useInvoiceDetails } from "../hooks/useInvoiceDetails";
 import { useDeleteInvoice } from "../hooks/useDeleteInvoice";
 import { useDownloadInvoicePdf } from "../hooks/useDownloadInvoicePdf";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, Spinner } from "@/src/shared/ui";
 import InvoicePreview from "../components/InvoicePreview";
 import InvoiceActionBar from "../components/InvoiceActionBar";
 
 export default function InvoiceDetailsScreen() {
   const { invoiceId } = useLocalSearchParams<{ invoiceId: string }>();
   const id = Number(invoiceId);
+  const { width } = useWindowDimensions();
+  // Same 768px breakpoint used across the app (see InvoiceListScreen,
+  // CreateInvoiceScreen) — below it there isn't room for a preview +
+  // sidebar side by side.
+  const isDesktopLayout = width >= 768;
 
   const invoiceDetails = useInvoiceDetails(id, { enabled: !Number.isNaN(id) });
   const deleteInvoice = useDeleteInvoice();
@@ -61,55 +69,94 @@ export default function InvoiceDetailsScreen() {
 
   if (Number.isNaN(id)) {
     return (
-      <View style={styles.centered}>
-        <Text>Invalid invoice.</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Invoice"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <Container variant="desktop" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Text variant="body" className="text-muted-foreground">
+              Invalid invoice.
+            </Text>
+          </View>
+        </Container>
       </View>
     );
   }
 
   if (invoiceDetails.isLoading) {
     return (
-      <View style={styles.centered}>
-        <Text>Loading invoice...</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Invoice"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <Container variant="desktop" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Spinner />
+          </View>
+        </Container>
       </View>
     );
   }
 
   if (invoiceDetails.isError || !invoiceDetails.data) {
     return (
-      <View style={styles.centered}>
-        <Text>This invoice could not be found.</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Invoice"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <Container variant="desktop" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Text variant="body" className="text-muted-foreground">
+              This invoice could not be found.
+            </Text>
+          </View>
+        </Container>
       </View>
     );
   }
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <InvoicePreview invoice={invoiceDetails.data} />
+  const invoice = invoiceDetails.data;
 
-      <InvoiceActionBar
-        onEdit={handleEdit}
-        onRecordPayment={handleRecordPayment}
-        onDownloadPdf={handleDownloadPdf}
-        onDelete={handleDelete}
-        isDownloading={downloadPdf.isPending}
-        isDeleting={deleteInvoice.isPending}
+  return (
+    <View className="flex-1 bg-background">
+      <ScreenHeader
+        title={invoice.invoice_number}
+        showBackButton
+        containerVariant="desktop"
       />
-    </ScrollView>
+
+      <Container variant="desktop" safeArea="bottom" scroll>
+        <View
+          className={
+            isDesktopLayout
+              ? "flex-row items-start gap-8 px-6 py-6"
+              : "gap-6 px-6 py-6"
+          }
+        >
+          <View className={isDesktopLayout ? "flex-1" : undefined}>
+            <InvoicePreview invoice={invoice} />
+          </View>
+
+          <View className={isDesktopLayout ? "w-[280px]" : undefined}>
+            <InvoiceActionBar
+              onEdit={handleEdit}
+              onRecordPayment={handleRecordPayment}
+              onDownloadPdf={handleDownloadPdf}
+              onDelete={handleDelete}
+              isDownloading={downloadPdf.isPending}
+              isDeleting={deleteInvoice.isPending}
+              layout={isDesktopLayout ? "stack" : "rows"}
+            />
+          </View>
+        </View>
+      </Container>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 16,
-    gap: 16,
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

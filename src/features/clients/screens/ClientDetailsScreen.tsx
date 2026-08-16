@@ -74,7 +74,11 @@ export default function ClientDetailsScreen() {
   if (clientDetails.isLoading) {
     return (
       <View className="flex-1 bg-background">
-        <ScreenHeader title="Client" showBackButton />
+        <ScreenHeader
+          title="Client"
+          showBackButton
+          containerVariant="desktop"
+        />
         <View className="flex-1 items-center justify-center">
           <Spinner />
         </View>
@@ -85,7 +89,11 @@ export default function ClientDetailsScreen() {
   if (clientDetails.isError) {
     return (
       <View className="flex-1 bg-background">
-        <ScreenHeader title="Client" showBackButton />
+        <ScreenHeader
+          title="Client"
+          showBackButton
+          containerVariant="desktop"
+        />
         <View className="flex-1 items-center justify-center gap-3">
           <Text variant="body" className="text-muted-foreground">
             Client not found.
@@ -105,7 +113,7 @@ export default function ClientDetailsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Client" showBackButton />
+      <ScreenHeader title="Client" showBackButton containerVariant="desktop" />
 
       <Container variant="desktop" safeArea="bottom" scroll>
         <View className="px-6 py-6 gap-6">

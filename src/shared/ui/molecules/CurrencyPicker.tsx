@@ -1,210 +1,175 @@
 import { useMemo, useState } from "react";
+import { FlatList, Pressable, TextInput, View } from "react-native";
+import { MagnifyingGlassIcon } from "react-native-heroicons/outline";
+import worldCountries from "world-countries";
+
 import {
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import currencyCodes from "currency-codes";
+  getInputFieldClasses,
+  inputFieldWebResetStyle,
+} from "../utils/inputFieldStyles";
+import { Text } from "../atoms/Text";
+import { Modal } from "./Modal";
+
+type CurrencyOption = {
+  // Country identity — used as the FlatList key and to detect the
+  // currently-selected row (multiple countries can share a currency
+  // code, e.g. EUR across the Eurozone, so cca2 is the unique key,
+  // not the currency code).
+  cca2: string;
+  countryName: string;
+  flag: string;
+  currencyCode: string;
+  currencyName: string;
+};
+
+// A handful of territories/countries carry no currency at all
+// (Antarctica, Bouvet Island, ...) — excluded, since there's nothing
+// to select. Note: world-countries gives these an empty object
+// (`currencies: {}`), not `undefined`/missing, so a plain truthy
+// check on `country.currencies` isn't enough — it has to check for
+// at least one key, or Object.keys(...)[0] resolves to undefined and
+// the next line crashes reading `.name` off it. Where a country lists
+// more than one currency (20 cases, e.g. Bahamas: BSD + USD), the
+// first listed is used as that country's entry — good enough for a
+// country-driven picker; someone needing the secondary currency can
+// search by currency code instead.
+const ALL_CURRENCY_OPTIONS: CurrencyOption[] = worldCountries
+  .filter(
+    (country) =>
+      country.currencies && Object.keys(country.currencies).length > 0,
+  )
+  .map((country) => {
+    const currencyCode = Object.keys(country.currencies)[0];
+    const currencyName = country.currencies[currencyCode].name;
+
+    return {
+      cca2: country.cca2,
+      countryName: country.name.common,
+      flag: country.flag,
+      currencyCode,
+      currencyName,
+    };
+  })
+  .sort((a, b) => a.countryName.localeCompare(b.countryName));
 
 type CurrencyPickerProps = {
   value: string;
-  onChange: (code: string) => void;
+  onChange: (currencyCode: string) => void;
   placeholder?: string;
 };
-
-// Common currency -> ISO country-code mapping, used to derive a flag emoji.
-// Not exhaustive — currencies without an entry here fall back to a generic icon.
-const CURRENCY_COUNTRY_CODE: Record<string, string> = {
-  INR: "IN",
-  USD: "US",
-  GBP: "GB",
-  EUR: "EU",
-  AED: "AE",
-  SAR: "SA",
-  CAD: "CA",
-  AUD: "AU",
-  SGD: "SG",
-  JPY: "JP",
-  CNY: "CN",
-  PKR: "PK",
-  BDT: "BD",
-  QAR: "QA",
-  KWD: "KW",
-  OMR: "OM",
-  BHD: "BH",
-  NPR: "NP",
-  LKR: "LK",
-  MYR: "MY",
-  THB: "TH",
-  IDR: "ID",
-  PHP: "PH",
-  VND: "VN",
-  ZAR: "ZA",
-  CHF: "CH",
-  SEK: "SE",
-  NOK: "NO",
-  DKK: "DK",
-  NZD: "NZ",
-  BRL: "BR",
-  MXN: "MX",
-  RUB: "RU",
-  KRW: "KR",
-  HKD: "HK",
-};
-
-function getFlagEmoji(countryCode: string): string {
-  if (countryCode === "EU") return "🇪🇺";
-  const codePoints = countryCode
-    .toUpperCase()
-    .split("")
-    .map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
-}
-
-const ALL_CURRENCIES = currencyCodes
-  .codes()
-  .map((code) => {
-    const info = currencyCodes.code(code);
-    const countryCode = CURRENCY_COUNTRY_CODE[code];
-    return {
-      code,
-      name: info?.currency ?? code,
-      flag: countryCode ? getFlagEmoji(countryCode) : "💱",
-    };
-  })
-  .sort((a, b) => a.code.localeCompare(b.code));
 
 export const CurrencyPicker = ({
   value,
   onChange,
   placeholder = "Select currency",
 }: CurrencyPickerProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredCurrencies = useMemo(() => {
-    if (!searchText) return ALL_CURRENCIES;
-    const query = searchText.toLowerCase();
-    return ALL_CURRENCIES.filter(
-      (c) =>
-        c.code.toLowerCase().includes(query) ||
-        c.name.toLowerCase().includes(query),
+  // The trigger shows one flag + code even if several countries share
+  // that currency (e.g. selecting "EUR" via France then reopening the
+  // picker later) — first match by currency code is enough since the
+  // flag is just a compact visual hint, not a claim about which
+  // country was originally chosen.
+  const selectedOption = ALL_CURRENCY_OPTIONS.find(
+    (option) => option.currencyCode === value,
+  );
+
+  function handleSelect(option: CurrencyOption) {
+    onChange(option.currencyCode);
+    setIsPickerOpen(false);
+    setSearchQuery("");
+  }
+
+  function openPicker() {
+    setSearchQuery("");
+    setIsPickerOpen(true);
+  }
+
+  const filteredOptions = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return ALL_CURRENCY_OPTIONS;
+
+    return ALL_CURRENCY_OPTIONS.filter(
+      (option) =>
+        option.countryName.toLowerCase().includes(query) ||
+        option.currencyCode.toLowerCase().includes(query) ||
+        option.currencyName.toLowerCase().includes(query),
     );
-  }, [searchText]);
-
-  const selectedCurrency = ALL_CURRENCIES.find((c) => c.code === value);
-
-  const handleSelect = (code: string) => {
-    onChange(code);
-    setIsOpen(false);
-    setSearchText("");
-  };
+  }, [searchQuery]);
 
   return (
-    <View>
-      <TouchableOpacity style={styles.trigger} onPress={() => setIsOpen(true)}>
-        {selectedCurrency ? (
-          <Text style={styles.triggerText}>
-            {selectedCurrency.flag} {selectedCurrency.code}
+    <View className="w-full">
+      <Pressable
+        onPress={openPicker}
+        className={getInputFieldClasses({
+          state: "default",
+          className: "flex-row items-center",
+        })}
+      >
+        {selectedOption ? (
+          <Text variant="body">
+            {selectedOption.flag} {selectedOption.currencyCode}
           </Text>
         ) : (
-          <Text style={styles.triggerPlaceholder}>{placeholder}</Text>
+          <Text variant="body" className="text-muted-foreground">
+            {placeholder}
+          </Text>
         )}
-      </TouchableOpacity>
+      </Pressable>
 
       <Modal
-        visible={isOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIsOpen(false)}
+        visible={isPickerOpen}
+        dismissible
+        onDismiss={() => setIsPickerOpen(false)}
+        title="Select currency"
+        className="max-h-[80%]"
       >
-        <Pressable style={styles.backdrop} onPress={() => setIsOpen(false)}>
-          <View style={styles.content}>
+        <View className="gap-3">
+          <View className="relative justify-center">
+            <View className="absolute left-3 z-10">
+              <MagnifyingGlassIcon
+                width={18}
+                height={18}
+                color="rgb(var(--color-muted-foreground))"
+              />
+            </View>
+
             <TextInput
-              style={styles.searchInput}
-              placeholder="Search currency code or name"
-              value={searchText}
-              onChangeText={setSearchText}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search country or currency"
               autoFocus
-            />
-            <FlatList
-              data={filteredCurrencies}
-              keyExtractor={(item) => item.code}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.row}
-                  onPress={() => handleSelect(item.code)}
-                >
-                  <Text style={styles.rowFlag}>{item.flag}</Text>
-                  <Text style={styles.rowCode}>{item.code}</Text>
-                  <Text style={styles.rowName}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
+              style={inputFieldWebResetStyle}
+              className={getInputFieldClasses({
+                state: "default",
+                className: "pl-10",
+              })}
             />
           </View>
-        </Pressable>
+
+          <FlatList
+            data={filteredOptions}
+            keyExtractor={(item) => item.cca2}
+            style={{ maxHeight: 360 }}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => handleSelect(item)}
+                className="flex-row items-center gap-3 py-3"
+              >
+                <Text variant="body">{item.flag}</Text>
+                <Text variant="body" className="flex-1">
+                  {item.countryName}
+                </Text>
+                <Text variant="body-sm" className="text-muted-foreground">
+                  {item.currencyCode}
+                </Text>
+              </Pressable>
+            )}
+          />
+        </View>
       </Modal>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  trigger: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-  },
-  triggerText: {
-    fontSize: 16,
-  },
-  triggerPlaceholder: {
-    fontSize: 16,
-    color: "#999",
-  },
-  backdrop: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  content: {
-    backgroundColor: "#fff",
-    maxHeight: "70%",
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    padding: 12,
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 8,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 10,
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  rowFlag: {
-    fontSize: 20,
-  },
-  rowCode: {
-    fontSize: 16,
-    fontWeight: "bold",
-    width: 50,
-  },
-  rowName: {
-    fontSize: 16,
-    flex: 1,
-  },
-});

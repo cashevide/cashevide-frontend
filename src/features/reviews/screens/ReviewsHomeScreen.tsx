@@ -84,7 +84,7 @@ export default function ReviewsHomeScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader>
+      <ScreenHeader containerVariant="desktop">
         <View className="flex-row items-center justify-between">
           <Logo width={28} />
 

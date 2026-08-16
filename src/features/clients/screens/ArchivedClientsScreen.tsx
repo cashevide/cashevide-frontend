@@ -126,7 +126,11 @@ export default function ArchivedClientsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Archived Clients" showBackButton />
+      <ScreenHeader
+        title="Archived Clients"
+        showBackButton
+        containerVariant="desktop"
+      />
 
       <Container variant="desktop" safeArea="bottom">
         <View className="flex-1 px-6 py-6 gap-4">

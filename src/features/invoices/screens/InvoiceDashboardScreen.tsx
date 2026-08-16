@@ -29,7 +29,7 @@ export default function InvoiceDashboardScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Invoices" />
+      <ScreenHeader title="Invoices" containerVariant="desktop" />
 
       <Container variant="desktop" safeArea="bottom" scroll>
         <View className="px-6 py-6 gap-6">

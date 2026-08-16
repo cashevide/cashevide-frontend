@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { FlatList, Pressable, useWindowDimensions, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -17,7 +17,7 @@ import InvoiceStatusBadge from "../components/InvoiceStatusBadge";
 import InvoiceFilterModal from "../components/InvoiceFilterModal";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
-import { Text, SearchInput, PillTabs, Spinner } from "@/src/shared/ui";
+import { Text, SearchInput, PillTabs, Spinner, Button } from "@/src/shared/ui";
 
 import type { InvoiceFilters } from "../components/InvoiceFilterModal";
 import type { GetInvoicesParams } from "../api/invoicesApi";
@@ -100,6 +100,13 @@ function SkeletonRow() {
 
 export default function InvoiceListScreen() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  // Screen-width based, not Platform.OS — mobile Chrome is still
+  // Platform.OS === "web", so an OS check alone would show both the
+  // desktop button row AND the mobile FAB at once on a phone browser.
+  // AppShell's own responsive breakpoint (frontend-work-style.md) is
+  // 768px, so this mirrors that for consistency.
+  const isDesktopLayout = width >= 768;
   const [searchText, setSearchText] = useState("");
   const [ordering, setOrdering] =
     useState<GetInvoicesParams["ordering"]>("-created_at");
@@ -183,7 +190,7 @@ export default function InvoiceListScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Invoices" />
+      <ScreenHeader title="Invoices" containerVariant="desktop" />
 
       <Container variant="desktop" safeArea="bottom">
         <View className="flex-1 px-6 py-6 gap-4">
@@ -217,6 +224,17 @@ export default function InvoiceListScreen() {
                 }
               />
             </Pressable>
+
+            {isDesktopLayout && (
+              <Button
+                variant="primary"
+                title="New Invoice"
+                leftIcon={
+                  <PlusIcon color="rgb(var(--color-primary-foreground))" />
+                }
+                onPress={() => router.push(ROUTES.invoices.create)}
+              />
+            )}
           </View>
 
           {chips.length > 0 && (
@@ -298,19 +316,21 @@ export default function InvoiceListScreen() {
           )}
         </View>
 
-        <Pressable
-          onPress={() => router.push(ROUTES.invoices.create)}
-          accessibilityRole="button"
-          accessibilityLabel="New invoice"
-          style={{ bottom: insets.bottom + 24 }}
-          className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
-        >
-          <PlusIcon
-            width={24}
-            height={24}
-            color="rgb(var(--color-primary-foreground))"
-          />
-        </Pressable>
+        {!isDesktopLayout && (
+          <Pressable
+            onPress={() => router.push(ROUTES.invoices.create)}
+            accessibilityRole="button"
+            accessibilityLabel="New invoice"
+            style={{ bottom: insets.bottom + 24 }}
+            className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+          >
+            <PlusIcon
+              width={24}
+              height={24}
+              color="rgb(var(--color-primary-foreground))"
+            />
+          </Pressable>
+        )}
       </Container>
 
       <InvoiceFilterModal

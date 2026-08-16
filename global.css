@@ -102,3 +102,35 @@
     --color-ring: 120 120 118; /* #787876 - lighter mid-tone grey for visible contrast against border */
   }
 }
+
+/*
+  Custom scrollbar — browser default (Chrome/Edge/Safari) scrollbar replace ചെയ്ത്,
+  app theme-നോട് match ചെയ്യുന്ന thin, rounded scrollbar കാണിക്കാൻ. Web-ന് മാത്രം ബാധകം
+  (native iOS/Android-ൽ ഈ CSS ignore ചെയ്യപ്പെടും, OS native scrollbar തന്നെ വരും).
+  --color-border/--color-muted tokens ഉപയോഗിക്കുന്നത് കൊണ്ട് dark/light theme മാറുമ്പോൾ
+  scrollbar color automatic ആയി sync ആകും.
+*/
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--color-border)) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--color-border));
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(var(--color-muted-foreground));
+}

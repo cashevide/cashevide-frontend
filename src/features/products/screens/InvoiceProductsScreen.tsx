@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { FlatList, Pressable, useWindowDimensions, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PlusIcon } from "react-native-heroicons/outline";
@@ -13,6 +13,7 @@ import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
 import {
   Text,
+  Button,
   SearchInput,
   PillTabs,
   Spinner,
@@ -44,6 +45,13 @@ function SkeletonRow() {
 
 export default function InvoiceProductsScreen() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  // Screen-width based, not Platform.OS — mobile Chrome is still
+  // Platform.OS === "web", so an OS check alone would show both the
+  // desktop button row AND the mobile FAB at once on a phone browser.
+  // AppShell's own responsive breakpoint (frontend-work-style.md) is
+  // 768px, so this mirrors that for consistency.
+  const isDesktopLayout = width >= 768;
   const [searchText, setSearchText] = useState("");
   const [ordering, setOrdering] =
     useState<GetProductsParams["ordering"]>("-created_at");
@@ -119,18 +127,32 @@ export default function InvoiceProductsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Products" />
+      <ScreenHeader title="Products" containerVariant="desktop" />
 
       <Container variant="desktop" safeArea="bottom">
         <View className="flex-1 px-6 py-6 gap-4">
           <InvoiceSubTabs />
 
-          <SearchInput
-            value={searchText}
-            onChangeText={setSearchText}
-            onClear={() => setSearchText("")}
-            placeholder="Search by title"
-          />
+          <View className="flex-row items-center gap-2">
+            <SearchInput
+              value={searchText}
+              onChangeText={setSearchText}
+              onClear={() => setSearchText("")}
+              placeholder="Search by title"
+              className="flex-1"
+            />
+
+            {isDesktopLayout && (
+              <Button
+                variant="primary"
+                title="New Product"
+                leftIcon={
+                  <PlusIcon color="rgb(var(--color-primary-foreground))" />
+                }
+                onPress={handleAddProductPress}
+              />
+            )}
+          </View>
 
           <View className="flex-row items-center justify-between">
             <PillTabs
@@ -211,19 +233,21 @@ export default function InvoiceProductsScreen() {
           )}
         </View>
 
-        <Pressable
-          onPress={handleAddProductPress}
-          accessibilityRole="button"
-          accessibilityLabel="Add product"
-          style={{ bottom: insets.bottom + 24 }}
-          className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
-        >
-          <PlusIcon
-            width={24}
-            height={24}
-            color="rgb(var(--color-primary-foreground))"
-          />
-        </Pressable>
+        {!isDesktopLayout && (
+          <Pressable
+            onPress={handleAddProductPress}
+            accessibilityRole="button"
+            accessibilityLabel="Add product"
+            style={{ bottom: insets.bottom + 24 }}
+            className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+          >
+            <PlusIcon
+              width={24}
+              height={24}
+              color="rgb(var(--color-primary-foreground))"
+            />
+          </Pressable>
+        )}
       </Container>
 
       <InfoDialog

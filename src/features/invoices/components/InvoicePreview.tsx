@@ -1,12 +1,42 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, View } from "react-native";
 
 import { useBusinessProfile } from "@/src/features/business-profile/hooks/useBusinessProfile";
+import { Text } from "@/src/shared/ui";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 
-import type { Invoice } from "../types/invoiceTypes";
+import type { InvoiceStatus } from "../types/invoiceTypes";
+
+// A subset of the full Invoice shape, loose enough to also describe a
+// draft that hasn't been saved yet (no id/invoice_number/status from
+// the backend). The create screen builds one of these from live form
+// state; the detail/edit screens can pass a real saved Invoice
+// directly, since Invoice is a superset of this.
+export type InvoicePreviewData = {
+  invoice_number?: string;
+  status?: InvoiceStatus;
+  currency: string;
+  issue_date?: string | null;
+  due_date?: string | null;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  items: {
+    id: number | string;
+    title: string;
+    quantity: string;
+    unit_price: string;
+    total: string;
+  }[];
+  subtotal: string;
+  discount: string;
+  total_amount: string;
+  amount_paid?: string;
+  balance_due?: string;
+};
 
 type InvoicePreviewProps = {
-  invoice: Invoice;
+  invoice: InvoicePreviewData;
 };
 
 function formatMoney(amount: string, currency: string): string {
@@ -22,245 +52,162 @@ export default function InvoicePreview({ invoice }: InvoicePreviewProps) {
   const hasEmail = !!invoice.email;
   const hasPhone = !!invoice.phone;
   const hasAddress = !!invoice.address;
+  const hasAmountPaid = invoice.amount_paid != null;
+  const hasBalanceDue = invoice.balance_due != null;
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.businessInfo}>
+    <View className="gap-1 rounded-lg bg-card p-4 shadow">
+      <View className="flex-row items-start justify-between">
+        <View className="flex-shrink flex-row gap-2.5">
           {hasLogo && (
             <Image
               source={{ uri: businessProfile.data?.logo ?? undefined }}
-              style={styles.logo}
+              className="h-10 w-10"
               resizeMode="contain"
             />
           )}
           <View>
-            <Text style={styles.businessName}>
+            <Text variant="body" className="font-semibold">
               {businessProfile.data?.business_name || "Your Business"}
             </Text>
             {hasBusinessAddress && (
-              <Text style={styles.businessMeta}>
-                {businessProfile.data?.address}
-              </Text>
+              <Text variant="caption">{businessProfile.data?.address}</Text>
             )}
             {hasBusinessPhone && (
-              <Text style={styles.businessMeta}>
+              <Text variant="caption">
                 {businessProfile.data?.phone_number}
               </Text>
             )}
           </View>
         </View>
 
-        <InvoiceStatusBadge status={invoice.status} />
+        {invoice.status && <InvoiceStatusBadge status={invoice.status} />}
       </View>
 
-      <View style={styles.divider} />
+      <View className="my-3 h-px bg-border" />
 
-      <View style={styles.metaRow}>
+      <View className="flex-row justify-between">
         <View>
-          <Text style={styles.metaLabel}>Invoice Number</Text>
-          <Text style={styles.metaValue}>{invoice.invoice_number}</Text>
+          <Text variant="caption">Invoice Number</Text>
+          <Text variant="body-sm" className="font-semibold">
+            {invoice.invoice_number ?? "—"}
+          </Text>
         </View>
         <View>
-          <Text style={styles.metaLabel}>Issue Date</Text>
-          <Text style={styles.metaValue}>{invoice.issue_date ?? "—"}</Text>
+          <Text variant="caption">Issue Date</Text>
+          <Text variant="body-sm" className="font-semibold">
+            {invoice.issue_date ?? "—"}
+          </Text>
         </View>
         <View>
-          <Text style={styles.metaLabel}>Due Date</Text>
-          <Text style={styles.metaValue}>{invoice.due_date ?? "—"}</Text>
+          <Text variant="caption">Due Date</Text>
+          <Text variant="body-sm" className="font-semibold">
+            {invoice.due_date ?? "—"}
+          </Text>
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View className="my-3 h-px bg-border" />
 
-      <Text style={styles.sectionTitle}>Bill To</Text>
-      <Text style={styles.billToName}>{invoice.name || "Untitled Client"}</Text>
-      {hasEmail && <Text style={styles.billToMeta}>{invoice.email}</Text>}
-      {hasPhone && <Text style={styles.billToMeta}>{invoice.phone}</Text>}
-      {hasAddress && <Text style={styles.billToMeta}>{invoice.address}</Text>}
+      <Text variant="caption" className="mb-1.5 font-semibold">
+        Bill To
+      </Text>
+      <Text variant="body-sm" className="font-semibold">
+        {invoice.name || "Untitled Client"}
+      </Text>
+      {hasEmail && <Text variant="caption">{invoice.email}</Text>}
+      {hasPhone && <Text variant="caption">{invoice.phone}</Text>}
+      {hasAddress && <Text variant="caption">{invoice.address}</Text>}
 
-      <View style={styles.divider} />
+      <View className="my-3 h-px bg-border" />
 
-      <Text style={styles.sectionTitle}>Items</Text>
-      <View style={styles.itemsHeaderRow}>
-        <Text style={[styles.itemsHeaderText, styles.itemTitleCol]}>
+      <Text variant="caption" className="mb-1.5 font-semibold">
+        Items
+      </Text>
+      <View className="flex-row border-b border-border pb-1.5">
+        <Text variant="caption" className="flex-[2] font-semibold">
           Description
         </Text>
-        <Text style={[styles.itemsHeaderText, styles.itemQtyCol]}>Qty</Text>
-        <Text style={[styles.itemsHeaderText, styles.itemPriceCol]}>Price</Text>
-        <Text style={[styles.itemsHeaderText, styles.itemTotalCol]}>Total</Text>
+        <Text variant="caption" className="flex-1 text-right font-semibold">
+          Qty
+        </Text>
+        <Text variant="caption" className="flex-1 text-right font-semibold">
+          Price
+        </Text>
+        <Text variant="caption" className="flex-1 text-right font-semibold">
+          Total
+        </Text>
       </View>
 
       {invoice.items.map((item) => (
-        <View key={item.id} style={styles.itemRow}>
-          <Text style={[styles.itemText, styles.itemTitleCol]}>
-            {item.title}
+        <View
+          key={item.id}
+          className="flex-row border-b border-border/50 py-1.5"
+        >
+          <Text variant="body-sm" className="flex-[2]">
+            {item.title || "—"}
           </Text>
-          <Text style={[styles.itemText, styles.itemQtyCol]}>
-            {item.quantity}
+          <Text variant="body-sm" className="flex-1 text-right">
+            {item.quantity || "—"}
           </Text>
-          <Text style={[styles.itemText, styles.itemPriceCol]}>
-            {item.unit_price ?? "—"}
+          <Text variant="body-sm" className="flex-1 text-right">
+            {item.unit_price || "—"}
           </Text>
-          <Text style={[styles.itemText, styles.itemTotalCol]}>
-            {item.total}
+          <Text variant="body-sm" className="flex-1 text-right">
+            {item.total || "—"}
           </Text>
         </View>
       ))}
 
-      <View style={styles.divider} />
+      <View className="my-3 h-px bg-border" />
 
-      <View style={styles.totalsBlock}>
-        <View style={styles.totalsRow}>
-          <Text style={styles.totalsLabel}>Subtotal</Text>
-          <Text style={styles.totalsValue}>
+      <View className="gap-1">
+        <View className="flex-row justify-between">
+          <Text variant="body-sm" className="text-muted-foreground">
+            Subtotal
+          </Text>
+          <Text variant="body-sm">
             {formatMoney(invoice.subtotal, invoice.currency)}
           </Text>
         </View>
-        <View style={styles.totalsRow}>
-          <Text style={styles.totalsLabel}>Discount</Text>
-          <Text style={styles.totalsValue}>
+        <View className="flex-row justify-between">
+          <Text variant="body-sm" className="text-muted-foreground">
+            Discount
+          </Text>
+          <Text variant="body-sm">
             {formatMoney(invoice.discount, invoice.currency)}
           </Text>
         </View>
-        <View style={styles.totalsRow}>
-          <Text style={styles.totalsLabelBold}>Total</Text>
-          <Text style={styles.totalsValueBold}>
+        <View className="flex-row justify-between">
+          <Text variant="body-sm" className="font-semibold">
+            Total
+          </Text>
+          <Text variant="body-sm" className="font-semibold">
             {formatMoney(invoice.total_amount, invoice.currency)}
           </Text>
         </View>
-        <View style={styles.totalsRow}>
-          <Text style={styles.totalsLabel}>Amount Paid</Text>
-          <Text style={styles.totalsValue}>
-            {formatMoney(invoice.amount_paid, invoice.currency)}
-          </Text>
-        </View>
-        <View style={styles.totalsRow}>
-          <Text style={styles.totalsLabelBold}>Balance Due</Text>
-          <Text style={styles.totalsValueBold}>
-            {formatMoney(invoice.balance_due, invoice.currency)}
-          </Text>
-        </View>
+
+        {hasAmountPaid && (
+          <View className="flex-row justify-between">
+            <Text variant="body-sm" className="text-muted-foreground">
+              Amount Paid
+            </Text>
+            <Text variant="body-sm">
+              {formatMoney(invoice.amount_paid!, invoice.currency)}
+            </Text>
+          </View>
+        )}
+        {hasBalanceDue && (
+          <View className="flex-row justify-between">
+            <Text variant="body-sm" className="font-semibold">
+              Balance Due
+            </Text>
+            <Text variant="body-sm" className="font-semibold">
+              {formatMoney(invoice.balance_due!, invoice.currency)}
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 16,
-    gap: 4,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  businessInfo: {
-    flexDirection: "row",
-    gap: 10,
-    flexShrink: 1,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  businessName: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  businessMeta: {
-    fontSize: 12,
-    color: "#666",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#eee",
-    marginVertical: 12,
-  },
-  metaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  metaLabel: {
-    fontSize: 11,
-    color: "#999",
-  },
-  metaValue: {
-    fontSize: 13,
-    fontWeight: "bold",
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#999",
-    marginBottom: 6,
-  },
-  billToName: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  billToMeta: {
-    fontSize: 12,
-    color: "#666",
-  },
-  itemsHeaderRow: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    paddingBottom: 6,
-  },
-  itemsHeaderText: {
-    fontSize: 11,
-    fontWeight: "bold",
-    color: "#999",
-  },
-  itemRow: {
-    flexDirection: "row",
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f5f5f5",
-  },
-  itemText: {
-    fontSize: 13,
-  },
-  itemTitleCol: {
-    flex: 2,
-  },
-  itemQtyCol: {
-    flex: 1,
-    textAlign: "right",
-  },
-  itemPriceCol: {
-    flex: 1,
-    textAlign: "right",
-  },
-  itemTotalCol: {
-    flex: 1,
-    textAlign: "right",
-  },
-  totalsBlock: {
-    gap: 4,
-  },
-  totalsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  totalsLabel: {
-    fontSize: 13,
-    color: "#666",
-  },
-  totalsValue: {
-    fontSize: 13,
-  },
-  totalsLabelBold: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  totalsValueBold: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-});

@@ -1,12 +1,9 @@
 import { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Pressable, View } from "react-native";
+import { TrashIcon } from "react-native-heroicons/outline";
 
+import { cn } from "@/src/shared/utils/cn";
+import { Text, Input } from "@/src/shared/ui";
 import ProductPickerModal from "./ProductPickerModal";
 
 import type { Product } from "@/src/features/products/types/productTypes";
@@ -25,12 +22,17 @@ type InvoiceItemFormRowProps = {
   item: InvoiceItemRequest;
   onChange: (item: InvoiceItemRequest) => void;
   onRemove: () => void;
+  // Hides the remove button when this is the only item left — an
+  // invoice needs at least one item, so removing the last row would
+  // leave the form in an unsubmittable state with no way back in.
+  canRemove: boolean;
 };
 
 export default function InvoiceItemFormRow({
   item,
   onChange,
   onRemove,
+  canRemove,
 }: InvoiceItemFormRowProps) {
   const [productPickerVisible, setProductPickerVisible] = useState(false);
 
@@ -49,77 +51,91 @@ export default function InvoiceItemFormRow({
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          style={styles.productButton}
-          onPress={() => setProductPickerVisible(true)}
-        >
-          <Text style={styles.productButtonText}>
+    <View className="gap-3 rounded-lg border border-border bg-card p-4">
+      <View className="flex-row items-center justify-between gap-3">
+        <Pressable onPress={() => setProductPickerVisible(true)}>
+          <Text variant="body-sm" className="text-link">
             {item.product ? "Product selected — change" : "Select from catalog"}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        {item.product != null && (
-          <TouchableOpacity onPress={handleClearProduct}>
-            <Text style={styles.clearProductText}>Clear</Text>
-          </TouchableOpacity>
-        )}
+        <View className="flex-row items-center gap-3">
+          {item.product != null && (
+            <Pressable onPress={handleClearProduct}>
+              <Text variant="body-sm" className="text-muted-foreground">
+                Clear
+              </Text>
+            </Pressable>
+          )}
 
-        <TouchableOpacity onPress={onRemove}>
-          <Text style={styles.removeText}>Remove</Text>
-        </TouchableOpacity>
+          {canRemove && (
+            <Pressable
+              onPress={onRemove}
+              accessibilityRole="button"
+              accessibilityLabel="Remove item"
+              hitSlop={8}
+            >
+              <TrashIcon
+                width={18}
+                height={18}
+                color="rgb(var(--color-destructive-text))"
+              />
+            </Pressable>
+          )}
+        </View>
       </View>
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Item title"
         value={item.title ?? ""}
         onChangeText={(text) => onChange({ ...item, title: text })}
       />
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Description (optional)"
         value={item.description ?? ""}
         onChangeText={(text) => onChange({ ...item, description: text })}
       />
 
-      <View style={styles.row}>
-        <TextInput
-          style={[styles.input, styles.smallInput]}
-          placeholder="Qty"
-          keyboardType="decimal-pad"
-          value={item.quantity ?? ""}
-          onChangeText={(text) => onChange({ ...item, quantity: text })}
-        />
+      <View className="flex-row items-end gap-3">
+        <View className="w-20">
+          <Input
+            placeholder="Qty"
+            keyboardType="decimal-pad"
+            value={item.quantity ?? ""}
+            onChangeText={(text) => onChange({ ...item, quantity: text })}
+          />
+        </View>
 
-        <View style={styles.unitTypeRow}>
-          {UNIT_TYPE_OPTIONS.map((option) => (
-            <TouchableOpacity
-              key={option.value}
-              style={[
-                styles.unitTypePill,
-                item.unit_type === option.value && styles.unitTypePillActive,
-              ]}
-              onPress={() => onChange({ ...item, unit_type: option.value })}
-            >
-              <Text
-                style={
-                  item.unit_type === option.value
-                    ? styles.unitTypeTextActive
-                    : styles.unitTypeText
-                }
+        <View className="flex-1 flex-row gap-2">
+          {UNIT_TYPE_OPTIONS.map((option) => {
+            const isActive = item.unit_type === option.value;
+            return (
+              <Pressable
+                key={option.value}
+                onPress={() => onChange({ ...item, unit_type: option.value })}
+                className={cn(
+                  "h-12 flex-1 items-center justify-center rounded-lg border",
+                  isActive
+                    ? "bg-primary border-primary"
+                    : "bg-card border-border",
+                )}
               >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  variant="body-sm"
+                  className={
+                    isActive ? "text-primary-foreground" : "text-foreground"
+                  }
+                >
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Unit price"
         keyboardType="decimal-pad"
         value={item.unit_price ?? ""}
@@ -134,69 +150,3 @@ export default function InvoiceItemFormRow({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: "#eee",
-    borderRadius: 8,
-    padding: 12,
-    gap: 8,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  productButton: {
-    flex: 1,
-  },
-  productButtonText: {
-    color: "#3399ff",
-    fontWeight: "bold",
-  },
-  clearProductText: {
-    color: "#999",
-  },
-  removeText: {
-    color: "#e53935",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 8,
-    alignItems: "center",
-  },
-  smallInput: {
-    flex: 1,
-  },
-  unitTypeRow: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  unitTypePill: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  unitTypePillActive: {
-    backgroundColor: "#3399ff",
-    borderColor: "#3399ff",
-  },
-  unitTypeText: {
-    color: "#333",
-    fontSize: 12,
-  },
-  unitTypeTextActive: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
-});

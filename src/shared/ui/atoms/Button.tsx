@@ -109,7 +109,7 @@ export function Button({
         !isLinkVariant && SIZE_CLASS[size],
         fullWidth && !isIconOnly && "w-full",
         BG_CLASS[variant],
-        "hover:opacity-80 active:opacity-60",
+        "active:opacity-60",
         isDisabled && "opacity-50",
         className,
       )}

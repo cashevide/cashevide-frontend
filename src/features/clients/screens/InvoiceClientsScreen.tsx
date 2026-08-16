@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { FlatList, Pressable, useWindowDimensions, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PlusIcon } from "react-native-heroicons/outline";
@@ -13,6 +13,7 @@ import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
 import {
   Text,
+  Button,
   SearchInput,
   PillTabs,
   Spinner,
@@ -45,6 +46,13 @@ function SkeletonRow() {
 
 export default function InvoiceClientsScreen() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  // Screen-width based, not Platform.OS — mobile Chrome is still
+  // Platform.OS === "web", so an OS check alone would show both the
+  // desktop button row AND the mobile FAB at once on a phone browser.
+  // AppShell's own responsive breakpoint (frontend-work-style.md) is
+  // 768px, so this mirrors that for consistency.
+  const isDesktopLayout = width >= 768;
   const [searchText, setSearchText] = useState("");
   const [ordering, setOrdering] =
     useState<GetClientsParams["ordering"]>("-created_at");
@@ -112,18 +120,32 @@ export default function InvoiceClientsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Clients" />
+      <ScreenHeader title="Clients" containerVariant="desktop" />
 
       <Container variant="desktop" safeArea="bottom">
         <View className="flex-1 px-6 py-6 gap-4">
           <InvoiceSubTabs />
 
-          <SearchInput
-            value={searchText}
-            onChangeText={setSearchText}
-            onClear={() => setSearchText("")}
-            placeholder="Search by name, email or phone"
-          />
+          <View className="flex-row items-center gap-2">
+            <SearchInput
+              value={searchText}
+              onChangeText={setSearchText}
+              onClear={() => setSearchText("")}
+              placeholder="Search by name, email or phone"
+              className="flex-1"
+            />
+
+            {isDesktopLayout && (
+              <Button
+                variant="primary"
+                title="New Client"
+                leftIcon={
+                  <PlusIcon color="rgb(var(--color-primary-foreground))" />
+                }
+                onPress={handleAddClientPress}
+              />
+            )}
+          </View>
 
           <View className="flex-row items-center justify-between">
             <PillTabs
@@ -204,19 +226,21 @@ export default function InvoiceClientsScreen() {
           )}
         </View>
 
-        <Pressable
-          onPress={handleAddClientPress}
-          accessibilityRole="button"
-          accessibilityLabel="Add client"
-          style={{ bottom: insets.bottom + 24 }}
-          className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
-        >
-          <PlusIcon
-            width={24}
-            height={24}
-            color="rgb(var(--color-primary-foreground))"
-          />
-        </Pressable>
+        {!isDesktopLayout && (
+          <Pressable
+            onPress={handleAddClientPress}
+            accessibilityRole="button"
+            accessibilityLabel="Add client"
+            style={{ bottom: insets.bottom + 24 }}
+            className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+          >
+            <PlusIcon
+              width={24}
+              height={24}
+              color="rgb(var(--color-primary-foreground))"
+            />
+          </Pressable>
+        )}
       </Container>
 
       <InfoDialog

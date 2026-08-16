@@ -1,5 +1,5 @@
 import { PropsWithChildren, ReactNode } from "react";
-import { Modal as RNModal, View } from "react-native";
+import { Modal as RNModal, ScrollView, View } from "react-native";
 
 import { cn } from "@/src/shared/utils/cn";
 import { Text } from "../atoms/Text";
@@ -46,7 +46,11 @@ export function Modal({
             className,
           )}
         >
-          <View className="shrink gap-2">
+          <ScrollView
+            className="shrink"
+            contentContainerClassName="gap-2"
+            showsVerticalScrollIndicator={true}
+          >
             {hasHeader ? (
               <View className="gap-2">
                 {title ? <Text variant="subheading">{title}</Text> : null}
@@ -61,7 +65,7 @@ export function Modal({
             ) : null}
 
             {children}
-          </View>
+          </ScrollView>
 
           {footer ? <View>{footer}</View> : null}
         </View>
