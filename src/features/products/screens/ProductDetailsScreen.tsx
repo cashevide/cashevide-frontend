@@ -1,13 +1,33 @@
 import { useCallback, useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { AxiosError } from "axios";
-import { ConfirmDialog, InfoDialog } from "@/src/shared/ui";
+
 import { useProductDetails } from "../hooks/useProductDetails";
 import { useDeleteProduct } from "../hooks/useDeleteProduct";
 import { useUpdateProduct } from "../hooks/useUpdateProduct";
+import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { ROUTES } from "@/src/shared/navigation/routes";
-import type { UpdateProductError } from "../types/productTypes";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import {
+  Text,
+  Button,
+  Badge,
+  Spinner,
+  ConfirmDialog,
+  InfoDialog,
+} from "@/src/shared/ui";
+
+function InfoRow({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+
+  return (
+    <View className="gap-0.5">
+      <Text variant="caption">{label}</Text>
+      <Text variant="body">{value}</Text>
+    </View>
+  );
+}
 
 export default function ProductDetailsScreen() {
   const { productSlug } = useLocalSearchParams<{ productSlug: string }>();
@@ -27,94 +47,128 @@ export default function ProductDetailsScreen() {
     }, [productSlug]),
   );
 
-  const handleConfirmDelete = () => {
+  function handleConfirmDelete() {
     deleteProduct.mutate(productSlug, {
       onSuccess: () => {
         router.replace(ROUTES.invoices.products.list);
       },
     });
-  };
+  }
 
-  const handleArchive = () => {
+  function handleArchive() {
     updateProduct.mutate({
       slug: productSlug,
       payload: { is_archived: true },
     });
-  };
+  }
 
-  const handleUnarchive = () => {
+  function handleUnarchive() {
     updateProduct.mutate(
       { slug: productSlug, payload: { is_archived: false } },
       {
         onError: (error) => {
-          const axiosError = error as AxiosError<UpdateProductError>;
-          const message = axiosError.response?.data?.is_archived?.[0];
-          setLimitErrorMessage(
-            message ?? "Could not unarchive this product. Please try again.",
-          );
+          setLimitErrorMessage(getFieldErrorMessage(error));
         },
       },
     );
-  };
+  }
 
   if (productDetails.isLoading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading product...</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Product"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <View className="flex-1 items-center justify-center">
+          <Spinner />
+        </View>
       </View>
     );
   }
 
   if (productDetails.isError) {
     return (
-      <View style={styles.container}>
-        <Text>Product not found.</Text>
-        <Button
-          title="Back to Products"
-          onPress={() => router.replace(ROUTES.invoices.products.list)}
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Product"
+          showBackButton
+          containerVariant="desktop"
         />
+        <View className="flex-1 items-center justify-center gap-3">
+          <Text variant="body" className="text-muted-foreground">
+            Product not found.
+          </Text>
+          <Button
+            variant="outline"
+            title="Back to Products"
+            onPress={() => router.replace(ROUTES.invoices.products.list)}
+          />
+        </View>
       </View>
     );
   }
 
-  const isArchived = productDetails.data?.is_archived ?? false;
+  const product = productDetails.data;
+  const isArchived = product?.is_archived ?? false;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{productDetails.data?.title}</Text>
-      <Text>{productDetails.data?.description}</Text>
-      <Text>₹{productDetails.data?.unit_price}</Text>
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Product" showBackButton containerVariant="desktop" />
 
-      {!isArchived && (
-        <Button
-          title="Edit Product"
-          onPress={() =>
-            router.push(ROUTES.invoices.products.edit(productSlug))
-          }
-        />
-      )}
+      <Container variant="desktop" safeArea="bottom" scroll>
+        <View className="px-6 py-6 gap-6">
+          <View className="items-center gap-1">
+            <Text variant="heading" className="text-center">
+              {product?.title}
+            </Text>
+            {isArchived && <Badge label="Archived" variant="default" />}
+          </View>
 
-      {isArchived ? (
-        <Button
-          title="Unarchive Product"
-          onPress={handleUnarchive}
-          disabled={updateProduct.isPending}
-        />
-      ) : (
-        <Button
-          title="Archive Product"
-          onPress={handleArchive}
-          disabled={updateProduct.isPending}
-        />
-      )}
+          <View className="bg-card border border-border rounded-lg p-4 gap-4">
+            <InfoRow label="Description" value={product?.description} />
+            <InfoRow
+              label="Unit Price"
+              value={product?.unit_price ? `₹${product.unit_price}` : undefined}
+            />
+          </View>
 
-      <Button
-        title="Delete Product"
-        color="red"
-        onPress={() => setShowDeleteConfirm(true)}
-      />
+          <View className="gap-3">
+            {!isArchived && (
+              <Button
+                variant="primary"
+                title="Edit Product"
+                onPress={() =>
+                  router.push(ROUTES.invoices.products.edit(productSlug))
+                }
+              />
+            )}
 
-      <Button title="Back" onPress={() => router.back()} />
+            {isArchived ? (
+              <Button
+                variant="outline"
+                title="Unarchive Product"
+                onPress={handleUnarchive}
+                isLoading={updateProduct.isPending}
+              />
+            ) : (
+              <Button
+                variant="outline"
+                title="Archive Product"
+                onPress={handleArchive}
+                isLoading={updateProduct.isPending}
+              />
+            )}
+
+            <Button
+              variant="destructive"
+              title="Delete Product"
+              onPress={() => setShowDeleteConfirm(true)}
+            />
+          </View>
+        </View>
+      </Container>
 
       <ConfirmDialog
         visible={showDeleteConfirm}
@@ -137,17 +191,3 @@ export default function ProductDetailsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});

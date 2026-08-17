@@ -110,7 +110,7 @@ export default function InvoiceProductsScreen() {
           </Text>
         </View>
 
-        {item.description && (
+        {!!item.description && (
           <Text
             variant="body-sm"
             className="text-muted-foreground"

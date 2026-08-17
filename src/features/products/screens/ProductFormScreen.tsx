@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { AxiosError } from "axios";
+
 import { useProductDetails } from "../hooks/useProductDetails";
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import { useUpdateProduct } from "../hooks/useUpdateProduct";
+import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { ROUTES } from "@/src/shared/navigation/routes";
-import type {
-  CreateProductError,
-  UpdateProductError,
-} from "../types/productTypes";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, Input, Button, Spinner } from "@/src/shared/ui";
 
 export default function ProductFormScreen() {
   const { productSlug } = useLocalSearchParams<{ productSlug?: string }>();
@@ -32,8 +32,11 @@ export default function ProductFormScreen() {
   }, [isEditMode, productDetails.data]);
 
   const mutation = isEditMode ? updateProduct : createProduct;
+  const errorMessage = mutation.isError
+    ? getFieldErrorMessage(mutation.error)
+    : null;
 
-  const handleSave = () => {
+  function handleSave() {
     if (isEditMode && productSlug) {
       updateProduct.mutate(
         {
@@ -57,96 +60,66 @@ export default function ProductFormScreen() {
         },
       },
     );
-  };
-
-  function getErrorMessage(): string | null {
-    if (!mutation.isError) return null;
-
-    const axiosError = mutation.error as AxiosError<
-      CreateProductError | UpdateProductError
-    >;
-    const responseData = axiosError.response?.data;
-
-    if (!responseData) {
-      return axiosError.message;
-    }
-
-    // Tier-limit error: plain string array, e.g. ["You cannot create more than 2 products..."]
-    if (Array.isArray(responseData)) {
-      return responseData[0];
-    }
-
-    // Field-keyed error, e.g. { title: ["This field is required."] }
-    const firstFieldErrors = Object.values(responseData)[0];
-    if (Array.isArray(firstFieldErrors)) {
-      return firstFieldErrors[0];
-    }
-
-    return "Something went wrong. Please try again.";
   }
-
-  const errorMessage = getErrorMessage();
 
   if (isEditMode && productDetails.isLoading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading product...</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Edit Product"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <Container variant="desktop" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Spinner />
+          </View>
+        </Container>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text>{isEditMode ? "Edit Product" : "Add Product"}</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Title"
-        value={title}
-        onChangeText={setTitle}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Description (optional)"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Unit Price"
-        value={unitPrice}
-        onChangeText={setUnitPrice}
-        keyboardType="decimal-pad"
+    <View className="flex-1 bg-background">
+      <ScreenHeader
+        title={isEditMode ? "Edit Product" : "Add Product"}
+        showBackButton
+        containerVariant="desktop"
       />
 
-      <Button
-        title={isEditMode ? "Save Changes" : "Create Product"}
-        onPress={handleSave}
-        disabled={mutation.isPending || !title || !unitPrice}
-      />
+      <Container variant="desktop" safeArea="bottom" scroll>
+        <View className="gap-4 px-6 py-6">
+          <Input placeholder="Title" value={title} onChangeText={setTitle} />
 
-      {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
+          <Input
+            placeholder="Description (optional)"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
 
-      <Button title="Back" onPress={() => router.back()} />
+          <Input
+            placeholder="Unit Price"
+            keyboardType="decimal-pad"
+            value={unitPrice}
+            onChangeText={setUnitPrice}
+          />
+
+          {errorMessage && (
+            <Text variant="body-sm" className="text-center text-destructive">
+              {errorMessage}
+            </Text>
+          )}
+
+          <Button
+            variant="primary"
+            title={isEditMode ? "Save Changes" : "Create Product"}
+            onPress={handleSave}
+            disabled={!title.trim() || !unitPrice.trim()}
+            isLoading={mutation.isPending}
+          />
+        </View>
+      </Container>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    padding: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    borderRadius: 4,
-  },
-  error: {
-    color: "red",
-    textAlign: "center",
-  },
-});
