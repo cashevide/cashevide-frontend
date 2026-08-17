@@ -1,27 +1,21 @@
-import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { AxiosError } from "axios";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 
 import { useChangePassword } from "../hooks/useChangePassword";
 import { useUserProfile } from "@/src/features/profile/hooks/useUserProfile";
-
-import type { ChangePasswordError } from "../types/securitySettingsTypes";
+import { getFieldErrorMessage } from "@/src/shared/api/errors";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, Input, Button, Spinner } from "@/src/shared/ui";
 
 export default function ChangePasswordScreen() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
   const profileQuery = useUserProfile();
-
   const changePasswordMutation = useChangePassword();
+
+  const hasPassword = profileQuery.data?.has_password ?? true;
 
   function handleChangePassword() {
     changePasswordMutation.mutate({
@@ -30,88 +24,87 @@ export default function ChangePasswordScreen() {
     });
   }
 
-  const changePasswordError =
-    changePasswordMutation.error as AxiosError<ChangePasswordError> | null;
-
-  const errorData = changePasswordError?.response?.data;
-
-  const errorMessages: string[] = [
-    ...(errorData?.detail ?? []),
-    ...(errorData?.new_password ?? []),
-  ];
-
-  const hasPassword = profileQuery.data?.has_password ?? true;
+  const errorMessage = changePasswordMutation.isError
+    ? getFieldErrorMessage(changePasswordMutation.error)
+    : undefined;
 
   const canSubmit =
     (!hasPassword || currentPassword.length > 0) && newPassword.length > 0;
 
   if (profileQuery.isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator />
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Change Password"
+          showBackButton
+          containerVariant="narrow"
+        />
+        <View className="flex-1 items-center justify-center">
+          <Spinner />
+        </View>
       </View>
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <Text>Change Password Screen</Text>
+  const content = (
+    <View className="flex-1 justify-center px-6 py-10 gap-8">
+      <Text variant="subheading" className="text-center">
+        {hasPassword ? "Change your password" : "Set a password"}
+      </Text>
 
-      {hasPassword ? (
-        <TextInput
-          value={currentPassword}
-          onChangeText={setCurrentPassword}
-          placeholder="Current Password"
-          secureTextEntry
-          style={styles.input}
+      <View className="gap-4">
+        {hasPassword && (
+          <Input
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            placeholder="Current Password"
+            isPassword
+          />
+        )}
+
+        <Input
+          value={newPassword}
+          onChangeText={setNewPassword}
+          placeholder="New Password"
+          isPassword
+          error={errorMessage}
         />
-      ) : null}
 
-      <TextInput
-        value={newPassword}
-        onChangeText={setNewPassword}
-        placeholder="New Password"
-        secureTextEntry
-        style={styles.input}
+        <View className="items-center">
+          <Button
+            variant="primary"
+            title={hasPassword ? "Change Password" : "Set Password"}
+            onPress={handleChangePassword}
+            disabled={!canSubmit}
+            isLoading={changePasswordMutation.isPending}
+          />
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <View className="flex-1 bg-background">
+      <ScreenHeader
+        title="Change Password"
+        showBackButton
+        containerVariant="narrow"
       />
 
-      {errorMessages.map((message) => (
-        <Text key={message} style={styles.error}>
-          {message}
-        </Text>
-      ))}
-
-      {changePasswordMutation.isPending ? (
-        <ActivityIndicator />
+      {Platform.OS === "web" ? (
+        <Container variant="narrow" safeArea="bottom" scroll>
+          {content}
+        </Container>
       ) : (
-        <Button
-          title={hasPassword ? "Change Password" : "Set Password"}
-          onPress={handleChangePassword}
-          disabled={!canSubmit}
-        />
+        <Container variant="narrow" safeArea="bottom">
+          <KeyboardAvoidingView
+            className="flex-1"
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            {content}
+          </KeyboardAvoidingView>
+        </Container>
       )}
-
-      <Button title="Back" onPress={() => router.back()} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  input: {
-    width: "100%",
-    maxWidth: 360,
-    borderWidth: 1,
-    borderColor: "#999",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  error: {
-    color: "red",
-  },
-});

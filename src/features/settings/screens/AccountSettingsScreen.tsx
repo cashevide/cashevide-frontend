@@ -1,15 +1,22 @@
-import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { View } from "react-native";
 
 import { useUserProfile } from "@/src/features/profile/hooks/useUserProfile";
 import { DeleteAccountModal } from "../components/DeleteAccountModal";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, Button, Spinner } from "@/src/shared/ui";
+
+function InfoRow({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+
+  return (
+    <View className="gap-0.5">
+      <Text variant="caption">{label}</Text>
+      <Text variant="body">{value}</Text>
+    </View>
+  );
+}
 
 export default function AccountSettingsScreen() {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -18,26 +25,38 @@ export default function AccountSettingsScreen() {
 
   if (profileQuery.isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator />
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Account"
+          showBackButton
+          containerVariant="desktop"
+        />
+        <View className="flex-1 items-center justify-center">
+          <Spinner />
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text>Account Settings Screen</Text>
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Account" showBackButton containerVariant="desktop" />
 
-      <Text>Username: {profileQuery.data?.username}</Text>
-      <Text>Full Name: {profileQuery.data?.full_name}</Text>
-      <Text>Email: {profileQuery.data?.email}</Text>
+      <Container variant="desktop" safeArea="bottom" scroll>
+        <View className="w-full max-w-narrow mx-auto px-6 py-6 gap-6">
+          <View className="bg-card border border-border rounded-lg p-4 gap-4">
+            <InfoRow label="Username" value={profileQuery.data?.username} />
+            <InfoRow label="Full Name" value={profileQuery.data?.full_name} />
+            <InfoRow label="Email" value={profileQuery.data?.email} />
+          </View>
 
-      <Button
-        title="Delete Account"
-        onPress={() => setIsDeleteModalVisible(true)}
-      />
-
-      <Button title="Back" onPress={() => router.back()} />
+          <Button
+            variant="destructive"
+            title="Delete Account"
+            onPress={() => setIsDeleteModalVisible(true)}
+          />
+        </View>
+      </Container>
 
       <DeleteAccountModal
         visible={isDeleteModalVisible}
@@ -47,12 +66,3 @@ export default function AccountSettingsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

@@ -14,6 +14,12 @@ export type UpdateUserProfileRequest = {
   full_name?: string;
   phone_number?: string;
   job_title?: string;
+  // undefined: leave the picture unchanged (field omitted from the
+  // request entirely).
+  // { uri, name, type }: upload this as the new picture.
+  // null: remove the existing picture — sent to the backend as an
+  // empty string, which DRF's ImageField (null=True, blank=True on
+  // the model) treats as "clear this field".
   profile_picture?: {
     uri: string;
     name: string;
@@ -53,7 +59,9 @@ export async function updateUserProfileApi(
   if (payload.job_title !== undefined) {
     formData.append("job_title", payload.job_title);
   }
-  if (payload.profile_picture) {
+  if (payload.profile_picture === null) {
+    formData.append("profile_picture", "");
+  } else if (payload.profile_picture) {
     await appendProfilePicture(formData, payload.profile_picture);
   }
 

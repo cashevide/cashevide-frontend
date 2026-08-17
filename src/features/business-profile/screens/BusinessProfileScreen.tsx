@@ -1,84 +1,103 @@
+import { View } from "react-native";
 import { router } from "expo-router";
-import { Button, StyleSheet, Text, View } from "react-native";
-import { AvatarPicker } from "@/src/shared/ui";
+
 import ProfileSubTabs from "@/src/features/profile/components/ProfileSubTabs";
 import { useBusinessProfile } from "../hooks/useBusinessProfile";
 import { useUpdateBusinessProfile } from "../hooks/useUpdateBusinessProfile";
+import { ROUTES } from "@/src/shared/navigation/routes";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, Button, Spinner, AvatarPicker } from "@/src/shared/ui";
+
+function InfoRow({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+
+  return (
+    <View className="gap-0.5">
+      <Text variant="caption">{label}</Text>
+      <Text variant="body">{value}</Text>
+    </View>
+  );
+}
 
 export default function BusinessProfileScreen() {
   const businessProfile = useBusinessProfile();
   const updateBusinessProfile = useUpdateBusinessProfile();
 
   return (
-    <View style={styles.container}>
-      <ProfileSubTabs />
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Business Profile" containerVariant="desktop" />
 
-      {businessProfile.isLoading && <Text>Loading business profile...</Text>}
+      <Container variant="desktop" safeArea="bottom" scroll>
+        <View className="w-full max-w-narrow mx-auto px-6 py-6 gap-6">
+          <ProfileSubTabs />
 
-      {businessProfile.data && (
-        <View style={styles.profileBox}>
-          <AvatarPicker
-            imageUri={businessProfile.data.logo}
-            onPick={(asset) => {
-              updateBusinessProfile.mutate({ logo: asset });
-            }}
-            isUploading={updateBusinessProfile.isPending}
-            isError={updateBusinessProfile.isError}
-            shape="square"
-            placeholderText="Add Logo"
-            fileName="logo.jpg"
-          />
+          {businessProfile.isLoading ? (
+            <View className="flex-1 items-center justify-center py-16">
+              <Spinner />
+            </View>
+          ) : (
+            businessProfile.data && (
+              <>
+                <View className="items-center gap-3">
+                  <AvatarPicker
+                    imageUri={businessProfile.data.logo}
+                    onPick={(asset) => {
+                      updateBusinessProfile.mutate({ logo: asset });
+                    }}
+                    onRemove={() => {
+                      updateBusinessProfile.mutate({ logo: null });
+                    }}
+                    isUploading={updateBusinessProfile.isPending}
+                    isError={updateBusinessProfile.isError}
+                    shape="square"
+                    placeholderText="Add Logo"
+                    fileName="logo.jpg"
+                  />
 
-          <Text style={styles.name}>
-            {businessProfile.data.business_name || "Business name not set"}
-          </Text>
+                  <Text variant="heading" className="text-center">
+                    {businessProfile.data.business_name ||
+                      "Business name not set"}
+                  </Text>
+                </View>
 
-          <Button
-            title="Edit Business Profile"
-            onPress={() => router.push("/profile/business-edit")}
-          />
+                <View className="bg-card border border-border rounded-lg p-4 gap-4">
+                  <InfoRow
+                    label="Address"
+                    value={businessProfile.data.address}
+                  />
+                  <InfoRow
+                    label="Phone"
+                    value={businessProfile.data.phone_number}
+                  />
+                  <InfoRow
+                    label="Website"
+                    value={businessProfile.data.website}
+                  />
+                  <InfoRow
+                    label="Currency"
+                    value={businessProfile.data.currency}
+                  />
+                  <InfoRow
+                    label="GST Number"
+                    value={businessProfile.data.gst_number}
+                  />
+                  <InfoRow
+                    label="VAT Number"
+                    value={businessProfile.data.vat_number}
+                  />
+                </View>
 
-          {businessProfile.data.address ? (
-            <Text>{businessProfile.data.address}</Text>
-          ) : null}
-          {businessProfile.data.phone_number ? (
-            <Text>{businessProfile.data.phone_number}</Text>
-          ) : null}
-          {businessProfile.data.website ? (
-            <Text>{businessProfile.data.website}</Text>
-          ) : null}
-          {businessProfile.data.currency ? (
-            <Text>Currency: {businessProfile.data.currency}</Text>
-          ) : null}
-          {businessProfile.data.gst_number ? (
-            <Text>GST: {businessProfile.data.gst_number}</Text>
-          ) : null}
-          {businessProfile.data.vat_number ? (
-            <Text>VAT: {businessProfile.data.vat_number}</Text>
-          ) : null}
+                <Button
+                  variant="primary"
+                  title="Edit Business Profile"
+                  onPress={() => router.push(ROUTES.profile.businessEdit)}
+                />
+              </>
+            )
+          )}
         </View>
-      )}
-
-      <Button title="Back" onPress={() => router.back()} />
+      </Container>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  profileBox: {
-    alignItems: "center",
-    gap: 4,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 8,
-  },
-});

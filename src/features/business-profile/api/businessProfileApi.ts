@@ -60,7 +60,14 @@ export async function updateBusinessProfileApi(
   if (payload.currency !== undefined) {
     formData.append("currency", payload.currency);
   }
-  if (payload.logo) {
+  // undefined: leave the logo unchanged (field omitted entirely).
+  // { uri, name, type }: upload this as the new logo.
+  // null: remove the existing logo — sent as an empty string, which
+  // DRF's ImageField (null=True, blank=True on the model) treats as
+  // "clear this field".
+  if (payload.logo === null) {
+    formData.append("logo", "");
+  } else if (payload.logo) {
     await appendLogo(formData, payload.logo);
   }
 

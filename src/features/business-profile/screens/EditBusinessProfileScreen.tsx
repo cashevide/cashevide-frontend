@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { View } from "react-native";
 import { router } from "expo-router";
-import { CurrencyPicker } from "@/src/shared/ui";
+
 import { useBusinessProfile } from "../hooks/useBusinessProfile";
 import { useUpdateBusinessProfile } from "../hooks/useUpdateBusinessProfile";
+import { getFieldErrorMessage } from "@/src/shared/api/errors";
+import { ROUTES } from "@/src/shared/navigation/routes";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, Input, Button, Spinner, CurrencyPicker } from "@/src/shared/ui";
 
 export default function EditBusinessProfileScreen() {
   const businessProfile = useBusinessProfile();
@@ -29,7 +34,7 @@ export default function EditBusinessProfileScreen() {
     }
   }, [businessProfile.data]);
 
-  const handleSave = () => {
+  function handleSave() {
     updateBusinessProfile.mutate(
       {
         business_name: businessName,
@@ -42,112 +47,111 @@ export default function EditBusinessProfileScreen() {
       },
       {
         onSuccess: () => {
-          router.replace("/profile/business");
+          router.replace(ROUTES.profile.business);
         },
       },
     );
-  };
+  }
+
+  const errorMessage = updateBusinessProfile.isError
+    ? getFieldErrorMessage(updateBusinessProfile.error)
+    : null;
+
+  const canSubmit =
+    businessName.trim().length > 0 &&
+    address.trim().length > 0 &&
+    phoneNumber.trim().length > 0 &&
+    currency.trim().length > 0;
 
   if (businessProfile.isLoading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading business profile...</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Edit Business Profile"
+          showBackButton
+          containerVariant="narrow"
+        />
+        <Container variant="narrow" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Spinner />
+          </View>
+        </Container>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text>Edit Business Profile</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Business Name"
-        value={businessName}
-        onChangeText={setBusinessName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Address"
-        value={address}
-        onChangeText={setAddress}
-        multiline
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
+    <View className="flex-1 bg-background">
+      <ScreenHeader
+        title="Edit Business Profile"
+        showBackButton
+        containerVariant="narrow"
       />
 
-      <CurrencyPicker value={currency} onChange={setCurrency} />
+      <Container variant="narrow" safeArea="bottom" scroll>
+        <View className="gap-4 px-6 py-6">
+          <Input
+            placeholder="Business Name"
+            value={businessName}
+            onChangeText={setBusinessName}
+          />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Website (optional)"
-        value={website}
-        onChangeText={setWebsite}
-        autoCapitalize="none"
-        keyboardType="url"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="GST Number (optional)"
-        value={gstNumber}
-        onChangeText={setGstNumber}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="VAT Number (optional)"
-        value={vatNumber}
-        onChangeText={setVatNumber}
-      />
+          <Input
+            placeholder="Address"
+            value={address}
+            onChangeText={setAddress}
+            multiline
+          />
 
-      <Button
-        title="Save"
-        onPress={handleSave}
-        disabled={
-          updateBusinessProfile.isPending ||
-          !businessName ||
-          !address ||
-          !phoneNumber ||
-          !currency
-        }
-      />
+          <Input
+            placeholder="Phone Number"
+            keyboardType="phone-pad"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+          />
 
-      {updateBusinessProfile.isError && (
-        <Text style={styles.error}>
-          {JSON.stringify(
-            (updateBusinessProfile.error as any)?.response?.data ??
-              updateBusinessProfile.error.message,
+          <View className="gap-1">
+            <Text variant="body-sm" className="text-muted-foreground">
+              Currency
+            </Text>
+            <CurrencyPicker value={currency} onChange={setCurrency} />
+          </View>
+
+          <Input
+            placeholder="Website (optional)"
+            keyboardType="url"
+            autoCapitalize="none"
+            value={website}
+            onChangeText={setWebsite}
+          />
+
+          <Input
+            placeholder="GST Number (optional)"
+            value={gstNumber}
+            onChangeText={setGstNumber}
+          />
+
+          <Input
+            placeholder="VAT Number (optional)"
+            value={vatNumber}
+            onChangeText={setVatNumber}
+          />
+
+          {errorMessage && (
+            <Text variant="body-sm" className="text-center text-destructive">
+              {errorMessage}
+            </Text>
           )}
-        </Text>
-      )}
 
-      <Button title="Back" onPress={() => router.back()} />
+          <Button
+            variant="primary"
+            title="Save"
+            onPress={handleSave}
+            disabled={!canSubmit}
+            isLoading={updateBusinessProfile.isPending}
+          />
+        </View>
+      </Container>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    borderRadius: 4,
-    width: "80%",
-  },
-  error: {
-    color: "red",
-    paddingHorizontal: 16,
-    textAlign: "center",
-  },
-});

@@ -1,76 +1,91 @@
-import { router } from "expo-router";
-import { Button, StyleSheet, Text, View } from "react-native";
-import { AvatarPicker } from "@/src/shared/ui";
+import { View } from "react-native";
+
 import ProfileSubTabs from "../components/ProfileSubTabs";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useUpdateUserProfile } from "../hooks/useUpdateUserProfile";
+import { router } from "expo-router";
+import { ROUTES } from "@/src/shared/navigation/routes";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, Button, Spinner, AvatarPicker } from "@/src/shared/ui";
+
+function InfoRow({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+
+  return (
+    <View className="gap-0.5">
+      <Text variant="caption">{label}</Text>
+      <Text variant="body">{value}</Text>
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
   const userProfile = useUserProfile();
   const updateUserProfile = useUpdateUserProfile();
 
   return (
-    <View style={styles.container}>
-      <ProfileSubTabs />
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Profile" containerVariant="desktop" />
 
-      {userProfile.isLoading && <Text>Loading profile...</Text>}
+      <Container variant="desktop" safeArea="bottom" scroll>
+        <View className="w-full max-w-narrow mx-auto px-6 py-6 gap-6">
+          <ProfileSubTabs />
 
-      {userProfile.data && (
-        <View style={styles.profileBox}>
-          <AvatarPicker
-            imageUri={userProfile.data.profile_picture}
-            onPick={(asset) => {
-              updateUserProfile.mutate({ profile_picture: asset });
-            }}
-            isUploading={updateUserProfile.isPending}
-            isError={updateUserProfile.isError}
-            shape="circle"
-            placeholderText="Add Photo"
-            fileName="profile_picture.jpg"
-          />
+          {userProfile.isLoading ? (
+            <View className="flex-1 items-center justify-center py-16">
+              <Spinner />
+            </View>
+          ) : (
+            userProfile.data && (
+              <>
+                <View className="items-center gap-3">
+                  <AvatarPicker
+                    imageUri={userProfile.data.profile_picture}
+                    onPick={(asset) => {
+                      updateUserProfile.mutate({ profile_picture: asset });
+                    }}
+                    onRemove={() => {
+                      updateUserProfile.mutate({ profile_picture: null });
+                    }}
+                    isUploading={updateUserProfile.isPending}
+                    isError={updateUserProfile.isError}
+                    shape="circle"
+                    placeholderText="Add Photo"
+                    fileName="profile_picture.jpg"
+                  />
 
-          <Text style={styles.name}>{userProfile.data.full_name}</Text>
+                  <Text variant="heading" className="text-center">
+                    {userProfile.data.full_name}
+                  </Text>
+                </View>
 
-          <Button
-            title="Edit Personal Profile"
-            onPress={() => router.push("/profile/edit")}
-          />
+                <View className="bg-card border border-border rounded-lg p-4 gap-4">
+                  <InfoRow label="Email" value={userProfile.data.email} />
+                  <InfoRow
+                    label="Job Title"
+                    value={userProfile.data.job_title}
+                  />
+                  <InfoRow
+                    label="Phone"
+                    value={userProfile.data.phone_number}
+                  />
+                  <InfoRow
+                    label="Credit Points"
+                    value={String(userProfile.data.credit_points)}
+                  />
+                </View>
 
-          <Text>{userProfile.data.email}</Text>
-          {userProfile.data.job_title ? (
-            <Text>{userProfile.data.job_title}</Text>
-          ) : null}
-          {userProfile.data.phone_number ? (
-            <Text>{userProfile.data.phone_number}</Text>
-          ) : null}
-          <Text style={styles.credits}>
-            {userProfile.data.credit_points} credit points
-          </Text>
+                <Button
+                  variant="primary"
+                  title="Edit Personal Profile"
+                  onPress={() => router.push(ROUTES.profile.edit)}
+                />
+              </>
+            )
+          )}
         </View>
-      )}
+      </Container>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  profileBox: {
-    alignItems: "center",
-    gap: 4,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 8,
-  },
-  credits: {
-    color: "#666",
-    marginTop: 4,
-  },
-});

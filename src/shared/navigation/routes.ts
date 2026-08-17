@@ -29,6 +29,9 @@ export const ROUTES = {
 
   settings: {
     home: "/settings",
+    account: "/settings/account",
+    theme: "/settings/theme",
+    legal: "/settings/legal",
 
     security: {
       entry: "/settings/security",
@@ -38,6 +41,9 @@ export const ROUTES = {
 
   profile: {
     home: "/profile",
+    edit: "/profile/edit",
+    business: "/profile/business",
+    businessEdit: "/profile/business-edit",
   },
 
   reviews: {

@@ -1,24 +1,29 @@
-import { router } from "expo-router";
-import { Button, StyleSheet, View } from "react-native";
+import { router, usePathname } from "expo-router";
+
+import { ROUTES } from "@/src/shared/navigation/routes";
+import { PillTabs, type PillTabItem } from "@/src/shared/ui";
+
+const TABS: (PillTabItem & {
+  href: typeof ROUTES.profile.home | typeof ROUTES.profile.business;
+})[] = [
+  { key: "personal", label: "Personal", href: ROUTES.profile.home },
+  { key: "business", label: "Business", href: ROUTES.profile.business },
+];
 
 export default function ProfileSubTabs() {
+  const pathname = usePathname();
+
+  const activeKey =
+    TABS.find((tab) => tab.href === pathname)?.key ?? "personal";
+
+  function handleSelect(key: string) {
+    const tab = TABS.find((t) => t.key === key);
+    if (tab) {
+      router.push(tab.href);
+    }
+  }
+
   return (
-    <View style={styles.container}>
-      <Button title="Personal" onPress={() => router.push("/profile")} />
-      <Button
-        title="Business"
-        onPress={() => router.push("/profile/business")}
-      />
-    </View>
+    <PillTabs items={TABS} activeKey={activeKey} onSelect={handleSelect} />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    gap: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-});
