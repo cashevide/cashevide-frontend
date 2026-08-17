@@ -23,3 +23,4 @@ export { AvatarPicker } from "./molecules/AvatarPicker";
 export { CurrencyPicker } from "./molecules/CurrencyPicker";
 export { DateField } from "./molecules/DateField";
 export { OtpInput } from "./molecules/OtpInput";
+export { StarRating } from "./molecules/StarRating";

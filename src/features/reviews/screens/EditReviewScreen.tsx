@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+
 import { useMyReviewForClient } from "../hooks/useMyReviewForClient";
 import { useReviewTags } from "../hooks/useReviewTags";
 import { useUpdateMyReview } from "../hooks/useUpdateMyReview";
 import { useTagSelection } from "@/src/shared/hooks/useTagSelection";
+import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { ROUTES } from "@/src/shared/navigation/routes";
+import { cn } from "@/src/shared/utils/cn";
+import { Container } from "@/src/shared/layout/Container";
+import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
+import { Text, Button, Spinner, StarRating } from "@/src/shared/ui";
 import type { Tag } from "../types/tagTypes";
 
 export default function EditReviewScreen() {
@@ -38,7 +44,11 @@ export default function EditReviewScreen() {
     }, {});
   }, [reviewTags.data]);
 
-  const handleSave = () => {
+  const errorMessage = updateMyReview.isError
+    ? getFieldErrorMessage(updateMyReview.error)
+    : null;
+
+  function handleSave() {
     if (!myReview.data?.review) return;
 
     updateMyReview.mutate(
@@ -55,113 +65,92 @@ export default function EditReviewScreen() {
         },
       },
     );
-  };
+  }
 
   if (myReview.isLoading || reviewTags.isLoading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading review...</Text>
+      <View className="flex-1 bg-background">
+        <ScreenHeader
+          title="Edit Review"
+          showBackButton
+          containerVariant="narrow"
+        />
+        <Container variant="narrow" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Spinner />
+          </View>
+        </Container>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text>Edit Review Screen</Text>
-      <Text>Client ID: {reviewedClientId}</Text>
-
-      {Object.entries(tagsByGroup).map(([group, tags]) => (
-        <View key={group} style={styles.group}>
-          <Text style={styles.groupTitle}>{group}</Text>
-          <View style={styles.tagRow}>
-            {tags.map((tag) => {
-              const isSelected = selectedTagIds.includes(tag.id);
-              return (
-                <TouchableOpacity
-                  key={tag.id}
-                  onPress={() => toggleTag(tag)}
-                  style={[styles.tagChip, isSelected && styles.tagChipSelected]}
-                >
-                  <Text>{tag.name}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-      ))}
-
-      <View style={styles.group}>
-        <Text style={styles.groupTitle}>Rating</Text>
-        <View style={styles.tagRow}>
-          {[1, 2, 3, 4, 5].map((value) => (
-            <TouchableOpacity
-              key={value}
-              onPress={() => setRating(value)}
-              style={[
-                styles.tagChip,
-                rating === value && styles.tagChipSelected,
-              ]}
-            >
-              <Text>{value}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      <Button
-        title="Save"
-        onPress={handleSave}
-        disabled={updateMyReview.isPending || selectedTagIds.length === 0}
+    <View className="flex-1 bg-background">
+      <ScreenHeader
+        title="Edit Review"
+        showBackButton
+        containerVariant="narrow"
       />
 
-      {updateMyReview.isError && (
-        <Text style={styles.error}>
-          {JSON.stringify(
-            (updateMyReview.error as any)?.response?.data ??
-              updateMyReview.error.message,
-          )}
-        </Text>
-      )}
+      <Container variant="narrow" safeArea="bottom" scroll>
+        <View className="px-6 py-6 gap-8">
+          <View className="items-center gap-3">
+            <Text variant="body-sm" className="text-muted-foreground">
+              How was your experience?
+            </Text>
+            <StarRating value={rating} onChange={setRating} size={36} />
+          </View>
 
-      <Button title="Back" onPress={() => router.back()} />
+          {Object.entries(tagsByGroup).map(([group, tags]) => (
+            <View key={group} className="gap-3">
+              <Text variant="overline">{group}</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {tags.map((tag) => {
+                  const isSelected = selectedTagIds.includes(tag.id);
+                  const isPositive = tag.category === "POSITIVE";
+
+                  return (
+                    <Button
+                      key={tag.id}
+                      title={tag.name}
+                      size="sm"
+                      variant={
+                        isSelected
+                          ? isPositive
+                            ? "success"
+                            : "destructive"
+                          : "outline"
+                      }
+                      onPress={() => toggleTag(tag)}
+                      className={cn("min-w-0 rounded-full px-4 h-9")}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+
+          <View className="gap-4">
+            <View className="items-center">
+              <Button
+                variant="primary"
+                title="Save Changes"
+                onPress={handleSave}
+                disabled={
+                  updateMyReview.isPending || selectedTagIds.length === 0
+                }
+                isLoading={updateMyReview.isPending}
+              />
+            </View>
+
+            {errorMessage && (
+              <Text variant="body-sm" className="text-destructive text-center">
+                {errorMessage}
+              </Text>
+            )}
+          </View>
+        </View>
+      </Container>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  error: {
-    color: "red",
-    paddingHorizontal: 16,
-    textAlign: "center",
-  },
-  group: {
-    width: "100%",
-    gap: 6,
-  },
-  groupTitle: {
-    fontWeight: "bold",
-  },
-  tagRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  tagChip: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  tagChipSelected: {
-    backgroundColor: "#cce5ff",
-    borderColor: "#3399ff",
-  },
-});
