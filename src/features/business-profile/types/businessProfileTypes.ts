@@ -10,6 +10,7 @@ export type BusinessProfile = {
   vat_number: string;
   address: string;
   phone_number: string;
+  business_email: string;
   website: string;
   currency: string;
 };
@@ -26,6 +27,7 @@ export type UpdateBusinessProfileRequest = {
   vat_number?: string;
   address?: string;
   phone_number?: string;
+  business_email?: string;
   website?: string;
   currency?: string;
   logo?: {
@@ -43,6 +45,7 @@ export type UpdateBusinessProfileErrorField =
   | "vat_number"
   | "address"
   | "phone_number"
+  | "business_email"
   | "website"
   | "currency"
   | "logo";

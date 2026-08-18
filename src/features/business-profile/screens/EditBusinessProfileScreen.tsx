@@ -17,6 +17,7 @@ export default function EditBusinessProfileScreen() {
   const [businessName, setBusinessName] = useState("");
   const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [businessEmail, setBusinessEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [currency, setCurrency] = useState("");
   const [gstNumber, setGstNumber] = useState("");
@@ -27,6 +28,7 @@ export default function EditBusinessProfileScreen() {
       setBusinessName(businessProfile.data.business_name);
       setAddress(businessProfile.data.address);
       setPhoneNumber(businessProfile.data.phone_number);
+      setBusinessEmail(businessProfile.data.business_email);
       setWebsite(businessProfile.data.website);
       setCurrency(businessProfile.data.currency);
       setGstNumber(businessProfile.data.gst_number);
@@ -40,6 +42,7 @@ export default function EditBusinessProfileScreen() {
         business_name: businessName,
         address,
         phone_number: phoneNumber,
+        business_email: businessEmail,
         website,
         currency,
         gst_number: gstNumber,
@@ -108,6 +111,14 @@ export default function EditBusinessProfileScreen() {
             keyboardType="phone-pad"
             value={phoneNumber}
             onChangeText={setPhoneNumber}
+          />
+
+          <Input
+            placeholder="Business Email (optional)"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={businessEmail}
+            onChangeText={setBusinessEmail}
           />
 
           <View className="gap-1">

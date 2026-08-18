@@ -71,6 +71,10 @@ export default function BusinessProfileScreen() {
                     value={businessProfile.data.phone_number}
                   />
                   <InfoRow
+                    label="Email"
+                    value={businessProfile.data.business_email}
+                  />
+                  <InfoRow
                     label="Website"
                     value={businessProfile.data.website}
                   />

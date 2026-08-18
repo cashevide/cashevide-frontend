@@ -54,6 +54,9 @@ export async function updateBusinessProfileApi(
   if (payload.phone_number !== undefined) {
     formData.append("phone_number", payload.phone_number);
   }
+  if (payload.business_email !== undefined) {
+    formData.append("business_email", payload.business_email);
+  }
   if (payload.website !== undefined) {
     formData.append("website", payload.website);
   }
