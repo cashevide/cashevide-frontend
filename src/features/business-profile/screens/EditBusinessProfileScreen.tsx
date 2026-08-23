@@ -8,7 +8,16 @@ import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { ROUTES } from "@/src/shared/navigation/routes";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
-import { Text, Input, Button, Spinner, CurrencyPicker } from "@/src/shared/ui";
+import {
+  Text,
+  Input,
+  Button,
+  Spinner,
+  CurrencyPicker,
+  AvatarPicker,
+} from "@/src/shared/ui";
+
+type LogoAsset = { uri: string; name: string; type: string };
 
 export default function EditBusinessProfileScreen() {
   const businessProfile = useBusinessProfile();
@@ -23,6 +32,22 @@ export default function EditBusinessProfileScreen() {
   const [gstNumber, setGstNumber] = useState("");
   const [vatNumber, setVatNumber] = useState("");
 
+  // Logo is handled separately from the text fields — it is never
+  // uploaded immediately on pick. It is only sent as part of the same
+  // PATCH as everything else, when "Save" is pressed.
+  // logoAsset: a newly picked image staged for upload.
+  // logoRemoved: user tapped "Remove Photo" — clear the logo on save.
+  // Both stay in sync (picking a new photo cancels a pending removal,
+  // and vice versa) so handleSave can trust a single source of truth.
+  const [logoAsset, setLogoAsset] = useState<LogoAsset | null>(null);
+  const [logoRemoved, setLogoRemoved] = useState(false);
+
+  // Logo is required for invoice generation, but unlike the text fields
+  // above we don't disable the Save button for it — the button always
+  // stays pressable, and this message only appears after a press with
+  // no logo present. Cleared as soon as the user picks a photo.
+  const [logoErrorMessage, setLogoErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     if (businessProfile.data) {
       setBusinessName(businessProfile.data.business_name);
@@ -36,7 +61,32 @@ export default function EditBusinessProfileScreen() {
     }
   }, [businessProfile.data]);
 
+  function handlePickLogo(asset: LogoAsset) {
+    setLogoAsset(asset);
+    setLogoRemoved(false);
+    setLogoErrorMessage(null);
+  }
+
+  function handleRemoveLogo() {
+    setLogoAsset(null);
+    setLogoRemoved(true);
+  }
+
   function handleSave() {
+    // Backend logo field is optional, but a logo is mandatory here
+    // because invoices can't generate without one. This check runs
+    // only on Save press — the button itself stays enabled so tapping
+    // it is what surfaces the requirement, rather than a silently
+    // disabled button the user has to guess the reason for.
+    const willHaveLogo = logoRemoved
+      ? false
+      : !!(logoAsset ?? businessProfile.data?.logo);
+
+    if (!willHaveLogo) {
+      setLogoErrorMessage("Business logo is required to generate invoices.");
+      return;
+    }
+
     updateBusinessProfile.mutate(
       {
         business_name: businessName,
@@ -47,6 +97,14 @@ export default function EditBusinessProfileScreen() {
         currency,
         gst_number: gstNumber,
         vat_number: vatNumber,
+        // undefined (key omitted): logo unchanged.
+        // logoAsset: a new photo was picked — upload it.
+        // null: "Remove Photo" was pressed — clear it on the server.
+        ...(logoAsset
+          ? { logo: logoAsset }
+          : logoRemoved
+            ? { logo: null }
+            : {}),
       },
       {
         onSuccess: () => {
@@ -56,9 +114,14 @@ export default function EditBusinessProfileScreen() {
     );
   }
 
-  const errorMessage = updateBusinessProfile.isError
-    ? getFieldErrorMessage(updateBusinessProfile.error)
-    : null;
+  // logoErrorMessage takes priority — it reflects the most recent Save
+  // attempt. Once it's set, the API error (from a prior attempt, if
+  // any) is stale and shouldn't be shown alongside it.
+  const errorMessage =
+    logoErrorMessage ??
+    (updateBusinessProfile.isError
+      ? getFieldErrorMessage(updateBusinessProfile.error)
+      : null);
 
   const canSubmit =
     businessName.trim().length > 0 &&
@@ -83,6 +146,15 @@ export default function EditBusinessProfileScreen() {
     );
   }
 
+  // The avatar preview is fully local/optimistic here: a picked photo
+  // shows via logoAsset.uri, a pending removal shows the placeholder,
+  // and otherwise we fall back to the server's current logo. None of
+  // this touches the network — AvatarPicker's isUploading/isError stay
+  // tied to the single handleSave mutation, not to picking itself.
+  const logoPreviewUri = logoRemoved
+    ? null
+    : (logoAsset?.uri ?? businessProfile.data?.logo ?? null);
+
   return (
     <View className="flex-1 bg-background">
       <ScreenHeader
@@ -93,6 +165,17 @@ export default function EditBusinessProfileScreen() {
 
       <Container variant="narrow" safeArea="bottom" scroll>
         <View className="gap-4 px-6 py-6">
+          <View className="items-center pb-2">
+            <AvatarPicker
+              imageUri={logoPreviewUri}
+              onPick={handlePickLogo}
+              onRemove={handleRemoveLogo}
+              shape="square"
+              placeholderText="Add Logo"
+              fileName="logo.jpg"
+            />
+          </View>
+
           <Input
             placeholder="Business Name"
             value={businessName}
