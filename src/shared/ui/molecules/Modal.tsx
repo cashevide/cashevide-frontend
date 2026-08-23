@@ -1,5 +1,5 @@
 import { PropsWithChildren, ReactNode } from "react";
-import { Modal as RNModal, ScrollView, View } from "react-native";
+import { Modal as RNModal, Pressable, ScrollView, View } from "react-native";
 
 import { cn } from "@/src/shared/utils/cn";
 import { Text } from "../atoms/Text";
@@ -39,8 +39,18 @@ export function Modal({
       animationType="fade"
       onRequestClose={handleRequestClose}
     >
-      <View className="flex-1 items-center justify-center bg-overlay/50 px-4">
-        <View
+      <Pressable
+        onPress={handleRequestClose}
+        className="flex-1 items-center justify-center bg-overlay/50 px-4"
+      >
+        {/* Content card — wrapped in its own Pressable with an empty
+            onPress so taps here stop propagating to the backdrop
+            Pressable above. Without this, tapping anywhere inside the
+            modal (a button, an input, the card background) would also
+            trigger the backdrop's dismiss handler, since RN Pressables
+            without stopPropagation let the press bubble up. */}
+        <Pressable
+          onPress={() => {}}
           className={cn(
             "w-full max-w-[450px] max-h-[80%] gap-6 rounded-lg bg-secondary border border-border p-6 shadow-lg",
             className,
@@ -68,8 +78,8 @@ export function Modal({
           </ScrollView>
 
           {footer ? <View>{footer}</View> : null}
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </RNModal>
   );
 }
