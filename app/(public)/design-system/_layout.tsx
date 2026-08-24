@@ -22,6 +22,11 @@ const NAV_ITEMS = [
   { label: "Modal", href: "/design-system/modal" },
   { label: "Pill Tabs", href: "/design-system/pilltabs" },
   { label: "Avatar", href: "/design-system/avatar" },
+  { label: "Avatar Picker", href: "/design-system/avatarpicker" },
+  { label: "Currency Picker", href: "/design-system/currencypicker" },
+  { label: "Date Field", href: "/design-system/datefield" },
+  { label: "Star Rating", href: "/design-system/starrating" },
+  { label: "Spinner", href: "/design-system/spinner" },
 ];
 
 const SIDEBAR_OPEN_WIDTH = 240;

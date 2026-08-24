@@ -50,6 +50,31 @@ const SECTIONS = [
     description: "Image, initial-letter, and generic-icon fallback chain",
     href: "/design-system/avatar",
   },
+  {
+    title: "Avatar Picker",
+    description: "Pick, preview, and remove a profile image with upload states",
+    href: "/design-system/avatarpicker",
+  },
+  {
+    title: "Currency Picker",
+    description: "Searchable country/currency picker in a modal sheet",
+    href: "/design-system/currencypicker",
+  },
+  {
+    title: "Date Field",
+    description: "Native date picker input, styled to match text fields",
+    href: "/design-system/datefield",
+  },
+  {
+    title: "Star Rating",
+    description: "Tap-to-rate stars, 1 to 5, filled up to the selected value",
+    href: "/design-system/starrating",
+  },
+  {
+    title: "Spinner",
+    description: "Loading indicator in small and large sizes",
+    href: "/design-system/spinner",
+  },
 ] as const;
 
 export default function DesignOverview() {
