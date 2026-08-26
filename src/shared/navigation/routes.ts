@@ -1,6 +1,12 @@
 import type { Href } from "expo-router";
 
 export const ROUTES = {
+  // App-wide landing route after login/signup — independent of which tab
+  // it currently points to. Change this single value to move the app's
+  // default home; every redirect site should reference ROUTES.home, never
+  // a specific tab's own route (e.g. reviews.home, invoices.dashboard).
+  home: "/invoices",
+
   welcome: "/welcome",
   login: "/login",
 

@@ -18,7 +18,7 @@ export function useLogin() {
     mutationFn: loginApi,
     onSuccess: () => {
       setAuthenticated(true);
-      router.replace(ROUTES.reviews.home);
+      router.replace(ROUTES.home);
     },
   });
 }

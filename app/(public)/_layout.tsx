@@ -12,7 +12,7 @@ export default function PublicLayout() {
   const isDesignSystemRoute = segments.includes("design-system");
 
   if (isAuthenticated && !isLegalRoute && !isDesignSystemRoute) {
-    return <Redirect href={ROUTES.reviews.home} />;
+    return <Redirect href={ROUTES.home} />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;

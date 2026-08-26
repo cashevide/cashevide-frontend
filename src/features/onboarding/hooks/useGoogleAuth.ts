@@ -62,7 +62,7 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
       }
 
       setAuthenticated(true);
-      router.replace(ROUTES.reviews.home);
+      router.replace(ROUTES.home);
     },
   });
 

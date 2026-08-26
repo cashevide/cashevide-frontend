@@ -32,16 +32,16 @@ export interface AppTabConfig {
 // bar and the desktop sidebar.
 export const APP_TABS: AppTabConfig[] = [
   {
-    name: "reviews",
-    href: ROUTES.reviews.home,
-    label: "Reviews",
+    name: "invoices",
+    href: ROUTES.invoices.dashboard,
+    label: "Invoices",
     iconOutline: HomeIconOutline,
     iconSolid: HomeIconSolid,
   },
   {
-    name: "invoices",
-    href: ROUTES.invoices.dashboard,
-    label: "Invoices",
+    name: "reviews",
+    href: ROUTES.reviews.home,
+    label: "Reviews",
     iconOutline: DocumentTextIconOutline,
     iconSolid: DocumentTextIconSolid,
   },

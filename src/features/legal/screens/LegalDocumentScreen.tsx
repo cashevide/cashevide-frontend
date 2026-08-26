@@ -179,7 +179,7 @@ export default function LegalDocumentScreen() {
       return;
     }
 
-    router.replace(isAuthenticated ? ROUTES.reviews.home : ROUTES.welcome);
+    router.replace(isAuthenticated ? ROUTES.home : ROUTES.welcome);
   }
 
   if (legalDocumentQuery.isLoading) {
