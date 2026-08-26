@@ -15,6 +15,11 @@ type DashboardSummaryCardProps = {
   currency: string;
 };
 
+// On native this renders as one row in a plain list (label left, amount
+// right, hairline divider below). On web it becomes a standalone cell in
+// a 2-column grid instead — same label/amount pairing, but stacked
+// vertically like a mini stat card, since a wide card with only two
+// text columns would otherwise leave the row looking sparse.
 function SummaryRow({
   label,
   bucket,
@@ -27,19 +32,30 @@ function SummaryRow({
   isLast: boolean;
 }) {
   const amount = bucket[currency];
+  const formattedAmount =
+    amount != null ? formatDashboardAmount(amount, currency) : "—";
 
   return (
     <View
       className={cn(
         "flex-row items-center justify-between py-2.5",
-        !isLast && "border-b border-border/50",
+        "web:w-[calc(50%-8px)] web:flex-col web:items-start web:justify-center",
+        "web:bg-background/40 web:border web:border-border/50 web:rounded-md",
+        "web:px-4 web:py-3 web:gap-1",
+        !isLast && "border-b border-border/50 web:border-b-0",
       )}
     >
-      <Text variant="body-sm" className="text-muted-foreground">
+      <Text
+        variant="body-sm"
+        className="text-muted-foreground web:text-xs web:uppercase web:tracking-widest web:font-bold"
+      >
         {label}
       </Text>
-      <Text variant="body-sm" className="font-semibold text-right">
-        {amount != null ? formatDashboardAmount(amount, currency) : "—"}
+      <Text
+        variant="body-sm"
+        className="font-semibold text-right web:text-lg web:text-left"
+      >
+        {formattedAmount}
       </Text>
     </View>
   );
@@ -62,20 +78,22 @@ export default function DashboardSummaryCard({
   ];
 
   return (
-    <View className="bg-card border border-border rounded-lg p-4 gap-1">
+    <View className="flex-1 bg-card border border-border rounded-lg p-4 web:p-5 gap-1 web:gap-2">
       <Text variant="body-sm" className="font-semibold mb-1">
         Revenue Breakdown
       </Text>
 
-      {rows.map((row, index) => (
-        <SummaryRow
-          key={row.label}
-          label={row.label}
-          bucket={row.bucket}
-          currency={currency}
-          isLast={index === rows.length - 1}
-        />
-      ))}
+      <View className="web:flex-row web:flex-wrap web:gap-2">
+        {rows.map((row, index) => (
+          <SummaryRow
+            key={row.label}
+            label={row.label}
+            bucket={row.bucket}
+            currency={currency}
+            isLast={index === rows.length - 1}
+          />
+        ))}
+      </View>
     </View>
   );
 }

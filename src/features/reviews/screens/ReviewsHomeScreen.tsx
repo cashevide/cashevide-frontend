@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Platform, Pressable, View } from "react-native";
+import { Platform, View } from "react-native";
 import { router } from "expo-router";
 
 import { useCreateReviewedClient } from "../hooks/useCreateReviewedClient";
@@ -7,20 +7,13 @@ import { ROUTES } from "@/src/shared/navigation/routes";
 import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
-import {
-  Text,
-  Button,
-  Logo,
-  PhoneNumberInput,
-  InfoDialog,
-} from "@/src/shared/ui";
+import { Text, Button, PhoneNumberInput } from "@/src/shared/ui";
 
 export default function ReviewsHomeScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [validationError, setValidationError] = useState<string | undefined>(
     undefined,
   );
-  const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
   const createReviewedClient = useCreateReviewedClient();
 
   function handleSearchOrAddReview() {
@@ -84,20 +77,7 @@ export default function ReviewsHomeScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader containerVariant="desktop">
-        <View className="flex-row items-center justify-between">
-          <Logo width={28} />
-
-          {/* Placeholder — real credit-points value/description to
-              follow once the credit-points API/design is finalized. */}
-          <Pressable
-            onPress={() => setIsCreditModalOpen(true)}
-            className="px-3 py-1.5 rounded-full bg-secondary"
-          >
-            <Text variant="body-sm">Credits</Text>
-          </Pressable>
-        </View>
-      </ScreenHeader>
+      <ScreenHeader title="Reviews" containerVariant="desktop" />
 
       {Platform.OS === "web" ? (
         <Container variant="desktop" safeArea="bottom" scroll>
@@ -108,13 +88,6 @@ export default function ReviewsHomeScreen() {
           {content}
         </Container>
       )}
-
-      <InfoDialog
-        visible={isCreditModalOpen}
-        onDismiss={() => setIsCreditModalOpen(false)}
-        title="Credit points"
-        message="Your credit-points details will show up here soon."
-      />
     </View>
   );
 }

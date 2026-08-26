@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
-import { View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 
 import { useInvoiceDashboard } from "../hooks/useInvoiceDashboard";
+import { useBusinessProfile } from "@/src/features/business-profile/hooks/useBusinessProfile";
 import { ROUTES } from "@/src/shared/navigation/routes";
 import { getAvailableCurrencies } from "../utils/invoiceDashboardUtils";
 import InvoiceSubTabs from "../components/InvoiceSubTabs";
@@ -12,13 +13,20 @@ import DashboardBalanceDueCard from "../components/DashboardBalanceDueCard";
 import DashboardSummaryCard from "../components/DashboardSummaryCard";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
-import { Text, Button, Spinner } from "@/src/shared/ui";
+import { Text, Button, Logo, InfoDialog, Spinner } from "@/src/shared/ui";
 
 import type { InvoiceDashboardResponse } from "../types/invoiceDashboardTypes";
 
+// Logo takes width as a numeric SVG prop, not className, so the web/
+// native size difference has to be a platform check rather than a
+// NativeWind web: class — same reasoning as ScreenHeader's back icon.
+const LOGO_WIDTH = Platform.OS === "web" ? 40 : 28;
+
 export default function InvoiceDashboardScreen() {
   const dashboard = useInvoiceDashboard();
+  const businessProfile = useBusinessProfile();
   const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
+  const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -29,7 +37,20 @@ export default function InvoiceDashboardScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Invoices" containerVariant="desktop" />
+      <ScreenHeader containerVariant="desktop">
+        <View className="flex-row items-center justify-between">
+          <Logo width={LOGO_WIDTH} />
+
+          {/* Placeholder — real credit-points value/description to
+              follow once the credit-points API/design is finalized. */}
+          <Pressable
+            onPress={() => setIsCreditModalOpen(true)}
+            className="px-3 py-1.5 rounded-full bg-secondary"
+          >
+            <Text variant="body-sm">Credits</Text>
+          </Pressable>
+        </View>
+      </ScreenHeader>
 
       <Container variant="desktop" safeArea="bottom" scroll>
         <View className="px-6 py-6 gap-6">
@@ -50,10 +71,18 @@ export default function InvoiceDashboardScreen() {
               data={dashboard.data}
               selectedCurrency={selectedCurrency}
               onSelectCurrency={setSelectedCurrency}
+              preferredCurrency={businessProfile.data?.currency}
             />
           )}
         </View>
       </Container>
+
+      <InfoDialog
+        visible={isCreditModalOpen}
+        onDismiss={() => setIsCreditModalOpen(false)}
+        title="Credit points"
+        message="Your credit-points details will show up here soon."
+      />
     </View>
   );
 }
@@ -62,15 +91,17 @@ function DashboardContent({
   data,
   selectedCurrency,
   onSelectCurrency,
+  preferredCurrency,
 }: {
   data: InvoiceDashboardResponse;
   selectedCurrency: string | null;
   onSelectCurrency: (currency: string) => void;
+  preferredCurrency?: string | null;
 }) {
   const { revenue, balance_due } = data;
   const availableCurrencies = getAvailableCurrencies(
-    revenue.total,
-    balance_due.total,
+    [revenue.total, balance_due.total],
+    preferredCurrency,
   );
   const activeCurrency = selectedCurrency ?? availableCurrencies[0] ?? null;
 
@@ -107,8 +138,8 @@ function DashboardContent({
       />
 
       {activeCurrency && (
-        <View className="gap-4">
-          <View className="flex-row gap-3">
+        <View className="gap-3 web:flex-row web:items-stretch">
+          <View className="flex-row gap-3 web:flex-col web:flex-1 web:gap-3 web:self-start">
             <DashboardReceivedCard
               totalRevenue={revenue.total}
               currency={activeCurrency}
@@ -119,14 +150,16 @@ function DashboardContent({
             />
           </View>
 
-          <DashboardSummaryCard
-            thisMonth={revenue.this_month}
-            lastMonth={revenue.last_month}
-            lastThreeMonths={revenue.last_three_months}
-            thisYear={revenue.this_year}
-            lastYear={revenue.last_year}
-            currency={activeCurrency}
-          />
+          <View className="web:flex-[3]">
+            <DashboardSummaryCard
+              thisMonth={revenue.this_month}
+              lastMonth={revenue.last_month}
+              lastThreeMonths={revenue.last_three_months}
+              thisYear={revenue.this_year}
+              lastYear={revenue.last_year}
+              currency={activeCurrency}
+            />
+          </View>
         </View>
       )}
     </>
