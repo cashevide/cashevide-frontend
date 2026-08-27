@@ -15,7 +15,7 @@ import {
   Text,
   Button,
   SearchInput,
-  PillTabs,
+  SegmentedTabs,
   Spinner,
   InfoDialog,
 } from "@/src/shared/ui";
@@ -95,11 +95,11 @@ export default function InvoiceProductsScreen() {
       <Pressable
         onPress={() => router.push(ROUTES.invoices.products.detail(item.slug))}
         style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-        className="gap-1 border-b border-border py-3"
+        className="gap-1 bg-card border border-border rounded-lg p-4"
       >
         <View className="flex-row items-center justify-between gap-2">
           <Text
-            variant="body"
+            variant="body-lg"
             className="flex-1 font-semibold"
             numberOfLines={1}
           >
@@ -144,25 +144,32 @@ export default function InvoiceProductsScreen() {
 
             {isDesktopLayout && (
               <Button
-                variant="primary"
+                variant="brand"
                 title="New Product"
                 leftIcon={
-                  <PlusIcon color="rgb(var(--color-primary-foreground))" />
+                  <PlusIcon color="rgb(var(--color-brand-foreground))" />
                 }
                 onPress={handleAddProductPress}
               />
             )}
           </View>
 
-          <View className="flex-row items-center justify-between">
-            <PillTabs
-              items={ORDERING_OPTIONS}
-              activeKey={ordering ?? ORDERING_OPTIONS[0].key}
-              onSelect={(key) =>
-                setOrdering(key as GetProductsParams["ordering"])
-              }
-              className="flex-1"
-            />
+          <SegmentedTabs
+            items={ORDERING_OPTIONS}
+            activeKey={ordering ?? ORDERING_OPTIONS[0].key}
+            onSelect={(key) =>
+              setOrdering(key as GetProductsParams["ordering"])
+            }
+          />
+
+          <View className="flex-row items-center justify-between px-7">
+            {!products.isLoading && allProducts.length > 0 ? (
+              <Text variant="caption">
+                {totalCount} {totalCount === 1 ? "product" : "products"}
+              </Text>
+            ) : (
+              <View />
+            )}
 
             <Pressable
               onPress={() => router.push(ROUTES.invoices.products.archived)}
@@ -172,12 +179,6 @@ export default function InvoiceProductsScreen() {
               </Text>
             </Pressable>
           </View>
-
-          {!products.isLoading && allProducts.length > 0 && (
-            <Text variant="caption">
-              {totalCount} {totalCount === 1 ? "product" : "products"}
-            </Text>
-          )}
 
           {products.isLoading ? (
             <View>
@@ -206,6 +207,10 @@ export default function InvoiceProductsScreen() {
               data={allProducts}
               keyExtractor={(item) => item.slug}
               renderItem={renderProductRow}
+              ItemSeparatorComponent={() => <View className="h-3" />}
+              // web:pr-2 keeps the browser's native scrollbar off the
+              // card content — see Container.tsx's ScrollView.
+              contentContainerClassName="web:pr-2"
               onEndReached={() => {
                 if (products.hasNextPage && !products.isFetchingNextPage) {
                   products.fetchNextPage();
@@ -220,16 +225,6 @@ export default function InvoiceProductsScreen() {
                 ) : null
               }
             />
-          )}
-
-          {productUsage.data && (
-            <Text variant="caption" className="text-center">
-              {productUsage.data.current_product_count}
-              {productUsage.data.max_allowed_product != null
-                ? ` / ${productUsage.data.max_allowed_product}`
-                : ""}{" "}
-              products used
-            </Text>
           )}
         </View>
 

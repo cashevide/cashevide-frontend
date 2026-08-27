@@ -14,7 +14,7 @@ import {
   Text,
   Button,
   SearchInput,
-  PillTabs,
+  SegmentedTabs,
   Spinner,
   InfoDialog,
 } from "@/src/shared/ui";
@@ -92,10 +92,10 @@ export default function ArchivedProductsScreen() {
       <Pressable
         onPress={() => router.push(ROUTES.invoices.products.detail(item.slug))}
         style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-        className="flex-row items-center gap-3 border-b border-border py-3"
+        className="flex-row items-center gap-3 bg-card border border-border rounded-lg p-4"
       >
         <View className="flex-1 gap-0.5">
-          <Text variant="body" className="font-semibold" numberOfLines={1}>
+          <Text variant="body-lg" className="font-semibold" numberOfLines={1}>
             {item.title}
           </Text>
           <Text
@@ -139,7 +139,7 @@ export default function ArchivedProductsScreen() {
             placeholder="Search by title"
           />
 
-          <PillTabs
+          <SegmentedTabs
             items={ORDERING_OPTIONS}
             activeKey={ordering ?? ORDERING_OPTIONS[0].key}
             onSelect={(key) =>
@@ -148,7 +148,7 @@ export default function ArchivedProductsScreen() {
           />
 
           {!archivedProducts.isLoading && allArchivedProducts.length > 0 && (
-            <Text variant="caption">
+            <Text variant="caption" className="px-7">
               {totalCount} archived {totalCount === 1 ? "product" : "products"}
             </Text>
           )}
@@ -179,6 +179,10 @@ export default function ArchivedProductsScreen() {
               data={allArchivedProducts}
               keyExtractor={(item) => item.slug}
               renderItem={renderProductRow}
+              ItemSeparatorComponent={() => <View className="h-3" />}
+              // web:pr-2 keeps the browser's native scrollbar off the
+              // card content — see Container.tsx's ScrollView.
+              contentContainerClassName="web:pr-2"
               onEndReached={() => {
                 if (
                   archivedProducts.hasNextPage &&

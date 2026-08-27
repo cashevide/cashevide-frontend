@@ -14,7 +14,7 @@ import {
   Text,
   Button,
   SearchInput,
-  PillTabs,
+  SegmentedTabs,
   Spinner,
   Avatar,
   InfoDialog,
@@ -94,12 +94,12 @@ export default function ArchivedClientsScreen() {
       <Pressable
         onPress={() => router.push(ROUTES.invoices.clients.detail(item.slug))}
         style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-        className="flex-row items-center gap-3 border-b border-border py-3"
+        className="flex-row items-center gap-3 bg-card border border-border rounded-lg p-4"
       >
         <Avatar name={item.name} size={40} />
 
         <View className="flex-1 gap-0.5">
-          <Text variant="body" className="font-semibold" numberOfLines={1}>
+          <Text variant="body-lg" className="font-semibold" numberOfLines={1}>
             {item.name}
           </Text>
           <Text
@@ -143,14 +143,14 @@ export default function ArchivedClientsScreen() {
             placeholder="Search by name, email or phone"
           />
 
-          <PillTabs
+          <SegmentedTabs
             items={ORDERING_OPTIONS}
             activeKey={ordering ?? ORDERING_OPTIONS[0].key}
             onSelect={(key) => setOrdering(key as GetClientsParams["ordering"])}
           />
 
           {!archivedClients.isLoading && allArchivedClients.length > 0 && (
-            <Text variant="caption">
+            <Text variant="caption" className="px-7">
               {totalCount} archived {totalCount === 1 ? "client" : "clients"}
             </Text>
           )}
@@ -181,6 +181,10 @@ export default function ArchivedClientsScreen() {
               data={allArchivedClients}
               keyExtractor={(item) => item.slug}
               renderItem={renderClientRow}
+              ItemSeparatorComponent={() => <View className="h-3" />}
+              // web:pr-2 keeps the browser's native scrollbar off the
+              // card content — see Container.tsx's ScrollView.
+              contentContainerClassName="web:pr-2"
               onEndReached={() => {
                 if (
                   archivedClients.hasNextPage &&

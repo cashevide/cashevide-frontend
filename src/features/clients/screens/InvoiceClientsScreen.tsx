@@ -15,7 +15,7 @@ import {
   Text,
   Button,
   SearchInput,
-  PillTabs,
+  SegmentedTabs,
   Spinner,
   Avatar,
   InfoDialog,
@@ -96,12 +96,12 @@ export default function InvoiceClientsScreen() {
       <Pressable
         onPress={() => router.push(ROUTES.invoices.clients.detail(item.slug))}
         style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-        className="flex-row items-center gap-3 border-b border-border py-3"
+        className="flex-row items-center gap-3 bg-card border border-border rounded-lg p-4"
       >
         <Avatar name={item.name} size={40} />
 
         <View className="flex-1 gap-0.5">
-          <Text variant="body" className="font-semibold" numberOfLines={1}>
+          <Text variant="body-lg" className="font-semibold" numberOfLines={1}>
             {item.name}
           </Text>
           <Text
@@ -137,25 +137,30 @@ export default function InvoiceClientsScreen() {
 
             {isDesktopLayout && (
               <Button
-                variant="primary"
+                variant="brand"
                 title="New Client"
                 leftIcon={
-                  <PlusIcon color="rgb(var(--color-primary-foreground))" />
+                  <PlusIcon color="rgb(var(--color-brand-foreground))" />
                 }
                 onPress={handleAddClientPress}
               />
             )}
           </View>
 
-          <View className="flex-row items-center justify-between">
-            <PillTabs
-              items={ORDERING_OPTIONS}
-              activeKey={ordering ?? ORDERING_OPTIONS[0].key}
-              onSelect={(key) =>
-                setOrdering(key as GetClientsParams["ordering"])
-              }
-              className="flex-1"
-            />
+          <SegmentedTabs
+            items={ORDERING_OPTIONS}
+            activeKey={ordering ?? ORDERING_OPTIONS[0].key}
+            onSelect={(key) => setOrdering(key as GetClientsParams["ordering"])}
+          />
+
+          <View className="flex-row items-center justify-between px-7">
+            {!clients.isLoading && allClients.length > 0 ? (
+              <Text variant="caption">
+                {totalCount} {totalCount === 1 ? "client" : "clients"}
+              </Text>
+            ) : (
+              <View />
+            )}
 
             <Pressable
               onPress={() => router.push(ROUTES.invoices.clients.archived)}
@@ -165,12 +170,6 @@ export default function InvoiceClientsScreen() {
               </Text>
             </Pressable>
           </View>
-
-          {!clients.isLoading && allClients.length > 0 && (
-            <Text variant="caption">
-              {totalCount} {totalCount === 1 ? "client" : "clients"}
-            </Text>
-          )}
 
           {clients.isLoading ? (
             <View>
@@ -199,6 +198,10 @@ export default function InvoiceClientsScreen() {
               data={allClients}
               keyExtractor={(item) => item.slug}
               renderItem={renderClientRow}
+              ItemSeparatorComponent={() => <View className="h-3" />}
+              // web:pr-2 keeps the browser's native scrollbar off the
+              // card content — see Container.tsx's ScrollView.
+              contentContainerClassName="web:pr-2"
               onEndReached={() => {
                 if (clients.hasNextPage && !clients.isFetchingNextPage) {
                   clients.fetchNextPage();
@@ -213,16 +216,6 @@ export default function InvoiceClientsScreen() {
                 ) : null
               }
             />
-          )}
-
-          {clientUsage.data && (
-            <Text variant="caption" className="text-center">
-              {clientUsage.data.current_client_count}
-              {clientUsage.data.max_allowed_client != null
-                ? ` / ${clientUsage.data.max_allowed_client}`
-                : ""}{" "}
-              clients used
-            </Text>
           )}
         </View>
 

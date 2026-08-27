@@ -105,7 +105,7 @@ export function Button({
       accessibilityLabel={accessibilityLabel ?? title}
       className={cn(
         "flex-row items-center justify-center",
-        isLinkVariant ? "px-0 h-auto" : "rounded-full",
+        isLinkVariant ? "px-0 h-auto" : "rounded-lg",
         !isLinkVariant && SIZE_CLASS[size],
         fullWidth && !isIconOnly && "w-full",
         BG_CLASS[variant],
