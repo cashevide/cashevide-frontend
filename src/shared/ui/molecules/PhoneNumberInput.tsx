@@ -270,6 +270,9 @@ export function PhoneNumberInput({
             data={filteredCountries}
             keyExtractor={(item) => item.cca2}
             style={{ maxHeight: 360 }}
+            // web:pr-2 keeps the browser's native scrollbar off the row
+            // content — see CurrencyPicker.tsx for the full explanation.
+            className="web:pr-2"
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <Pressable

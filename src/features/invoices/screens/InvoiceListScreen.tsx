@@ -3,6 +3,7 @@ import { FlatList, Pressable, useWindowDimensions, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
+  DocumentTextIcon,
   FunnelIcon,
   PlusIcon,
   XMarkIcon,
@@ -17,7 +18,13 @@ import InvoiceStatusBadge from "../components/InvoiceStatusBadge";
 import InvoiceFilterModal from "../components/InvoiceFilterModal";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
-import { Text, SearchInput, PillTabs, Spinner, Button } from "@/src/shared/ui";
+import {
+  Text,
+  SearchInput,
+  SegmentedTabs,
+  Spinner,
+  Button,
+} from "@/src/shared/ui";
 
 import type { InvoiceFilters } from "../components/InvoiceFilterModal";
 import type { GetInvoicesParams } from "../api/invoicesApi";
@@ -50,6 +57,21 @@ const STATUS_LABELS: Record<NonNullable<InvoiceFilters["status"]>, string> = {
 
 function formatAmount(amount: string, currency: string): string {
   return `${currency || ""} ${amount}`.trim();
+}
+
+// due_date is a plain "YYYY-MM-DD" string from the backend — Date parses
+// that directly. Comparing against the start of today (not `new Date()`
+// as-is) means an invoice due today doesn't get flagged overdue just
+// because the current time is past midnight.
+function isOverdue(dueDate: string | null): boolean {
+  if (!dueDate) {
+    return false;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return new Date(dueDate) < today;
 }
 
 // One removable chip per active filter key — lets the person see (and
@@ -157,33 +179,82 @@ export default function InvoiceListScreen() {
   }
 
   function renderInvoiceRow({ item }: { item: Invoice }) {
+    const itemCount = item.items.length;
+    const overdue = item.status !== "PAID" && isOverdue(item.due_date);
+
+    // Draft invoices aren't finalized yet — total_amount/balance_due can
+    // look like odd or negative placeholder values at this stage
+    // (backend recalculates once items are locked in), so showing them
+    // prominently here would read as a real amount owed. A plain status
+    // line avoids that confusion; the real numbers show once the
+    // invoice is actually sent.
+    const isDraft = item.status === "DRAFT";
+
+    // PAID: the full amount is what mattered, and it's all been
+    // collected — show total_amount. Everything else (UNPAID,
+    // PARTIALLY_PAID): what's still owed is the number a freelancer
+    // actually needs at a glance, so show balance_due instead — a
+    // partially-paid invoice showing its full total would otherwise
+    // read as "still owe the whole thing."
+    const amountLabel = item.status === "PAID" ? "Total" : "Balance Due";
+    const amountValue =
+      item.status === "PAID" ? item.total_amount : item.balance_due;
+
     return (
       <Pressable
         onPress={() => router.push(ROUTES.invoices.detail(item.id))}
         style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-        className="gap-1 border-b border-border py-3"
+        className="gap-3 bg-card border border-border rounded-lg p-4"
       >
-        <View className="flex-row items-center justify-between gap-2">
-          <Text variant="body" className="font-semibold">
-            {item.invoice_number}
+        <View className="flex-row items-center gap-3 px-3">
+          <Text
+            variant="body-lg"
+            className="flex-shrink font-semibold"
+            numberOfLines={1}
+          >
+            {item.name || "Untitled Client"}
           </Text>
-          <InvoiceStatusBadge status={item.status} />
-        </View>
 
-        <View className="flex-row items-center justify-between gap-2">
           <Text
             variant="body-sm"
             className="flex-1 text-muted-foreground"
             numberOfLines={1}
           >
-            {item.name || "Untitled Client"}
+            {item.invoice_number}
+            {itemCount > 0 &&
+              ` · ${itemCount} ${itemCount === 1 ? "item" : "items"}`}
           </Text>
-          <Text variant="body-sm" className="font-semibold text-right">
-            {formatAmount(item.total_amount, item.currency)}
-          </Text>
+
+          <InvoiceStatusBadge status={item.status} />
         </View>
 
-        {item.due_date && <Text variant="caption">Due {item.due_date}</Text>}
+        {isDraft ? (
+          <Text variant="body-sm" className="text-muted-foreground">
+            Not sent yet
+          </Text>
+        ) : (
+          <View className="flex-row items-center justify-between gap-2 bg-background/40 border border-border/50 rounded-md py-2.5 px-3">
+            <View className="gap-0.5">
+              <Text variant="caption">{amountLabel}</Text>
+
+              {!!item.due_date && (
+                <Text
+                  variant="caption"
+                  className={
+                    overdue ? "text-destructive-text font-semibold" : ""
+                  }
+                >
+                  {overdue ? "Overdue since " : "Due "}
+                  {item.due_date}
+                </Text>
+              )}
+            </View>
+
+            <Text variant="body-lg" className="font-semibold">
+              {formatAmount(amountValue, item.currency)}
+            </Text>
+          </View>
+        )}
       </Pressable>
     );
   }
@@ -227,10 +298,10 @@ export default function InvoiceListScreen() {
 
             {isDesktopLayout && (
               <Button
-                variant="primary"
+                variant="brand"
                 title="New Invoice"
                 leftIcon={
-                  <PlusIcon color="rgb(var(--color-primary-foreground))" />
+                  <DocumentTextIcon color="rgb(var(--color-brand-foreground))" />
                 }
                 onPress={() => router.push(ROUTES.invoices.create)}
               />
@@ -256,7 +327,7 @@ export default function InvoiceListScreen() {
             </View>
           )}
 
-          <PillTabs
+          <SegmentedTabs
             items={ORDERING_OPTIONS}
             activeKey={ordering ?? ORDERING_OPTIONS[0].key}
             onSelect={(key) =>
@@ -265,7 +336,7 @@ export default function InvoiceListScreen() {
           />
 
           {!invoices.isLoading && allInvoices.length > 0 && (
-            <Text variant="caption">
+            <Text variant="caption" className="px-7">
               {totalCount} {totalCount === 1 ? "invoice" : "invoices"}
             </Text>
           )}
@@ -299,6 +370,11 @@ export default function InvoiceListScreen() {
               data={allInvoices}
               keyExtractor={(item) => String(item.id)}
               renderItem={renderInvoiceRow}
+              ItemSeparatorComponent={() => <View className="h-3" />}
+              // See Container.tsx's ScrollView for why this is needed on
+              // web only — the browser's native scrollbar sits flush
+              // against content unlike native's floating indicator.
+              contentContainerClassName="web:pr-2"
               onEndReached={() => {
                 if (invoices.hasNextPage && !invoices.isFetchingNextPage) {
                   invoices.fetchNextPage();

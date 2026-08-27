@@ -152,6 +152,11 @@ export const CurrencyPicker = ({
             data={filteredOptions}
             keyExtractor={(item) => item.cca2}
             style={{ maxHeight: 360 }}
+            // web:pr-2 keeps the browser's native scrollbar off the row
+            // content — this FlatList is its own independent scroll
+            // container nested inside Modal's ScrollView, so it needs
+            // the same fix applied separately (see Modal.tsx).
+            className="web:pr-2"
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <Pressable

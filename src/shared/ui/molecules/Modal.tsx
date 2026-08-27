@@ -57,7 +57,13 @@ export function Modal({
           )}
         >
           <ScrollView
-            className="shrink"
+            // web:pr-2 keeps the browser's native scrollbar off the
+            // content edge on web. This has to be on the ScrollView's
+            // own className (the actual scrolling element), not
+            // contentContainerClassName — that targets the inner
+            // content div, which sits inside the scrollable area and
+            // doesn't affect where the scrollbar itself sits.
+            className="shrink web:pr-2"
             contentContainerClassName="gap-2"
             showsVerticalScrollIndicator={true}
           >

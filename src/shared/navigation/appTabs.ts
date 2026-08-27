@@ -1,13 +1,13 @@
 import type { Href } from "expo-router";
 import {
   HomeIcon as HomeIconOutline,
-  DocumentTextIcon as DocumentTextIconOutline,
+  StarIcon as StarIconOutline,
   Cog6ToothIcon as Cog6ToothIconOutline,
   UserIcon as UserIconOutline,
 } from "react-native-heroicons/outline";
 import {
   HomeIcon as HomeIconSolid,
-  DocumentTextIcon as DocumentTextIconSolid,
+  StarIcon as StarIconSolid,
   Cog6ToothIcon as Cog6ToothIconSolid,
   UserIcon as UserIconSolid,
 } from "react-native-heroicons/solid";
@@ -42,8 +42,8 @@ export const APP_TABS: AppTabConfig[] = [
     name: "reviews",
     href: ROUTES.reviews.home,
     label: "Reviews",
-    iconOutline: DocumentTextIconOutline,
-    iconSolid: DocumentTextIconSolid,
+    iconOutline: StarIconOutline,
+    iconSolid: StarIconSolid,
   },
   {
     name: "settings",

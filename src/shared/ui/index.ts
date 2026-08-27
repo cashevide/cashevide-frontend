@@ -13,6 +13,8 @@ export { Divider } from "./atoms/Divider";
 export { SearchInput } from "./molecules/SearchInput";
 export { PillTabs } from "./molecules/PillTabs";
 export type { PillTabItem } from "./molecules/PillTabs";
+export { SegmentedTabs } from "./molecules/SegmentedTabs";
+export type { SegmentedTabItem } from "./molecules/SegmentedTabs";
 export { Modal } from "./molecules/Modal";
 export { ConfirmDialog } from "./molecules/ConfirmDialog";
 export { InfoDialog } from "./molecules/InfoDialog";
