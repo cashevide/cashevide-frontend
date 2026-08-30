@@ -191,15 +191,24 @@ export default function EditInvoiceScreen() {
   // in-progress payment edits would require replicating backend payment-
   // allocation logic on the client. The backend is the source of truth
   // for those two fields once the form is actually saved.
+  //
+  // id and business_snapshot are passed straight from the loaded
+  // invoice so the preview layouts treat this as a saved invoice and
+  // render business details from its frozen snapshot — never from the
+  // live business profile, since editing an existing invoice must not
+  // make the preview show details that don't match what's already
+  // baked into that invoice's PDF.
   const draftPreview: InvoicePreviewData | null = useMemo(() => {
     if (!invoiceDetails.data) {
       return null;
     }
 
     return {
+      id: invoiceDetails.data.id,
       invoice_number: invoiceDetails.data.invoice_number,
       status: invoiceDetails.data.status,
       template,
+      business_snapshot: invoiceDetails.data.business_snapshot,
       currency,
       issue_date: issueDate,
       due_date: dueDate,

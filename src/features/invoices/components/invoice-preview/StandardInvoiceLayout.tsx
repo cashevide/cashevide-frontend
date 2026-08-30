@@ -27,11 +27,33 @@ function formatMoney(amount: string, currency: string): string {
 export default function StandardInvoiceLayout({
   invoice,
 }: StandardInvoiceLayoutProps) {
-  const businessProfile = useBusinessProfile();
+  const liveBusinessProfile = useBusinessProfile();
 
-  const hasLogo = !!businessProfile.data?.logo;
-  const hasBusinessAddress = !!businessProfile.data?.address;
-  const hasBusinessPhone = !!businessProfile.data?.phone_number;
+  // A saved invoice (has an id) carries a frozen business_snapshot
+  // from creation time — that snapshot is the ONLY source used for it,
+  // even if it's somehow empty, so this preview always matches what
+  // download_pdf on the backend would actually render. Only an
+  // unsaved draft (no id yet) falls back to the live profile, since
+  // that's genuinely the data the backend will snapshot on first save.
+  const isSavedInvoice = invoice.id != null;
+  const snapshot = invoice.business_snapshot;
+
+  const businessName = isSavedInvoice
+    ? snapshot?.business_name
+    : liveBusinessProfile.data?.business_name;
+  const businessLogo = isSavedInvoice
+    ? snapshot?.logo
+    : liveBusinessProfile.data?.logo;
+  const businessAddress = isSavedInvoice
+    ? snapshot?.address
+    : liveBusinessProfile.data?.address;
+  const businessPhone = isSavedInvoice
+    ? snapshot?.phone_number
+    : liveBusinessProfile.data?.phone_number;
+
+  const hasLogo = !!businessLogo;
+  const hasBusinessAddress = !!businessAddress;
+  const hasBusinessPhone = !!businessPhone;
   const hasEmail = !!invoice.email;
   const hasPhone = !!invoice.phone;
   const hasAddress = !!invoice.address;
@@ -47,7 +69,7 @@ export default function StandardInvoiceLayout({
       <View className="items-center gap-1">
         {hasLogo && (
           <Image
-            source={{ uri: businessProfile.data?.logo ?? undefined }}
+            source={{ uri: businessLogo ?? undefined }}
             className="mb-1 h-12 w-12"
             resizeMode="contain"
           />
@@ -57,7 +79,7 @@ export default function StandardInvoiceLayout({
           className="font-semibold text-center"
           style={{ color: colors.cardForeground }}
         >
-          {businessProfile.data?.business_name || "Your Business"}
+          {businessName || "Your Business"}
         </Text>
         {hasBusinessAddress && (
           <Text
@@ -65,7 +87,7 @@ export default function StandardInvoiceLayout({
             className="text-center"
             style={{ color: colors.mutedForeground }}
           >
-            {businessProfile.data?.address}
+            {businessAddress}
           </Text>
         )}
         {hasBusinessPhone && (
@@ -74,7 +96,7 @@ export default function StandardInvoiceLayout({
             className="text-center"
             style={{ color: colors.mutedForeground }}
           >
-            {businessProfile.data?.phone_number}
+            {businessPhone}
           </Text>
         )}
 

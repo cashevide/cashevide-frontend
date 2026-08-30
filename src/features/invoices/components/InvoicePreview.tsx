@@ -1,4 +1,8 @@
-import type { InvoiceStatus, InvoiceTemplate } from "../types/invoiceTypes";
+import type {
+  InvoiceBusinessSnapshot,
+  InvoiceStatus,
+  InvoiceTemplate,
+} from "../types/invoiceTypes";
 import ClassicInvoiceLayout from "./invoice-preview/ClassicInvoiceLayout";
 import StandardInvoiceLayout from "./invoice-preview/StandardInvoiceLayout";
 
@@ -7,10 +11,20 @@ import StandardInvoiceLayout from "./invoice-preview/StandardInvoiceLayout";
 // the backend). The create screen builds one of these from live form
 // state; the detail/edit screens can pass a real saved Invoice
 // directly, since Invoice is a superset of this.
+//
+// `id` is the signal the layouts use to decide where business details
+// come from: absent means an unsaved draft (no business_snapshot
+// exists yet, so live business profile data is shown — matching what
+// the backend will actually snapshot on save). Present means a real
+// saved invoice, in which case business_snapshot is the ONLY source
+// used — never fall back to live data here, or the preview would show
+// something the downloaded PDF won't match.
 export type InvoicePreviewData = {
+  id?: number;
   invoice_number?: string;
   status?: InvoiceStatus;
   template?: InvoiceTemplate;
+  business_snapshot?: InvoiceBusinessSnapshot;
   currency: string;
   issue_date?: string | null;
   due_date?: string | null;

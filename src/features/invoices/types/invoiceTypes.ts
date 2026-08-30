@@ -20,6 +20,23 @@ export type InvoiceStatus = "DRAFT" | "UNPAID" | "PARTIALLY_PAID" | "PAID";
 // caught at compile time across the whole app.
 export type InvoiceTemplate = "classic" | "standard";
 
+// Frozen copy of the business profile, taken once when the invoice is
+// first saved on the backend (Invoice.save()) and never overwritten
+// after that — even if the user edits their business profile later.
+// Read-only: the backend rejects writes to this field regardless of
+// what's sent. Logo is a plain URL string here, not a file — the
+// backend snapshots business_profile.logo.url at creation time.
+export type InvoiceBusinessSnapshot = {
+  business_name: string;
+  logo: string;
+  gst_number: string;
+  vat_number: string;
+  address: string;
+  phone_number: string;
+  business_email: string;
+  website: string;
+};
+
 // -------------------- shared shape --------------------
 // This is the full InvoiceSerialzer shape — used for create response,
 // detail response, and update (PUT) response. All financial fields
@@ -33,6 +50,7 @@ export type Invoice = {
   email: string;
   phone: string;
   address: string;
+  business_snapshot: InvoiceBusinessSnapshot;
   invoice_number: string;
   items: InvoiceItem[];
   status: InvoiceStatus;
@@ -76,7 +94,8 @@ export type InvoicesListResponse = {
 // - `template` is optional — omitting it defaults to "classic" on the
 //   backend. Only "classic" | "standard" are accepted.
 // - Do NOT send status/invoice_number/subtotal/total_amount/amount_paid/
-//   balance_due — they are read-only and will be ignored/rejected.
+//   balance_due/business_snapshot — they are read-only and will be
+//   ignored/rejected.
 export type CreateInvoiceRequest = {
   client?: number | null;
   name?: string;
