@@ -24,6 +24,12 @@ export default function ProfileSubTabs() {
   }
 
   return (
-    <PillTabs items={TABS} activeKey={activeKey} onSelect={handleSelect} />
+    <PillTabs
+      items={TABS}
+      activeKey={activeKey}
+      onSelect={handleSelect}
+      centered
+      variant="segmented"
+    />
   );
 }

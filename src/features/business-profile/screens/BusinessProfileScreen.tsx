@@ -1,5 +1,13 @@
 import { View } from "react-native";
 import { router } from "expo-router";
+import {
+  MapPinIcon,
+  PhoneIcon,
+  EnvelopeIcon,
+  GlobeAltIcon,
+  CurrencyDollarIcon,
+  IdentificationIcon,
+} from "react-native-heroicons/outline";
 
 import ProfileSubTabs from "@/src/features/profile/components/ProfileSubTabs";
 import { useBusinessProfile } from "../hooks/useBusinessProfile";
@@ -7,22 +15,52 @@ import { useUpdateBusinessProfile } from "../hooks/useUpdateBusinessProfile";
 import { ROUTES } from "@/src/shared/navigation/routes";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
-import { Text, Button, Spinner, AvatarPicker } from "@/src/shared/ui";
+import {
+  Text,
+  Button,
+  Spinner,
+  AvatarPicker,
+  InfoListRow,
+} from "@/src/shared/ui";
 
-function InfoRow({ label, value }: { label: string; value?: string }) {
-  if (!value) return null;
+// Display-only — strips the protocol and any trailing slash so the
+// info row reads "cashevide.com" instead of "https://cashevide.com/".
+// The raw value (with protocol) is what's actually stored/edited; this
+// never touches that, only what's shown here. Regex rather than the
+// URL API, matching the codebase's existing getPageFromUrl precedent —
+// URL parsing isn't reliable across all React Native environments.
+function formatWebsiteForDisplay(url?: string): string | undefined {
+  if (!url) {
+    return url;
+  }
 
-  return (
-    <View className="gap-0.5">
-      <Text variant="caption">{label}</Text>
-      <Text variant="body">{value}</Text>
-    </View>
-  );
+  return url.replace(/^https?:\/\//i, "").replace(/\/+$/, "");
 }
 
 export default function BusinessProfileScreen() {
   const businessProfile = useBusinessProfile();
   const updateBusinessProfile = useUpdateBusinessProfile();
+
+  // GST and VAT are both optional and country-dependent — a business
+  // might have neither, one, or both. InfoListRow hides empty fields
+  // itself, so which row ends up drawn last (and therefore shouldn't
+  // have a bottom divider) isn't fixed; this finds the actual last
+  // populated field each render instead of assuming it's always VAT.
+  const lastFieldKey = businessProfile.data
+    ? (
+        [
+          ["address", businessProfile.data.address],
+          ["phone", businessProfile.data.phone_number],
+          ["email", businessProfile.data.business_email],
+          ["website", businessProfile.data.website],
+          ["currency", businessProfile.data.currency],
+          ["gst", businessProfile.data.gst_number],
+          ["vat", businessProfile.data.vat_number],
+        ] as const
+      )
+        .filter(([, value]) => !!value)
+        .at(-1)?.[0]
+    : undefined;
 
   return (
     <View className="flex-1 bg-background">
@@ -53,6 +91,7 @@ export default function BusinessProfileScreen() {
                     shape="square"
                     placeholderText="Add Logo"
                     fileName="logo.jpg"
+                    size={112}
                   />
 
                   <Text variant="heading" className="text-center">
@@ -61,34 +100,50 @@ export default function BusinessProfileScreen() {
                   </Text>
                 </View>
 
-                <View className="bg-card border border-border rounded-lg p-4 gap-4">
-                  <InfoRow
+                <View className="bg-card border border-border rounded-lg px-4">
+                  <InfoListRow
+                    icon={MapPinIcon}
                     label="Address"
                     value={businessProfile.data.address}
+                    isLast={lastFieldKey === "address"}
                   />
-                  <InfoRow
+                  <InfoListRow
+                    icon={PhoneIcon}
                     label="Phone"
                     value={businessProfile.data.phone_number}
+                    isLast={lastFieldKey === "phone"}
                   />
-                  <InfoRow
+                  <InfoListRow
+                    icon={EnvelopeIcon}
                     label="Email"
                     value={businessProfile.data.business_email}
+                    isLast={lastFieldKey === "email"}
                   />
-                  <InfoRow
+                  <InfoListRow
+                    icon={GlobeAltIcon}
                     label="Website"
-                    value={businessProfile.data.website}
+                    value={formatWebsiteForDisplay(
+                      businessProfile.data.website,
+                    )}
+                    isLast={lastFieldKey === "website"}
                   />
-                  <InfoRow
+                  <InfoListRow
+                    icon={CurrencyDollarIcon}
                     label="Currency"
                     value={businessProfile.data.currency}
+                    isLast={lastFieldKey === "currency"}
                   />
-                  <InfoRow
+                  <InfoListRow
+                    icon={IdentificationIcon}
                     label="GST Number"
                     value={businessProfile.data.gst_number}
+                    isLast={lastFieldKey === "gst"}
                   />
-                  <InfoRow
+                  <InfoListRow
+                    icon={IdentificationIcon}
                     label="VAT Number"
                     value={businessProfile.data.vat_number}
+                    isLast={lastFieldKey === "vat"}
                   />
                 </View>
 

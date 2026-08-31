@@ -76,6 +76,34 @@ export default function DesignAvatarPicker() {
           </View>
         </View>
 
+        {/* Sizes */}
+        <View className="gap-6">
+          <Text variant="heading">Sizes</Text>
+
+          <View className="flex-row flex-wrap items-end gap-10 pt-5 pb-14 border-b border-border">
+            <View className="items-center gap-3">
+              <AvatarPicker
+                imageUri="https://i.pravatar.cc/150?img=5"
+                onPick={() => {}}
+              />
+              <Text variant="caption" className="text-muted-foreground">
+                Default (80px)
+              </Text>
+            </View>
+
+            <View className="items-center gap-3">
+              <AvatarPicker
+                imageUri="https://i.pravatar.cc/150?img=8"
+                onPick={() => {}}
+                size={112}
+              />
+              <Text variant="caption" className="text-muted-foreground">
+                size=112 — used on Personal Profile
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* No remove handler */}
         <View className="gap-6">
           <Text variant="heading">Without Remove</Text>

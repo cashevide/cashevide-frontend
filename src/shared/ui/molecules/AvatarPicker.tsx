@@ -25,6 +25,12 @@ type AvatarPickerProps = {
   shape?: "circle" | "square";
   placeholderText?: string;
   fileName?: string;
+  // Defaults to 80 (the size this component always used before this
+  // prop existed) — pass a larger value for screens that want the
+  // photo more prominent, like a personal profile's own avatar. The
+  // camera badge scales proportionally so it doesn't look undersized
+  // next to a larger photo.
+  size?: number;
 };
 
 const SHAPE_CLASS: Record<"circle" | "square", string> = {
@@ -68,6 +74,7 @@ export const AvatarPicker = ({
   shape = "circle",
   placeholderText = "Add Photo",
   fileName = "image.jpg",
+  size = 80,
 }: AvatarPickerProps) => {
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState<string | null>(null);
@@ -120,6 +127,11 @@ export const AvatarPicker = ({
   const displayUri = previewUri ?? imageUri;
   const shapeClass = SHAPE_CLASS[shape];
   const hasImage = !!displayUri;
+  // 30% of the avatar size — matches the original fixed 24px badge on
+  // the original fixed 80px avatar (24/80 = 0.3), so it scales with
+  // size instead of looking undersized on a larger photo.
+  const badgeSize = Math.round(size * 0.3);
+  const badgeIconSize = Math.round(badgeSize * 0.5);
 
   return (
     <View className="items-center gap-1">
@@ -130,11 +142,13 @@ export const AvatarPicker = ({
         {displayUri ? (
           <Image
             source={{ uri: displayUri }}
-            className={`h-20 w-20 ${shapeClass}`}
+            style={{ height: size, width: size }}
+            className={shapeClass}
           />
         ) : (
           <View
-            className={`h-20 w-20 items-center justify-center bg-muted ${shapeClass}`}
+            style={{ height: size, width: size }}
+            className={`items-center justify-center bg-muted ${shapeClass}`}
           >
             <Text
               variant="caption"
@@ -147,11 +161,15 @@ export const AvatarPicker = ({
 
         {/* Camera badge overlay — signals this image is tappable/editable,
             distinct from the read-only Avatar atom which has no such
-            affordance. */}
-        <View className="absolute bottom-0 right-0 h-6 w-6 items-center justify-center rounded-full bg-primary border-2 border-background">
+            affordance. Sized proportionally to the avatar (see
+            badgeSize above) rather than a fixed size. */}
+        <View
+          style={{ height: badgeSize, width: badgeSize }}
+          className="absolute bottom-0 right-0 items-center justify-center rounded-full bg-primary border-2 border-background"
+        >
           <CameraIcon
-            width={12}
-            height={12}
+            width={badgeIconSize}
+            height={badgeIconSize}
             color="rgb(var(--color-primary-foreground))"
           />
         </View>
