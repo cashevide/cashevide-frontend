@@ -1,11 +1,11 @@
 import { PropsWithChildren } from "react";
-import { Platform, Pressable, View } from "react-native";
+import { Platform, View } from "react-native";
 import { router } from "expo-router";
-import { ArrowLeftIcon } from "react-native-heroicons/outline";
+import { ChevronLeftIcon } from "react-native-heroicons/outline";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { cn } from "@/src/shared/utils/cn";
-import { Text } from "@/src/shared/ui";
+import { Text, Button } from "@/src/shared/ui";
 
 type ContainerVariant = "narrow" | "desktop" | "full";
 
@@ -18,7 +18,7 @@ const VARIANT_CLASS: Record<ContainerVariant, string> = {
 // react-native-heroicons takes width/height as numeric props, not
 // className, so this can't be done with a web: prefix like the rest of
 // the header — it needs an actual platform check.
-const BACK_ICON_SIZE = Platform.OS === "web" ? 26 : 22;
+const BACK_ICON_SIZE = Platform.OS === "web" ? 18 : 16;
 
 type ScreenHeaderProps = PropsWithChildren<{
   // Simple case — most screens just need a title. For anything more
@@ -69,18 +69,19 @@ export function ScreenHeader({
       <View className={cn("w-full mx-auto", VARIANT_CLASS[containerVariant])}>
         <View className="h-14 web:h-20 flex-row items-center gap-3 px-6">
           {showBackButton && (
-            <Pressable
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              icon={
+                <ChevronLeftIcon
+                  width={BACK_ICON_SIZE}
+                  height={BACK_ICON_SIZE}
+                />
+              }
               onPress={handleBackPress}
-              accessibilityRole="button"
               accessibilityLabel="Go back"
-              className="h-9 w-9 items-center justify-center rounded-full -ml-2"
-            >
-              <ArrowLeftIcon
-                width={BACK_ICON_SIZE}
-                height={BACK_ICON_SIZE}
-                color="rgb(var(--color-foreground))"
-              />
-            </Pressable>
+            />
           )}
 
           {children ? (

@@ -127,7 +127,30 @@ export default function InvoiceProductsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Products" containerVariant="desktop" />
+      <ScreenHeader containerVariant="desktop">
+        <View className="flex-row items-center justify-between">
+          <Text variant="body-lg" className="font-semibold web:text-2xl">
+            Products
+          </Text>
+
+          {isDesktopLayout && (
+            <Button
+              variant="brand"
+              shape="md"
+              size="sm"
+              title="New Product"
+              leftIcon={
+                <PlusIcon
+                  width={16}
+                  height={16}
+                  color="rgb(var(--color-brand-foreground))"
+                />
+              }
+              onPress={handleAddProductPress}
+            />
+          )}
+        </View>
+      </ScreenHeader>
 
       <Container variant="desktop" safeArea="bottom">
         <View className="flex-1 px-6 py-6 gap-4">
@@ -141,18 +164,6 @@ export default function InvoiceProductsScreen() {
               placeholder="Search by title"
               className="flex-1"
             />
-
-            {isDesktopLayout && (
-              <Button
-                variant="brand"
-                shape="md"
-                title="New Product"
-                leftIcon={
-                  <PlusIcon color="rgb(var(--color-brand-foreground))" />
-                }
-                onPress={handleAddProductPress}
-              />
-            )}
           </View>
 
           <SegmentedTabs

@@ -120,7 +120,30 @@ export default function InvoiceClientsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Clients" containerVariant="desktop" />
+      <ScreenHeader containerVariant="desktop">
+        <View className="flex-row items-center justify-between">
+          <Text variant="body-lg" className="font-semibold web:text-2xl">
+            Clients
+          </Text>
+
+          {isDesktopLayout && (
+            <Button
+              variant="brand"
+              shape="md"
+              size="sm"
+              title="New Client"
+              leftIcon={
+                <PlusIcon
+                  width={16}
+                  height={16}
+                  color="rgb(var(--color-brand-foreground))"
+                />
+              }
+              onPress={handleAddClientPress}
+            />
+          )}
+        </View>
+      </ScreenHeader>
 
       <Container variant="desktop" safeArea="bottom">
         <View className="flex-1 px-6 py-6 gap-4">
@@ -134,18 +157,6 @@ export default function InvoiceClientsScreen() {
               placeholder="Search by name, email or phone"
               className="flex-1"
             />
-
-            {isDesktopLayout && (
-              <Button
-                variant="brand"
-                shape="md"
-                title="New Client"
-                leftIcon={
-                  <PlusIcon color="rgb(var(--color-brand-foreground))" />
-                }
-                onPress={handleAddClientPress}
-              />
-            )}
           </View>
 
           <SegmentedTabs

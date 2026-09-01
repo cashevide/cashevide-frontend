@@ -3,7 +3,6 @@ import { FlatList, Pressable, useWindowDimensions, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  DocumentTextIcon,
   FunnelIcon,
   PlusIcon,
   XMarkIcon,
@@ -261,7 +260,30 @@ export default function InvoiceListScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader title="Invoices" containerVariant="desktop" />
+      <ScreenHeader containerVariant="desktop">
+        <View className="flex-row items-center justify-between">
+          <Text variant="body-lg" className="font-semibold web:text-2xl">
+            Invoices
+          </Text>
+
+          {isDesktopLayout && (
+            <Button
+              variant="brand"
+              shape="md"
+              size="sm"
+              title="New Invoice"
+              leftIcon={
+                <PlusIcon
+                  width={16}
+                  height={16}
+                  color="rgb(var(--color-brand-foreground))"
+                />
+              }
+              onPress={() => router.push(ROUTES.invoices.create)}
+            />
+          )}
+        </View>
+      </ScreenHeader>
 
       <Container variant="desktop" safeArea="bottom">
         <View className="flex-1 px-6 py-6 gap-4">
@@ -295,18 +317,6 @@ export default function InvoiceListScreen() {
                 }
               />
             </Pressable>
-
-            {isDesktopLayout && (
-              <Button
-                variant="brand"
-                shape="md"
-                title="New Invoice"
-                leftIcon={
-                  <DocumentTextIcon color="rgb(var(--color-brand-foreground))" />
-                }
-                onPress={() => router.push(ROUTES.invoices.create)}
-              />
-            )}
           </View>
 
           {chips.length > 0 && (
