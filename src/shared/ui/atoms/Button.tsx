@@ -15,6 +15,13 @@ type ButtonVariant =
   | "ghost"
   | "link";
 type ButtonSize = "sm" | "default" | "lg" | "icon";
+// Independent of variant (color) and size — same as fullWidth. Kept
+// separate rather than baked into variant because shape and color
+// aren't actually coupled: a brand-colored "New Invoice" button and a
+// pill-shaped one are two unrelated decisions, and tying them together
+// would mean a new variant for every shape × color combination that
+// ever comes up.
+type ButtonShape = "md" | "full";
 
 const BG_CLASS: Record<ButtonVariant, string> = {
   primary: "bg-primary",
@@ -56,10 +63,16 @@ const SIZE_CLASS: Record<ButtonSize, string> = {
   icon: "h-12 w-12",
 };
 
+const SHAPE_CLASS: Record<ButtonShape, string> = {
+  md: "rounded-md",
+  full: "rounded-full",
+};
+
 interface ButtonProps extends PressableProps {
   title?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
+  shape?: ButtonShape;
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -73,6 +86,7 @@ export function Button({
   title,
   variant = "primary",
   size = "default",
+  shape = "full",
   isLoading = false,
   disabled = false,
   leftIcon,
@@ -105,7 +119,7 @@ export function Button({
       accessibilityLabel={accessibilityLabel ?? title}
       className={cn(
         "flex-row items-center justify-center",
-        isLinkVariant ? "px-0 h-auto" : "rounded-lg",
+        isLinkVariant ? "px-0 h-auto" : SHAPE_CLASS[shape],
         !isLinkVariant && SIZE_CLASS[size],
         fullWidth && !isIconOnly && "w-full",
         BG_CLASS[variant],

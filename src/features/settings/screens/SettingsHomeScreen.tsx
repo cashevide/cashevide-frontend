@@ -1,7 +1,14 @@
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
-import { ChevronRightIcon } from "react-native-heroicons/outline";
+import type { SvgProps } from "react-native-svg";
+import {
+  ChevronRightIcon,
+  UserCircleIcon,
+  ShieldCheckIcon,
+  SwatchIcon,
+  ScaleIcon,
+} from "react-native-heroicons/outline";
 
 import { useLogout } from "@/src/features/auth/hooks/useLogout";
 import { ROUTES } from "@/src/shared/navigation/routes";
@@ -9,18 +16,38 @@ import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
 import { Text, Button, Divider, ConfirmDialog } from "@/src/shared/ui";
 
+type IconComponent = ComponentType<SvgProps>;
+
 type SettingsMenuItem = {
+  icon: IconComponent;
   label: string;
   onPress: () => void;
 };
 
-function SettingsRow({ label, onPress }: SettingsMenuItem) {
+// Still a navigation row, not an info-display row — InfoListRow is for
+// static label/value fields (Business Profile, Account details), this
+// is a tappable menu item that always ends in a chevron and never
+// shows a value. Only the icon badge is borrowed from InfoListRow's
+// visual language, for consistency across the two, not the row's
+// underlying meaning.
+function SettingsRow({ icon: Icon, label, onPress }: SettingsMenuItem) {
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center justify-between py-3.5 px-4 active:opacity-60"
+      className="flex-row items-center gap-3 py-3 px-4 active:opacity-60"
     >
-      <Text variant="body">{label}</Text>
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-secondary">
+        <Icon
+          width={18}
+          height={18}
+          color="rgb(var(--color-muted-foreground))"
+        />
+      </View>
+
+      <Text variant="body" className="flex-1">
+        {label}
+      </Text>
+
       <ChevronRightIcon
         width={18}
         height={18}
@@ -35,13 +62,26 @@ export default function SettingsHomeScreen() {
   const logoutMutation = useLogout();
 
   const menuItems: SettingsMenuItem[] = [
-    { label: "Account", onPress: () => router.push(ROUTES.settings.account) },
     {
+      icon: UserCircleIcon,
+      label: "Account",
+      onPress: () => router.push(ROUTES.settings.account),
+    },
+    {
+      icon: ShieldCheckIcon,
       label: "Security",
       onPress: () => router.push(ROUTES.settings.security.entry),
     },
-    { label: "Theme", onPress: () => router.push(ROUTES.settings.theme) },
-    { label: "Legal", onPress: () => router.push(ROUTES.settings.legal) },
+    {
+      icon: SwatchIcon,
+      label: "Theme",
+      onPress: () => router.push(ROUTES.settings.theme),
+    },
+    {
+      icon: ScaleIcon,
+      label: "Legal",
+      onPress: () => router.push(ROUTES.settings.legal),
+    },
   ];
 
   return (
@@ -56,8 +96,16 @@ export default function SettingsHomeScreen() {
           <View className="rounded-lg border border-border bg-card overflow-hidden">
             {menuItems.map((item, index) => (
               <View key={item.label}>
-                <SettingsRow label={item.label} onPress={item.onPress} />
-                {index < menuItems.length - 1 && <Divider className="ml-4" />}
+                <SettingsRow
+                  icon={item.icon}
+                  label={item.label}
+                  onPress={item.onPress}
+                />
+                {index < menuItems.length - 1 && (
+                  <View className="pl-16 pr-4">
+                    <Divider fade />
+                  </View>
+                )}
               </View>
             ))}
           </View>

@@ -138,6 +138,7 @@ export default function InvoiceClientsScreen() {
             {isDesktopLayout && (
               <Button
                 variant="brand"
+                shape="md"
                 title="New Client"
                 leftIcon={
                   <PlusIcon color="rgb(var(--color-brand-foreground))" />

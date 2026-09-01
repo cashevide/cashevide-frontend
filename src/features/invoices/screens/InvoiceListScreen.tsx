@@ -299,6 +299,7 @@ export default function InvoiceListScreen() {
             {isDesktopLayout && (
               <Button
                 variant="brand"
+                shape="md"
                 title="New Invoice"
                 leftIcon={
                   <DocumentTextIcon color="rgb(var(--color-brand-foreground))" />

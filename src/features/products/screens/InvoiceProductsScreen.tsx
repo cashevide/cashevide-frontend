@@ -145,6 +145,7 @@ export default function InvoiceProductsScreen() {
             {isDesktopLayout && (
               <Button
                 variant="brand"
+                shape="md"
                 title="New Product"
                 leftIcon={
                   <PlusIcon color="rgb(var(--color-brand-foreground))" />
