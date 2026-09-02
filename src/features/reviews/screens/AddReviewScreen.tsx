@@ -95,7 +95,7 @@ export default function AddReviewScreen() {
         />
 
         <Container variant="narrow" safeArea="bottom" scroll>
-          <View className="flex-1 justify-center px-6 py-10 gap-8">
+          <View className="flex-1 px-6 py-10 gap-8">
             <View className="gap-2">
               <Text variant="subheading" className="text-center">
                 Find a client

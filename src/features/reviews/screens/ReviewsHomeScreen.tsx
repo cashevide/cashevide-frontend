@@ -16,7 +16,7 @@ export default function ReviewsHomeScreen() {
   );
   const createReviewedClient = useCreateReviewedClient();
 
-  function handleSearchOrAddReview() {
+  function handleFindClient() {
     if (!phoneNumber.trim()) {
       setValidationError("Enter a phone number to continue.");
       return;
@@ -40,7 +40,7 @@ export default function ReviewsHomeScreen() {
       : undefined);
 
   const content = (
-    <View className="flex-1 justify-center py-10">
+    <View className="flex-1 py-10">
       <View className="w-full max-w-narrow mx-auto">
         <View className="px-6 gap-8">
           <Text variant="subheading" className="text-center">
@@ -58,8 +58,8 @@ export default function ReviewsHomeScreen() {
             <View className="items-center">
               <Button
                 variant="primary"
-                title="Search or Add Review"
-                onPress={handleSearchOrAddReview}
+                title="Continue"
+                onPress={handleFindClient}
                 isLoading={createReviewedClient.isPending}
               />
             </View>
