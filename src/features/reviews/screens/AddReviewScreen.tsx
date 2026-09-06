@@ -9,7 +9,6 @@ import { useMyReviewForClient } from "../hooks/useMyReviewForClient";
 import { useTagSelection } from "@/src/shared/hooks/useTagSelection";
 import { getFieldErrorMessage } from "@/src/shared/api/errors";
 import { ROUTES } from "@/src/shared/navigation/routes";
-import { cn } from "@/src/shared/utils/cn";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
 import {
@@ -18,6 +17,7 @@ import {
   Spinner,
   PhoneNumberInput,
   StarRating,
+  SegmentedTabs,
 } from "@/src/shared/ui";
 import type { Tag } from "../types/tagTypes";
 
@@ -91,7 +91,7 @@ export default function AddReviewScreen() {
         <ScreenHeader
           title="Add Review"
           showBackButton
-          containerVariant="narrow"
+          containerVariant="desktop"
         />
 
         <Container variant="narrow" safeArea="bottom" scroll>
@@ -143,7 +143,7 @@ export default function AddReviewScreen() {
         <ScreenHeader
           title="Add Review"
           showBackButton
-          containerVariant="narrow"
+          containerVariant="desktop"
         />
         <Container variant="narrow" safeArea="bottom">
           <View className="flex-1 items-center justify-center">
@@ -161,7 +161,7 @@ export default function AddReviewScreen() {
         <ScreenHeader
           title="Add Review"
           showBackButton
-          containerVariant="narrow"
+          containerVariant="desktop"
         />
         <Container variant="narrow" safeArea="bottom">
           <View className="flex-1 items-center justify-center px-6 gap-6">
@@ -185,14 +185,14 @@ export default function AddReviewScreen() {
       <ScreenHeader
         title="Rate & Review"
         showBackButton
-        containerVariant="narrow"
+        containerVariant="desktop"
       />
 
       <Container variant="narrow" safeArea="bottom" scroll>
         <View className="px-6 py-6 gap-8">
-          <View className="items-center gap-3">
+          <View className="items-center gap-3 mb-4">
             <Text variant="body-sm" className="text-muted-foreground">
-              How was your experience?
+              How was your experience? (optional)
             </Text>
             <StarRating value={rating} onChange={setRating} size={36} />
           </View>
@@ -203,37 +203,31 @@ export default function AddReviewScreen() {
             </View>
           )}
 
-          {Object.entries(tagsByGroup).map(([group, tags]) => (
-            <View key={group} className="gap-3">
-              <Text variant="overline">{group}</Text>
-              <View className="flex-row flex-wrap gap-2">
-                {tags.map((tag) => {
-                  const isSelected = selectedTagIds.includes(tag.id);
-                  const isPositive = tag.category === "POSITIVE";
+          {Object.entries(tagsByGroup).map(([group, tags]) => {
+            const activeTagId =
+              tags.find((tag) => selectedTagIds.includes(tag.id))?.id ?? null;
 
-                  return (
-                    <Button
-                      key={tag.id}
-                      title={tag.name}
-                      size="sm"
-                      variant={
-                        isSelected
-                          ? isPositive
-                            ? "success"
-                            : "destructive"
-                          : "outline"
-                      }
-                      onPress={() => toggleTag(tag)}
-                      className={cn("min-w-0 rounded-full px-4 h-9")}
-                    />
-                  );
-                })}
+            return (
+              <View key={group} className="items-center gap-3">
+                <Text variant="overline">{group}</Text>
+                <SegmentedTabs
+                  items={tags.map((tag) => ({
+                    key: String(tag.id),
+                    label: tag.name,
+                  }))}
+                  activeKey={activeTagId !== null ? String(activeTagId) : null}
+                  onSelect={(key) => {
+                    const tag = tags.find((t) => String(t.id) === key);
+                    if (tag) toggleTag(tag);
+                  }}
+                  centered
+                />
               </View>
-            </View>
-          ))}
+            );
+          })}
 
           <View className="gap-4">
-            <View className="items-center">
+            <View className="items-center gap-2">
               <Button
                 variant="primary"
                 title="Submit Review"
@@ -241,6 +235,12 @@ export default function AddReviewScreen() {
                 disabled={createReview.isPending || selectedTagIds.length === 0}
                 isLoading={createReview.isPending}
               />
+
+              {selectedTagIds.length === 0 && (
+                <Text variant="caption" className="text-muted-foreground">
+                  Select at least one tag to continue
+                </Text>
+              )}
             </View>
 
             {submitReviewErrorMessage && (
