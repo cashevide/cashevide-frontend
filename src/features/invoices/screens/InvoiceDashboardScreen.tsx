@@ -14,6 +14,8 @@ import DashboardSummaryCard from "../components/DashboardSummaryCard";
 import { Container } from "@/src/shared/layout/Container";
 import { ScreenHeader } from "@/src/shared/layout/ScreenHeader";
 import { Text, Button, Logo, InfoDialog, Spinner } from "@/src/shared/ui";
+import { MalayaliModePrompt } from "@/src/features/onboarding/components/MalayaliModePrompt";
+import { useOnboardingPromptStore } from "@/src/store/onboardingPromptStore";
 
 import type { InvoiceDashboardResponse } from "../types/invoiceDashboardTypes";
 
@@ -27,6 +29,9 @@ export default function InvoiceDashboardScreen() {
   const businessProfile = useBusinessProfile();
   const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+  const hasSeenMalayaliPrompt = useOnboardingPromptStore(
+    (state) => state.hasSeenMalayaliPrompt,
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -83,6 +88,15 @@ export default function InvoiceDashboardScreen() {
         title="Credit points"
         message="Your credit-points details will show up here soon."
       />
+
+      {/* Onboarding-only prompt. Renders (and self-manages its own
+          multi-step flow) only until the user has been through it once;
+          `hasSeenMalayaliPrompt` flips to true from inside the prompt
+          itself, at which point this stops rendering on every future
+          visit to this screen. */}
+      {!hasSeenMalayaliPrompt && (
+        <MalayaliModePrompt visible onComplete={() => {}} />
+      )}
     </View>
   );
 }

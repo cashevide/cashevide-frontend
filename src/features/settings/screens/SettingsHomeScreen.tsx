@@ -74,8 +74,8 @@ export default function SettingsHomeScreen() {
     },
     {
       icon: SwatchIcon,
-      label: "Theme",
-      onPress: () => router.push(ROUTES.settings.theme),
+      label: "App Settings",
+      onPress: () => router.push(ROUTES.settings.app),
     },
     {
       icon: ScaleIcon,

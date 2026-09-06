@@ -36,7 +36,7 @@ export const ROUTES = {
   settings: {
     home: "/settings",
     account: "/settings/account",
-    theme: "/settings/theme",
+    app: "/settings/app",
     legal: "/settings/legal",
 
     security: {
