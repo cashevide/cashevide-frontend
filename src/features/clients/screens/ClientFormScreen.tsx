@@ -78,7 +78,7 @@ export default function ClientFormScreen() {
           showBackButton
           containerVariant="desktop"
         />
-        <Container variant="desktop" safeArea="bottom">
+        <Container variant="narrow" safeArea="bottom">
           <View className="flex-1 items-center justify-center">
             <Spinner />
           </View>
@@ -95,9 +95,14 @@ export default function ClientFormScreen() {
         containerVariant="desktop"
       />
 
-      <Container variant="desktop" safeArea="bottom" scroll>
+      <Container variant="narrow" safeArea="bottom" scroll>
         <View className="gap-4 px-6 py-6">
           <Input placeholder="Name" value={name} onChangeText={setName} />
+
+          <PhoneNumberInput
+            onChangeFullNumber={setPhone}
+            initialValue={isEditMode ? clientDetails.data?.phone : undefined}
+          />
 
           <Input
             placeholder="Email (optional)"
@@ -106,24 +111,6 @@ export default function ClientFormScreen() {
             value={email}
             onChangeText={setEmail}
           />
-
-          {/* PhoneNumberInput manages country code + number as internal
-              state and only emits the combined value — it has no way to
-              be pre-filled with an existing number. On create there's
-              nothing to pre-fill, so it's used for its country picker
-              and formatting. On edit, the client's phone (already a
-              full "+<code><number>" string from the backend) is shown
-              as plain editable text instead. */}
-          {isEditMode ? (
-            <Input
-              placeholder="Phone"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-            />
-          ) : (
-            <PhoneNumberInput onChangeFullNumber={setPhone} />
-          )}
 
           <Input
             placeholder="Address (optional)"

@@ -70,7 +70,7 @@ export default function ProductFormScreen() {
           showBackButton
           containerVariant="desktop"
         />
-        <Container variant="desktop" safeArea="bottom">
+        <Container variant="narrow" safeArea="bottom">
           <View className="flex-1 items-center justify-center">
             <Spinner />
           </View>
@@ -87,22 +87,22 @@ export default function ProductFormScreen() {
         containerVariant="desktop"
       />
 
-      <Container variant="desktop" safeArea="bottom" scroll>
+      <Container variant="narrow" safeArea="bottom" scroll>
         <View className="gap-4 px-6 py-6">
           <Input placeholder="Title" value={title} onChangeText={setTitle} />
-
-          <Input
-            placeholder="Description (optional)"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-          />
 
           <Input
             placeholder="Unit Price"
             keyboardType="decimal-pad"
             value={unitPrice}
             onChangeText={setUnitPrice}
+          />
+
+          <Input
+            placeholder="Description (optional)"
+            value={description}
+            onChangeText={setDescription}
+            multiline
           />
 
           {errorMessage && (

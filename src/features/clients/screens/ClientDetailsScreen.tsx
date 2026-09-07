@@ -1,6 +1,11 @@
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import {
+  EnvelopeIcon,
+  PhoneIcon,
+  MapPinIcon,
+} from "react-native-heroicons/outline";
 
 import { useClientDetails } from "../hooks/useClientDetails";
 import { useDeleteClient } from "../hooks/useDeleteClient";
@@ -17,18 +22,8 @@ import {
   Spinner,
   ConfirmDialog,
   InfoDialog,
+  InfoListRow,
 } from "@/src/shared/ui";
-
-function InfoRow({ label, value }: { label: string; value?: string }) {
-  if (!value) return null;
-
-  return (
-    <View className="gap-0.5">
-      <Text variant="caption">{label}</Text>
-      <Text variant="body">{value}</Text>
-    </View>
-  );
-}
 
 export default function ClientDetailsScreen() {
   const { clientSlug } = useLocalSearchParams<{ clientSlug: string }>();
@@ -79,9 +74,11 @@ export default function ClientDetailsScreen() {
           showBackButton
           containerVariant="desktop"
         />
-        <View className="flex-1 items-center justify-center">
-          <Spinner />
-        </View>
+        <Container variant="narrow" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Spinner />
+          </View>
+        </Container>
       </View>
     );
   }
@@ -94,16 +91,18 @@ export default function ClientDetailsScreen() {
           showBackButton
           containerVariant="desktop"
         />
-        <View className="flex-1 items-center justify-center gap-3">
-          <Text variant="body" className="text-muted-foreground">
-            Client not found.
-          </Text>
-          <Button
-            variant="outline"
-            title="Back to Clients"
-            onPress={() => router.replace(ROUTES.invoices.clients.list)}
-          />
-        </View>
+        <Container variant="narrow" safeArea="bottom">
+          <View className="flex-1 items-center justify-center gap-3">
+            <Text variant="body" className="text-muted-foreground">
+              Client not found.
+            </Text>
+            <Button
+              variant="outline"
+              title="Back to Clients"
+              onPress={() => router.replace(ROUTES.invoices.clients.list)}
+            />
+          </View>
+        </Container>
       </View>
     );
   }
@@ -111,11 +110,28 @@ export default function ClientDetailsScreen() {
   const client = clientDetails.data;
   const isArchived = client?.is_archived ?? false;
 
+  // Email, phone, and address are all optional — a client could have
+  // any subset of them, so which row ends up last (and therefore
+  // shouldn't draw a bottom divider) isn't fixed. This finds whichever
+  // populated field is actually last, same approach as Business
+  // Profile's GST/VAT handling.
+  const lastFieldKey = client
+    ? (
+        [
+          ["email", client.email],
+          ["phone", client.phone],
+          ["address", client.address],
+        ] as const
+      )
+        .filter(([, value]) => !!value)
+        .at(-1)?.[0]
+    : undefined;
+
   return (
     <View className="flex-1 bg-background">
       <ScreenHeader title="Client" showBackButton containerVariant="desktop" />
 
-      <Container variant="desktop" safeArea="bottom" scroll>
+      <Container variant="narrow" safeArea="bottom" scroll>
         <View className="px-6 py-6 gap-6">
           <View className="items-center gap-3">
             <Avatar name={client?.name} size={72} />
@@ -126,10 +142,25 @@ export default function ClientDetailsScreen() {
             </View>
           </View>
 
-          <View className="bg-card border border-border rounded-lg p-4 gap-4">
-            <InfoRow label="Email" value={client?.email} />
-            <InfoRow label="Phone" value={client?.phone} />
-            <InfoRow label="Address" value={client?.address} />
+          <View className="bg-card border border-border rounded-lg px-4">
+            <InfoListRow
+              icon={EnvelopeIcon}
+              label="Email"
+              value={client?.email}
+              isLast={lastFieldKey === "email"}
+            />
+            <InfoListRow
+              icon={PhoneIcon}
+              label="Phone"
+              value={client?.phone}
+              isLast={lastFieldKey === "phone"}
+            />
+            <InfoListRow
+              icon={MapPinIcon}
+              label="Address"
+              value={client?.address}
+              isLast={lastFieldKey === "address"}
+            />
           </View>
 
           <View className="gap-3">

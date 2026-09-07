@@ -1,6 +1,10 @@
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import {
+  DocumentTextIcon,
+  CurrencyDollarIcon,
+} from "react-native-heroicons/outline";
 
 import { useProductDetails } from "../hooks/useProductDetails";
 import { useDeleteProduct } from "../hooks/useDeleteProduct";
@@ -16,18 +20,8 @@ import {
   Spinner,
   ConfirmDialog,
   InfoDialog,
+  InfoListRow,
 } from "@/src/shared/ui";
-
-function InfoRow({ label, value }: { label: string; value?: string }) {
-  if (!value) return null;
-
-  return (
-    <View className="gap-0.5">
-      <Text variant="caption">{label}</Text>
-      <Text variant="body">{value}</Text>
-    </View>
-  );
-}
 
 export default function ProductDetailsScreen() {
   const { productSlug } = useLocalSearchParams<{ productSlug: string }>();
@@ -81,9 +75,11 @@ export default function ProductDetailsScreen() {
           showBackButton
           containerVariant="desktop"
         />
-        <View className="flex-1 items-center justify-center">
-          <Spinner />
-        </View>
+        <Container variant="narrow" safeArea="bottom">
+          <View className="flex-1 items-center justify-center">
+            <Spinner />
+          </View>
+        </Container>
       </View>
     );
   }
@@ -96,16 +92,18 @@ export default function ProductDetailsScreen() {
           showBackButton
           containerVariant="desktop"
         />
-        <View className="flex-1 items-center justify-center gap-3">
-          <Text variant="body" className="text-muted-foreground">
-            Product not found.
-          </Text>
-          <Button
-            variant="outline"
-            title="Back to Products"
-            onPress={() => router.replace(ROUTES.invoices.products.list)}
-          />
-        </View>
+        <Container variant="narrow" safeArea="bottom">
+          <View className="flex-1 items-center justify-center gap-3">
+            <Text variant="body" className="text-muted-foreground">
+              Product not found.
+            </Text>
+            <Button
+              variant="outline"
+              title="Back to Products"
+              onPress={() => router.replace(ROUTES.invoices.products.list)}
+            />
+          </View>
+        </Container>
       </View>
     );
   }
@@ -113,11 +111,25 @@ export default function ProductDetailsScreen() {
   const product = productDetails.data;
   const isArchived = product?.is_archived ?? false;
 
+  // Description and unit price are both optional — this finds whichever
+  // populated field is actually last, same approach as Business
+  // Profile's GST/VAT handling.
+  const lastFieldKey = product
+    ? (
+        [
+          ["description", product.description],
+          ["unit_price", product.unit_price],
+        ] as const
+      )
+        .filter(([, value]) => !!value)
+        .at(-1)?.[0]
+    : undefined;
+
   return (
     <View className="flex-1 bg-background">
       <ScreenHeader title="Product" showBackButton containerVariant="desktop" />
 
-      <Container variant="desktop" safeArea="bottom" scroll>
+      <Container variant="narrow" safeArea="bottom" scroll>
         <View className="px-6 py-6 gap-6">
           <View className="items-center gap-1">
             <Text variant="heading" className="text-center">
@@ -126,11 +138,18 @@ export default function ProductDetailsScreen() {
             {isArchived && <Badge label="Archived" variant="default" />}
           </View>
 
-          <View className="bg-card border border-border rounded-lg p-4 gap-4">
-            <InfoRow label="Description" value={product?.description} />
-            <InfoRow
+          <View className="bg-card border border-border rounded-lg px-4">
+            <InfoListRow
+              icon={DocumentTextIcon}
+              label="Description"
+              value={product?.description}
+              isLast={lastFieldKey === "description"}
+            />
+            <InfoListRow
+              icon={CurrencyDollarIcon}
               label="Unit Price"
               value={product?.unit_price ? `₹${product.unit_price}` : undefined}
+              isLast={lastFieldKey === "unit_price"}
             />
           </View>
 

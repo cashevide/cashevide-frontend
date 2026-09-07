@@ -99,14 +99,65 @@ const DEFAULT_COUNTRY = COUNTRY_BY_CALLING_CODE.get("91") ?? ALL_COUNTRIES[0];
 
 type PhoneNumberInputProps = {
   onChangeFullNumber: (fullNumber: string) => void;
+  // A full "+<callingCode><localNumber>" string (e.g. "+919876543210")
+  // to pre-fill the field with — used when editing an existing record
+  // that already has a phone number, since this component otherwise
+  // always starts from the default country with an empty number.
+  initialValue?: string;
 };
+
+// Calling codes aren't a fixed length (most are 1-3 digits, but a
+// handful of dependent territories like Vatican City's "+3906698" run
+// to 7) — so parsing "+<code><number>" back apart means trying the
+// longest known code first and working down, not guessing a fixed
+// split point. Returns the default country/empty state if nothing
+// matches or no value was given.
+function parseInitialValue(value: string | undefined): {
+  country: Country;
+  codeDigits: string;
+  localNumber: string;
+} {
+  const fallback = {
+    country: DEFAULT_COUNTRY,
+    codeDigits: DEFAULT_COUNTRY.callingCode,
+    localNumber: "",
+  };
+
+  if (!value) {
+    return fallback;
+  }
+
+  const digitsOnly = value.replace(/\D/g, "");
+  if (!digitsOnly) {
+    return fallback;
+  }
+
+  const sortedCodes = [...ALL_CALLING_CODES].sort(
+    (a, b) => b.length - a.length,
+  );
+  const matchedCode = sortedCodes.find((code) => digitsOnly.startsWith(code));
+
+  if (!matchedCode) {
+    return fallback;
+  }
+
+  const country = COUNTRY_BY_CALLING_CODE.get(matchedCode) ?? DEFAULT_COUNTRY;
+
+  return {
+    country,
+    codeDigits: matchedCode,
+    localNumber: digitsOnly.slice(matchedCode.length),
+  };
+}
 
 export function PhoneNumberInput({
   onChangeFullNumber,
+  initialValue,
 }: PhoneNumberInputProps) {
-  const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
-  const [codeDigits, setCodeDigits] = useState(DEFAULT_COUNTRY.callingCode);
-  const [localNumber, setLocalNumber] = useState("");
+  const [initialParsed] = useState(() => parseInitialValue(initialValue));
+  const [country, setCountry] = useState<Country>(initialParsed.country);
+  const [codeDigits, setCodeDigits] = useState(initialParsed.codeDigits);
+  const [localNumber, setLocalNumber] = useState(initialParsed.localNumber);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCodeFocused, setIsCodeFocused] = useState(false);

@@ -30,6 +30,7 @@ export function Input({
   isSuccess = false,
   disabled = false,
   className = "",
+  multiline = false,
   ...props
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -51,11 +52,24 @@ export function Input({
 
       <View className="relative w-full justify-center">
         <TextInput
-          style={inputFieldWebResetStyle}
+          style={
+            multiline
+              ? [inputFieldWebResetStyle, { textAlignVertical: "top" }]
+              : inputFieldWebResetStyle
+          }
+          multiline={multiline}
           className={getInputFieldClasses({
             state,
             disabled,
-            className: cn("w-full", hasTrailingIcon && "pr-12"),
+            className: cn(
+              "w-full",
+              hasTrailingIcon && "pr-12",
+              // h-12 is sized for one line — multiline needs real room
+              // to grow into instead of the text being squeezed into
+              // that same 48px, and top padding so the first line
+              // doesn't sit flush against the field's edge.
+              multiline && "h-auto min-h-[96px] py-3",
+            ),
           })}
           editable={!disabled}
           secureTextEntry={isPassword && !showPassword}
