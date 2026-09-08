@@ -126,11 +126,22 @@ export default function InvoiceDetailsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader
-        title={invoice.invoice_number}
-        showBackButton
-        containerVariant="desktop"
-      />
+      <ScreenHeader showBackButton containerVariant="desktop">
+        <Text
+          variant="body-lg"
+          className="font-semibold web:text-2xl"
+          numberOfLines={1}
+        >
+          {invoice.name || "Untitled Client"}
+          <Text
+            variant="body-lg"
+            className="font-semibold text-muted-foreground web:text-2xl"
+          >
+            {" - "}
+            {invoice.invoice_number}
+          </Text>
+        </Text>
+      </ScreenHeader>
 
       <Container variant="desktop" safeArea="bottom" scroll>
         <View
@@ -146,6 +157,7 @@ export default function InvoiceDetailsScreen() {
 
           <View className={isDesktopLayout ? "w-[280px]" : undefined}>
             <InvoiceActionBar
+              status={invoice.status}
               onEdit={handleEdit}
               onRecordPayment={handleRecordPayment}
               onDownloadPdf={handleDownloadPdf}

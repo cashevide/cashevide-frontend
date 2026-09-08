@@ -10,7 +10,10 @@ import {
 import { Button, ConfirmDialog } from "@/src/shared/ui";
 import { cn } from "@/src/shared/utils/cn";
 
+import type { InvoiceStatus } from "../types/invoiceTypes";
+
 type InvoiceActionBarProps = {
+  status: InvoiceStatus;
   onEdit: () => void;
   onRecordPayment: () => void;
   onDownloadPdf: () => void;
@@ -26,6 +29,7 @@ type InvoiceActionBarProps = {
 };
 
 export default function InvoiceActionBar({
+  status,
   onEdit,
   onRecordPayment,
   onDownloadPdf,
@@ -42,6 +46,17 @@ export default function InvoiceActionBar({
   }
 
   const isStack = layout === "stack";
+  const isPaid = status === "PAID";
+
+  // This button opens the payments section of the edit screen, which
+  // supports editing and removing existing payment records, not just
+  // adding new ones (see EditInvoiceScreen's handleRemovePayment) — so
+  // it stays visible and enabled on a PAID invoice too, for correcting
+  // a mistaken entry. Only the label changes once paid, since "Record
+  // Payment" reads like there's still an outstanding balance to
+  // collect, which isn't true anymore — "Manage Payments" doesn't
+  // imply that.
+  const recordPaymentLabel = isPaid ? "Manage Payments" : "Record Payment";
 
   return (
     <View className="gap-3">
@@ -58,7 +73,7 @@ export default function InvoiceActionBar({
         <View className={cn(!isStack && "flex-1")}>
           <Button
             variant="secondary"
-            title="Record Payment"
+            title={recordPaymentLabel}
             leftIcon={<CreditCardIcon />}
             onPress={onRecordPayment}
             fullWidth
@@ -92,7 +107,11 @@ export default function InvoiceActionBar({
       <ConfirmDialog
         visible={deleteConfirmVisible}
         title="Delete this invoice?"
-        message="This invoice will be removed from your list. This action cannot be undone."
+        message={
+          isPaid
+            ? "This invoice has been marked as paid. Deleting it will permanently remove the invoice and its payment history. This action cannot be undone."
+            : "This invoice will be removed from your list. This action cannot be undone."
+        }
         confirmLabel="Delete"
         cancelLabel="Cancel"
         destructive
