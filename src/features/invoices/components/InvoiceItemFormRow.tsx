@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { TrashIcon } from "react-native-heroicons/outline";
 
-import { cn } from "@/src/shared/utils/cn";
-import { Text, Input } from "@/src/shared/ui";
+import { Text, Input, SegmentedTabs } from "@/src/shared/ui";
 import ProductPickerModal from "./ProductPickerModal";
 
 import type { Product } from "@/src/features/products/types/productTypes";
@@ -11,7 +10,7 @@ import type { InvoiceItemRequest } from "../types/invoiceItemTypes";
 
 const UNIT_TYPE_OPTIONS: {
   label: string;
-  value: InvoiceItemRequest["unit_type"];
+  value: NonNullable<InvoiceItemRequest["unit_type"]>;
 }[] = [
   { label: "Qty", value: "QTY" },
   { label: "Hrs", value: "HRS" },
@@ -51,7 +50,7 @@ export default function InvoiceItemFormRow({
   }
 
   return (
-    <View className="gap-3 rounded-lg border border-border bg-card p-4">
+    <View className="gap-3 rounded-lg border border-border bg-secondary/20 p-4">
       <View className="flex-row items-center justify-between gap-3">
         <Pressable onPress={() => setProductPickerVisible(true)}>
           <Text variant="body-sm" className="text-link">
@@ -107,31 +106,20 @@ export default function InvoiceItemFormRow({
           />
         </View>
 
-        <View className="flex-1 flex-row gap-2">
-          {UNIT_TYPE_OPTIONS.map((option) => {
-            const isActive = item.unit_type === option.value;
-            return (
-              <Pressable
-                key={option.value}
-                onPress={() => onChange({ ...item, unit_type: option.value })}
-                className={cn(
-                  "h-12 flex-1 items-center justify-center rounded-lg border",
-                  isActive
-                    ? "bg-primary border-primary"
-                    : "bg-card border-border",
-                )}
-              >
-                <Text
-                  variant="body-sm"
-                  className={
-                    isActive ? "text-primary-foreground" : "text-foreground"
-                  }
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+        <View className="flex-1">
+          <SegmentedTabs
+            items={UNIT_TYPE_OPTIONS.map((option) => ({
+              key: option.value,
+              label: option.label,
+            }))}
+            activeKey={item.unit_type ?? null}
+            onSelect={(key) =>
+              onChange({
+                ...item,
+                unit_type: key as InvoiceItemRequest["unit_type"],
+              })
+            }
+          />
         </View>
       </View>
 
