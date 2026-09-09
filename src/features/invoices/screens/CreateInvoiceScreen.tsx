@@ -16,6 +16,7 @@ import {
   CurrencyPicker,
   DateField,
   SegmentedTabs,
+  Divider,
 } from "@/src/shared/ui";
 import ClientPickerModal from "../components/ClientPickerModal";
 import InvoiceItemFormRow from "../components/InvoiceItemFormRow";
@@ -130,6 +131,10 @@ export default function CreateInvoiceScreen() {
   const [issueDate, setIssueDate] = useState<string | undefined>(undefined);
   const [dueDate, setDueDate] = useState<string | undefined>(undefined);
   const [discount, setDiscount] = useState("0");
+  // Collapsed behind a link by default — most invoices don't need a
+  // discount, so an always-visible "0" field would be one more thing
+  // to skip past on every single invoice.
+  const [isDiscountVisible, setIsDiscountVisible] = useState(false);
   const [items, setItems] = useState<InvoiceItemRequest[]>([createEmptyItem()]);
   // Defaults to "classic" — matches the backend's own default when this
   // field is omitted, so an untouched form and a submitted-without-
@@ -363,12 +368,7 @@ export default function CreateInvoiceScreen() {
           )}
         >
           {/* -------------------- Form column -------------------- */}
-          <View
-            className={cn(
-              "gap-8",
-              isDesktopLayout && (isPreviewVisible ? "w-[420px]" : "flex-1"),
-            )}
-          >
+          <View className={cn("gap-10", isDesktopLayout && "flex-1")}>
             {/* -------------------- Template -------------------- */}
             <View className="gap-3">
               <Text variant="subheading">Template</Text>
@@ -382,13 +382,15 @@ export default function CreateInvoiceScreen() {
               />
             </View>
 
+            <Divider />
+
             {/* -------------------- Client -------------------- */}
             <View className="gap-3">
               <Text variant="subheading">Client</Text>
 
               {selectedClient ? (
                 <>
-                  <View className="flex-row items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+                  <View className="flex-row items-center justify-between gap-3 rounded-lg bg-secondary/30 p-4">
                     <View className="flex-1 gap-0.5">
                       <Text variant="body" className="font-semibold">
                         {selectedClient.name}
@@ -449,11 +451,11 @@ export default function CreateInvoiceScreen() {
                 </>
               ) : (
                 <>
-                  <Button
-                    variant="outline"
-                    title="Select from existing clients"
-                    onPress={() => setClientPickerVisible(true)}
-                  />
+                  <Pressable onPress={() => setClientPickerVisible(true)}>
+                    <Text variant="body-sm" className="text-link">
+                      Select from existing clients
+                    </Text>
+                  </Pressable>
 
                   <Input
                     placeholder="Client name"
@@ -483,6 +485,8 @@ export default function CreateInvoiceScreen() {
               )}
             </View>
 
+            <Divider />
+
             {/* -------------------- Invoice details -------------------- */}
             <View className="gap-3">
               <Text variant="subheading">Invoice Details</Text>
@@ -508,11 +512,13 @@ export default function CreateInvoiceScreen() {
               </View>
             </View>
 
+            <Divider />
+
             {/* -------------------- Items -------------------- */}
             <View className="gap-3">
               <Text variant="subheading">Items</Text>
 
-              <View className="gap-3">
+              <View className="gap-5">
                 {items.map((item, index) => (
                   <InvoiceItemFormRow
                     key={index}
@@ -533,15 +539,27 @@ export default function CreateInvoiceScreen() {
               />
             </View>
 
+            <Divider />
+
             {/* -------------------- Discount -------------------- */}
             <View className="gap-3">
-              <Text variant="subheading">Discount</Text>
-              <Input
-                placeholder="0"
-                keyboardType="decimal-pad"
-                value={discount}
-                onChangeText={setDiscount}
-              />
+              {isDiscountVisible ? (
+                <>
+                  <Text variant="subheading">Discount</Text>
+                  <Input
+                    placeholder="Discount amount"
+                    keyboardType="decimal-pad"
+                    value={discount}
+                    onChangeText={setDiscount}
+                  />
+                </>
+              ) : (
+                <Pressable onPress={() => setIsDiscountVisible(true)}>
+                  <Text variant="body-sm" className="text-link">
+                    + Add discount
+                  </Text>
+                </Pressable>
+              )}
 
               {/* On mobile there's no side-by-side preview to show the
                   running total, so this summary card stays as the only
@@ -549,7 +567,7 @@ export default function CreateInvoiceScreen() {
                   the same numbers, so it's dropped here to avoid
                   showing the same total twice. */}
               {!isDesktopLayout && (
-                <View className="gap-2 rounded-lg border border-border bg-card p-4">
+                <View className="gap-2 rounded-lg bg-secondary/30 p-4">
                   <View className="flex-row items-center justify-between">
                     <Text variant="body-sm" className="text-muted-foreground">
                       Subtotal
@@ -566,7 +584,7 @@ export default function CreateInvoiceScreen() {
                       -{formatAmount(discountValue, currency)}
                     </Text>
                   </View>
-                  <View className="h-px bg-border" />
+                  <Divider />
                   <View className="flex-row items-center justify-between">
                     <Text variant="body" className="font-semibold">
                       Total

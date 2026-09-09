@@ -16,6 +16,7 @@ import {
   PillTabs,
   CurrencyPicker,
   DateField,
+  Divider,
 } from "@/src/shared/ui";
 import ClientPickerModal from "../components/ClientPickerModal";
 import InvoiceItemFormRow from "../components/InvoiceItemFormRow";
@@ -121,6 +122,10 @@ export default function EditInvoiceScreen() {
 
   const [clientPickerVisible, setClientPickerVisible] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  // Same as CreateInvoiceScreen — pre-filled client fields stay
+  // editable (the saved record can be missing something this invoice
+  // needs) but collapsed behind this toggle by default.
+  const [isEditingClientDetails, setIsEditingClientDetails] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -129,11 +134,19 @@ export default function EditInvoiceScreen() {
   const [issueDate, setIssueDate] = useState<string | undefined>(undefined);
   const [dueDate, setDueDate] = useState<string | undefined>(undefined);
   const [discount, setDiscount] = useState("0");
+  // Starts expanded if the loaded invoice already has a non-zero
+  // discount — collapsing it in that case would hide a value the
+  // person actually set, which the initializing useEffect below flips
+  // back on once the invoice data loads.
+  const [isDiscountVisible, setIsDiscountVisible] = useState(false);
   const [items, setItems] = useState<InvoiceItemRequest[]>([]);
   const [payments, setPayments] = useState<PaymentRecordRequest[]>([]);
   // Locked at load time — never exposed as an editable field, only ever
   // read back and sent unchanged in the PUT payload (see handleSubmit).
   const [template, setTemplate] = useState<InvoiceTemplate>("classic");
+  // Lets the person reclaim the preview column's width for the form —
+  // same as CreateInvoiceScreen.
+  const [isPreviewVisible, setIsPreviewVisible] = useState(true);
 
   const [formInitialized, setFormInitialized] = useState(false);
 
@@ -150,6 +163,7 @@ export default function EditInvoiceScreen() {
       setIssueDate(invoice.issue_date ?? undefined);
       setDueDate(invoice.due_date ?? undefined);
       setDiscount(invoice.discount);
+      setIsDiscountVisible((parseFloat(invoice.discount) || 0) > 0);
       setTemplate(invoice.template);
 
       setItems(
@@ -306,6 +320,7 @@ export default function EditInvoiceScreen() {
     setEmail(client.email);
     setPhone(client.phone);
     setAddress(client.address);
+    setIsEditingClientDetails(false);
   }
 
   function handleClearClient() {
@@ -422,11 +437,32 @@ export default function EditInvoiceScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScreenHeader
-        title={invoiceDetails.data.invoice_number}
-        showBackButton
-        containerVariant="desktop"
-      />
+      <ScreenHeader showBackButton containerVariant="desktop">
+        <View className="flex-row items-center justify-between">
+          <Text
+            variant="body-lg"
+            className="font-semibold web:text-2xl"
+            numberOfLines={1}
+          >
+            {invoiceDetails.data.name || "Untitled Client"}
+            <Text
+              variant="body-lg"
+              className="font-semibold text-muted-foreground web:text-2xl"
+            >
+              {" - "}
+              {invoiceDetails.data.invoice_number}
+            </Text>
+          </Text>
+
+          {isDesktopLayout && (
+            <Pressable onPress={() => setIsPreviewVisible((prev) => !prev)}>
+              <Text variant="body-sm" className="text-link">
+                {isPreviewVisible ? "Hide Preview" : "Show Preview"}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      </ScreenHeader>
 
       <Container variant="desktop" safeArea="bottom" scroll>
         <View
@@ -436,7 +472,7 @@ export default function EditInvoiceScreen() {
           )}
         >
           {/* -------------------- Form column -------------------- */}
-          <View className={cn("gap-6", isDesktopLayout && "flex-1")}>
+          <View className={cn("gap-10", isDesktopLayout && "flex-1")}>
             <PillTabs
               items={SECTION_TABS}
               activeKey={activeSection}
@@ -448,7 +484,7 @@ export default function EditInvoiceScreen() {
                 {/* -------------------- Template (locked) -------------------- */}
                 <View className="gap-1">
                   <Text variant="subheading">Template</Text>
-                  <View className="flex-row items-center justify-between rounded-lg border border-border bg-card p-4">
+                  <View className="flex-row items-center justify-between rounded-lg bg-secondary/30 p-4">
                     <Text variant="body-sm">{TEMPLATE_LABEL[template]}</Text>
                     <Text variant="caption" className="text-muted-foreground">
                       Locked after creation
@@ -456,59 +492,111 @@ export default function EditInvoiceScreen() {
                   </View>
                 </View>
 
+                <Divider />
+
                 {/* -------------------- Client -------------------- */}
                 <View className="gap-3">
                   <Text variant="subheading">Client</Text>
 
                   {selectedClientId != null ? (
-                    <View className="flex-row items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
-                      <View className="flex-1 gap-0.5">
-                        <Text variant="body" className="font-semibold">
-                          {name}
-                        </Text>
+                    <>
+                      <View className="flex-row items-center justify-between gap-3 rounded-lg bg-secondary/30 p-4">
+                        <View className="flex-1 gap-0.5">
+                          <Text variant="body" className="font-semibold">
+                            {name}
+                          </Text>
+                        </View>
+                        <Pressable onPress={handleClearClient}>
+                          <Text
+                            variant="body-sm"
+                            className="text-muted-foreground"
+                          >
+                            Clear
+                          </Text>
+                        </Pressable>
                       </View>
-                      <Pressable onPress={handleClearClient}>
-                        <Text
-                          variant="body-sm"
-                          className="text-muted-foreground"
-                        >
-                          Clear
+
+                      {/* Collapsed by default — see CreateInvoiceScreen
+                          for why these stay editable rather than
+                          locked or hidden entirely. */}
+                      <Pressable
+                        onPress={() =>
+                          setIsEditingClientDetails((prev) => !prev)
+                        }
+                      >
+                        <Text variant="body-sm" className="text-link">
+                          {isEditingClientDetails
+                            ? "Hide details"
+                            : "Edit details"}
                         </Text>
                       </Pressable>
-                    </View>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      title="Select from existing clients"
-                      onPress={() => setClientPickerVisible(true)}
-                    />
-                  )}
 
-                  <Input
-                    placeholder="Client name"
-                    value={name}
-                    onChangeText={setName}
-                  />
-                  <Input
-                    placeholder="Email (optional)"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    value={email}
-                    onChangeText={setEmail}
-                  />
-                  <Input
-                    placeholder="Phone (optional)"
-                    keyboardType="phone-pad"
-                    value={phone}
-                    onChangeText={setPhone}
-                  />
-                  <Input
-                    placeholder="Address (optional)"
-                    value={address}
-                    onChangeText={setAddress}
-                    multiline
-                  />
+                      {isEditingClientDetails && (
+                        <>
+                          <Input
+                            placeholder="Client name"
+                            value={name}
+                            onChangeText={setName}
+                          />
+                          <Input
+                            placeholder="Email (optional)"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            value={email}
+                            onChangeText={setEmail}
+                          />
+                          <Input
+                            placeholder="Phone (optional)"
+                            keyboardType="phone-pad"
+                            value={phone}
+                            onChangeText={setPhone}
+                          />
+                          <Input
+                            placeholder="Address (optional)"
+                            value={address}
+                            onChangeText={setAddress}
+                            multiline
+                          />
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Pressable onPress={() => setClientPickerVisible(true)}>
+                        <Text variant="body-sm" className="text-link">
+                          Select from existing clients
+                        </Text>
+                      </Pressable>
+
+                      <Input
+                        placeholder="Client name"
+                        value={name}
+                        onChangeText={setName}
+                      />
+                      <Input
+                        placeholder="Email (optional)"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        value={email}
+                        onChangeText={setEmail}
+                      />
+                      <Input
+                        placeholder="Phone (optional)"
+                        keyboardType="phone-pad"
+                        value={phone}
+                        onChangeText={setPhone}
+                      />
+                      <Input
+                        placeholder="Address (optional)"
+                        value={address}
+                        onChangeText={setAddress}
+                        multiline
+                      />
+                    </>
+                  )}
                 </View>
+
+                <Divider />
 
                 {/* -------------------- Invoice details -------------------- */}
                 <View className="gap-3">
@@ -537,11 +625,13 @@ export default function EditInvoiceScreen() {
                   </View>
                 </View>
 
+                <Divider />
+
                 {/* -------------------- Items -------------------- */}
                 <View className="gap-3">
                   <Text variant="subheading">Items</Text>
 
-                  <View className="gap-3">
+                  <View className="gap-5">
                     {items.map((item, index) => (
                       <InvoiceItemFormRow
                         key={index}
@@ -562,21 +652,33 @@ export default function EditInvoiceScreen() {
                   />
                 </View>
 
+                <Divider />
+
                 {/* -------------------- Discount -------------------- */}
                 <View className="gap-3">
-                  <Text variant="subheading">Discount</Text>
-                  <Input
-                    placeholder="0"
-                    keyboardType="decimal-pad"
-                    value={discount}
-                    onChangeText={setDiscount}
-                  />
+                  {isDiscountVisible ? (
+                    <>
+                      <Text variant="subheading">Discount</Text>
+                      <Input
+                        placeholder="Discount amount"
+                        keyboardType="decimal-pad"
+                        value={discount}
+                        onChangeText={setDiscount}
+                      />
+                    </>
+                  ) : (
+                    <Pressable onPress={() => setIsDiscountVisible(true)}>
+                      <Text variant="body-sm" className="text-link">
+                        + Add discount
+                      </Text>
+                    </Pressable>
+                  )}
 
                   {/* Mirrors CreateInvoiceScreen: on mobile there's no
                       side-by-side preview for the running total, so this
                       summary card stays as the only place to see it. */}
                   {!isDesktopLayout && (
-                    <View className="gap-2 rounded-lg border border-border bg-card p-4">
+                    <View className="gap-2 rounded-lg bg-secondary/30 p-4">
                       <View className="flex-row items-center justify-between">
                         <Text
                           variant="body-sm"
@@ -599,7 +701,7 @@ export default function EditInvoiceScreen() {
                           -{currency} {discountValue.toFixed(2)}
                         </Text>
                       </View>
-                      <View className="h-px bg-border" />
+                      <Divider />
                       <View className="flex-row items-center justify-between">
                         <Text variant="body" className="font-semibold">
                           Total
@@ -640,9 +742,9 @@ export default function EditInvoiceScreen() {
             )}
           </View>
 
-          {/* -------------------- Live preview column (desktop only) -------------------- */}
-          {isDesktopLayout && draftPreview && (
-            <View className="w-[380px]">
+          {/* -------------------- Live preview column (desktop only, toggleable) -------------------- */}
+          {isDesktopLayout && isPreviewVisible && draftPreview && (
+            <View className="flex-1">
               <InvoicePreview invoice={draftPreview} />
             </View>
           )}

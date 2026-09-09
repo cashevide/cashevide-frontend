@@ -49,8 +49,13 @@ export default function InvoiceItemFormRow({
     onChange({ ...item, product: null });
   }
 
+  const quantity = Number(item.quantity) || 0;
+  const unitPrice = Number(item.unit_price) || 0;
+  const lineTotal = quantity * unitPrice;
+  const hasLineTotal = quantity > 0 && unitPrice > 0;
+
   return (
-    <View className="gap-3 rounded-lg border border-border bg-secondary/20 p-4">
+    <View className="gap-3 border-b border-border pb-5">
       <View className="flex-row items-center justify-between gap-3">
         <Pressable onPress={() => setProductPickerVisible(true)}>
           <Text variant="body-sm" className="text-link">
@@ -96,29 +101,32 @@ export default function InvoiceItemFormRow({
         onChangeText={(text) => onChange({ ...item, description: text })}
       />
 
-      <View className="flex-row items-end gap-3">
+      <View className="flex-row items-center gap-3">
+        <SegmentedTabs
+          items={UNIT_TYPE_OPTIONS.map((option) => ({
+            key: option.value,
+            label: option.label,
+          }))}
+          activeKey={item.unit_type ?? null}
+          onSelect={(key) =>
+            onChange({
+              ...item,
+              unit_type: key as InvoiceItemRequest["unit_type"],
+            })
+          }
+          // Matches Input's h-12 (48px): track padding (p-2.5, 10px
+          // each side) + the h-7 segment (28px) = 48px, so this row
+          // doesn't have a visibly shorter control next to the
+          // quantity input.
+          className="p-2.5"
+        />
+
         <View className="w-20">
           <Input
             placeholder="Qty"
             keyboardType="decimal-pad"
             value={item.quantity ?? ""}
             onChangeText={(text) => onChange({ ...item, quantity: text })}
-          />
-        </View>
-
-        <View className="flex-1">
-          <SegmentedTabs
-            items={UNIT_TYPE_OPTIONS.map((option) => ({
-              key: option.value,
-              label: option.label,
-            }))}
-            activeKey={item.unit_type ?? null}
-            onSelect={(key) =>
-              onChange({
-                ...item,
-                unit_type: key as InvoiceItemRequest["unit_type"],
-              })
-            }
           />
         </View>
       </View>
@@ -129,6 +137,24 @@ export default function InvoiceItemFormRow({
         value={item.unit_price ?? ""}
         onChangeText={(text) => onChange({ ...item, unit_price: text })}
       />
+
+      {/* Line total — qty × unit price, computed here so the person
+          doesn't have to do that math themselves while entering an
+          item, especially on mobile where there's no live preview
+          to cross-check against. */}
+      {hasLineTotal && (
+        <View className="flex-row justify-end">
+          <Text variant="body-sm" className="text-muted-foreground">
+            Line total:{" "}
+            <Text variant="body-sm" className="font-semibold text-foreground">
+              {lineTotal.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Text>
+          </Text>
+        </View>
+      )}
 
       <ProductPickerModal
         visible={productPickerVisible}

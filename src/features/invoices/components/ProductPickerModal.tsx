@@ -64,13 +64,31 @@ export default function ProductPickerModal({
           className="max-h-[400px] grow-0"
           data={productResults}
           keyExtractor={(item) => item.slug}
+          ItemSeparatorComponent={() => <View className="h-2" />}
+          // web:pr-2 keeps the browser's native scrollbar off the card
+          // content — see Container.tsx's ScrollView for the full
+          // explanation of why this is needed on web only.
+          contentContainerClassName="web:pr-2 py-1"
           renderItem={({ item }) => (
             <Pressable
-              className="py-3 border-b border-border"
               onPress={() => handleSelect(item)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              className="gap-0.5 bg-card border border-border rounded-lg p-3"
             >
-              <Text variant="body-sm">{item.title}</Text>
-              <Text variant="caption">{item.unit_price}</Text>
+              <Text
+                variant="body-sm"
+                className="font-semibold"
+                numberOfLines={1}
+              >
+                {item.title}
+              </Text>
+              <Text
+                variant="caption"
+                className="text-muted-foreground"
+                numberOfLines={1}
+              >
+                {item.unit_price}
+              </Text>
             </Pressable>
           )}
         />
