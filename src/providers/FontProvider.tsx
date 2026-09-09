@@ -1,12 +1,6 @@
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
-import {
-  useFonts,
-  Geist_400Regular,
-  Geist_500Medium,
-  Geist_600SemiBold,
-  Geist_700Bold,
-} from "@expo-google-fonts/geist";
+import { useFonts } from "expo-font";
 import { View } from "react-native";
 
 // Prevent the splash screen from auto-hiding before we know if the fonts are ready.
@@ -15,10 +9,10 @@ SplashScreen.preventAutoHideAsync();
 
 export function FontProvider({ children }: PropsWithChildren) {
   const [fontsLoaded, fontError] = useFonts({
-    Geist_400Regular,
-    Geist_500Medium,
-    Geist_600SemiBold,
-    Geist_700Bold,
+    Geist_400Regular: require("@/src/shared/assets/fonts/Geist_400Regular.ttf"),
+    Geist_500Medium: require("@/src/shared/assets/fonts/Geist_500Medium.ttf"),
+    Geist_600SemiBold: require("@/src/shared/assets/fonts/Geist_600SemiBold.ttf"),
+    Geist_700Bold: require("@/src/shared/assets/fonts/Geist_700Bold.ttf"),
   });
 
   const [appIsReady, setAppIsReady] = useState(false);
