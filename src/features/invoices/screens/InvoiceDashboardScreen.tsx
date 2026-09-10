@@ -24,6 +24,12 @@ import type { InvoiceDashboardResponse } from "../types/invoiceDashboardTypes";
 // NativeWind web: class — same reasoning as ScreenHeader's back icon.
 const LOGO_WIDTH = Platform.OS === "web" ? 40 : 28;
 
+// Temporarily disabled: flip to true to re-enable the Dhamu/Vasu
+// Malayali-mode onboarding prompt on first visit to this screen. The
+// prompt component and its stores are untouched — this only gates
+// whether it gets mounted below.
+const MALAYALI_PROMPT_ENABLED = false;
+
 export default function InvoiceDashboardScreen() {
   const dashboard = useInvoiceDashboard();
   const businessProfile = useBusinessProfile();
@@ -93,8 +99,10 @@ export default function InvoiceDashboardScreen() {
           multi-step flow) only until the user has been through it once;
           `hasSeenMalayaliPrompt` flips to true from inside the prompt
           itself, at which point this stops rendering on every future
-          visit to this screen. */}
-      {!hasSeenMalayaliPrompt && (
+          visit to this screen. Gated additionally on
+          MALAYALI_PROMPT_ENABLED (see top of file) to disable the
+          prompt without removing the code. */}
+      {MALAYALI_PROMPT_ENABLED && !hasSeenMalayaliPrompt && (
         <MalayaliModePrompt visible onComplete={() => {}} />
       )}
     </View>
